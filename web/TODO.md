@@ -9,6 +9,7 @@
 - Every page shows its data source (browser mock, engine example, engine).
 - `lib/scanMetadata.ts` maps the iOS `metadata.json` onto `ScanMeta`; real example in `lib/fixtures/metadata.example.json`.
 - Real scans from Supabase (`lib/scans.ts`): `/item/<item_id>` builds the timeline from the newest baseline plus later check scans; the home page lists scanned items; a baseline-only item shows "waiting for a check scan". Uses the engine's `is_mock` to label example responses.
+- Accept and Dispute for real scans write `decision` on the newest check scan's row (the same field the iOS app writes), read it back on load, and show it on the evidence page. Dispute opens the evidence page. A write that matches no row shows an error. Tested against a local stand-in for Supabase, not the shared table.
 - Tested 2026-10-24 at 412 px and 1366 px: browser mock (37 checks: checkout, dispute, reload persistence, blocked storage, no horizontal scroll, no console errors) and engine mode against the engine's `/diff` (no console errors, no horizontal scroll).
 
 ## In progress
@@ -16,12 +17,12 @@
 
 ## Blocked / next
 - **First real comparison:** `coffee-maker-1` has only a baseline. Needs a check scan from Koushik and the engine running (`NEXT_PUBLIC_DIFF_API_URL`); the browser mock cannot compare real scans.
-- **Accept and Dispute for real scans:** hidden for Supabase items. Next: write `scans.decision` (the demo order flow is mock only).
 - **Real items have no title, kind or price** in the table, so they show their `item_id`, count as shipping, and have no checkout.
 - **Realtime refresh** when the phone finishes uploading (Supabase realtime on `scans`).
 - **Engine URL** for the demo: a public HTTPS URL (or the laptop's LAN address for the OnePlus).
 
 ## Assumptions to confirm with teammates
+0. **Koushik: decisions can be changed.** Anyone with the page can switch accept and dispute (the table policy allows anonymous updates). Fine for the demo; tighten before real use.
 1. Resolved by Adi (0c02c0f): `is_mock` added, +Y up, mock r2 depth fixed, `base_id`/`new_id` are `scans.id`, `kind` is `baseline` or `check`.
 5. **Adi: fingerprints.** Assumed `base_fingerprint` equals the phone's `model_sha256`. A hash is not tamper-evident until it is recorded somewhere independent at handoff time.
 6. **Adi: diff time.** `diff_time_s` is 3.4 s in the mock. If real runs are slow, `/diff` needs a status endpoint instead of one long request.

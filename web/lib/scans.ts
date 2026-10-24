@@ -82,3 +82,22 @@ export async function fetchItemIds(): Promise<string[]> {
   if (error) throw new Error(`Could not list scanned items: ${error.message}`);
   return [...new Set(data.map((r) => r.item_id))].filter((id) => !id.startsWith("_"));
 }
+
+export type Decision = "accept" | "dispute";
+
+/** The decision on a check scan, as written by this page or the iOS app. */
+export async function fetchDecision(scanId: string): Promise<Decision | null> {
+  if (!supabase) throw new Error("Supabase is not configured");
+  const { data, error } = await supabase.from("scans").select("decision").eq("id", scanId).maybeSingle<Pick<ScanRow, "decision">>();
+  if (error) throw new Error(`Could not read the decision: ${error.message}`);
+  return data?.decision ?? null;
+}
+
+/** Writes `decision` on the check scan's row, the same field the iOS app writes. */
+export async function writeDecision(scanId: string, decision: Decision): Promise<void> {
+  if (!supabase) throw new Error("Supabase is not configured");
+  // select() returns the changed rows, so a write that matched nothing is not mistaken for success.
+  const { data, error } = await supabase.from("scans").update({ decision }).eq("id", scanId).select("id");
+  if (error) throw new Error(`Could not save the decision: ${error.message}`);
+  if (!data?.length) throw new Error("Could not save the decision: the scan was not found");
+}

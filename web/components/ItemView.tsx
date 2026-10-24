@@ -11,6 +11,7 @@ import { useComparison, type Comparison } from "@/lib/useComparison";
 import DecisionPanel from "./DecisionPanel";
 import Histogram from "./Histogram";
 import RegionList from "./RegionList";
+import ScanDecisionPanel from "./ScanDecisionPanel";
 import ScanViewer, { type Marker } from "./ScanViewer";
 import Timeline from "./Timeline";
 import VerdictBanner from "./VerdictBanner";
@@ -55,8 +56,7 @@ export default function ItemView({ item }: { item: Item }) {
         </div>
       )}
       {state.status === "ready" && <ComparisonView data={state.data} />}
-      {/* TODO: Accept and Dispute for real scans (write scans.decision). The demo order flow is mock only. */}
-      {item.source !== "supabase" && <DecisionPanel item={item} />}
+      {item.source === "supabase" ? <ScanDecisionPanel item={item} /> : <DecisionPanel item={item} />}
     </main>
   );
 }

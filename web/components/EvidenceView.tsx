@@ -4,7 +4,9 @@ import Link from "next/link";
 import { formatDate, formatDistance, formatPercent, LABEL_TEXT, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
 import { statusAt, useOrder } from "@/lib/orderStatus";
 import type { DiffResult, Item, ScanMeta } from "@/lib/types";
+import { fetchDecision, type Decision } from "@/lib/scans";
 import { useComparison } from "@/lib/useComparison";
+import { useEffect, useState } from "react";
 import Fingerprint from "./Fingerprint";
 import Histogram from "./Histogram";
 import StatusPill from "./StatusPill";
@@ -34,7 +36,7 @@ export default function EvidenceView({ item }: { item: Item }) {
         <h1 className="text-2xl font-bold">{item.title}</h1>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
           <span>Item ID: {item.id}</span>
-          {item.source !== "supabase" && <StatusPill status={order.status} kind={item.kind} />}
+          {item.source === "supabase" ? <ScanDecision item={item} /> : <StatusPill status={order.status} kind={item.kind} />}
           {disputedAt && <span>Disputed {formatDate(disputedAt)}</span>}
         </div>
         <p className="mt-2 text-sm">
@@ -181,5 +183,21 @@ function ScanCard({ role, scan }: { role: string; scan: ScanMeta }) {
         <Fingerprint sha256={scan.sha256} />
       </div>
     </div>
+  );
+}
+
+/** The decision saved on a real item's newest check scan. */
+function ScanDecision({ item }: { item: Item }) {
+  const checkScanId = item.versions.length > 1 ? item.versions[item.versions.length - 1].scanId : null;
+  const [decision, setDecision] = useState<Decision | null>(null);
+  useEffect(() => {
+    if (!checkScanId) return;
+    fetchDecision(checkScanId).then(setDecision, () => setDecision(null));
+  }, [checkScanId]);
+  if (!decision) return null;
+  return (
+    <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold dark:bg-zinc-800">
+      {decision === "accept" ? "Accepted" : "Disputed"}
+    </span>
   );
 }
