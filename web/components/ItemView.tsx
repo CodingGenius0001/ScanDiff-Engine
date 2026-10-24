@@ -156,18 +156,22 @@ function ComparisonView({ data }: { data: Comparison }) {
             <Legend threshold={diff.noiseThreshold} max={colorMax} units={diff.units} />
           ))}
         {heatModel ? (
-          // Engine result: the heat map is baked onto the baseline surface; the new scan is shown plain.
+          // Engine result: the heat map is baked onto the new scan's surface, aligned to the baseline.
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <ScanViewer
               title={`Baseline: ${diff.baseScan.name}`}
-              subtitle={heat ? "Heat map of the change, drawn on the baseline surface." : "Baseline scan."}
-              model={heat ? heatModel : baseModel}
+              subtitle="Baseline scan."
+              model={baseModel}
               {...common}
             />
             <ScanViewer
               title={`New: ${diff.newScan.name}`}
-              subtitle="Aligned into the baseline frame by the engine."
-              model={newModel}
+              subtitle={
+                heat
+                  ? "Heat map on the new scan. Removed parts show only in the flagged regions."
+                  : "Aligned into the baseline frame by the engine."
+              }
+              model={heat ? heatModel : newModel}
               {...common}
             />
           </div>

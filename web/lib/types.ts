@@ -145,7 +145,11 @@ export interface DiffResult {
    * baseline frame. Not applied yet: the app assumes models arrive aligned.
    */
   alignment?: number[];
-  /** Engine heat map on the baseline surface. When present, the viewer shows it instead of computing colors. */
+  /**
+   * Engine heat map on the new scan's surface, aligned into the baseline frame.
+   * When present, the viewer shows it instead of computing colors. A removed
+   * part has no surface in it; regions and stats still report it.
+   */
   heatmap?: BakedHeatmap;
   histogram: Histogram;
   flaggedRegions: FlaggedRegion[];

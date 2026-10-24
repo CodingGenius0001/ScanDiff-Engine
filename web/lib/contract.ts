@@ -5,7 +5,7 @@
  */
 export type IsMock = boolean;
 /**
- * Heatmap GLB in the base scan frame, meters, with signed blue/gray/red vertex colors already applied.
+ * Heatmap GLB: the new scan's surface aligned into the base scan frame, meters, with signed blue/gray/red vertex colors already applied.
  */
 export type HeatmapUrl = string;
 /**
@@ -155,8 +155,9 @@ export type DiffId = string;
  * All three GLBs are in the base scan frame, in meters, with +Y up as in ARKit and glTF. Every
  * position in this response (centroid_m, bbox_*_m) is in that frame too. The upload is USDZ, which
  * three.js cannot load, so the engine publishes both scans as GLB. `new_model_url` is already aligned
- * into the base frame. `heatmap_url` is the base surface with vertex colors already applied on the
- * signed blue/gray/red scale.
+ * into the base frame. `heatmap_url` is the new scan's surface, also aligned into the base frame,
+ * with vertex colors already applied on the signed blue/gray/red scale. A part removed since the base
+ * scan has no surface in it; regions and stats still report it.
  */
 export interface DiffResponse {
   is_mock: IsMock;

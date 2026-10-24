@@ -5,7 +5,7 @@
 - Viewer `/item/[id]`, evidence page `/item/[id]/evidence`, demo checkout `/checkout/mug-001`, rental car timeline, all on browser mock data.
 - Engine contract: `lib/contract.ts` generated from `engine/contract/diff_response.schema.json` (`npm run gen:contract`).
 - `diffClient.ts` calls the engine's `POST /diff` when `NEXT_PUBLIC_DIFF_API_URL` is set and maps the response onto `DiffResult` (meters to millimeters, fingerprints, verdict reason and confidence, ICP numbers).
-- Engine mode: baseline shows the engine's baked heat map, new scan shows the aligned GLB, signed legend (blue dent, gray unchanged, red added), region and "no data" markers, photo crops when present.
+- Engine mode: baseline shows the plain base GLB, new scan shows the engine's heat map (its own aligned surface; removed parts appear only in regions), signed legend (blue dent, gray unchanged, red added), region and "no data" markers, photo crops when present.
 - Every page shows its data source (browser mock, engine example, engine).
 - `lib/scanMetadata.ts` maps the iOS `metadata.json` onto `ScanMeta`; real example in `lib/fixtures/metadata.example.json`.
 - Real scans from Supabase (`lib/scans.ts`): `/item/<item_id>` builds the timeline from the newest baseline plus later check scans; the home page lists scanned items; a baseline-only item shows "waiting for a check scan". Uses the engine's `is_mock` to label example responses.
