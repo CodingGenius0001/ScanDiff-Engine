@@ -88,6 +88,20 @@ CALIBRATED = _calibration is not None
 NOISE_SIGMA_MM = _calibration["sigma_mm"] if CALIBRATED else 1.0
 THRESHOLD_MM = _calibration["threshold_mm"] if CALIBRATED else 3.0
 
+# Regions: DBSCAN over the changed points, with eps in voxels.
+REGION_EPS_VOXELS = 3.0
+REGION_MIN_SAMPLES = 15
+# Neighborhood for the depth gradient at a region's edge, in voxels.
+REGION_GRADIENT_RADIUS_VOXELS = 2.0
+# Each point's area comes from a normal fitted to this many nearest points.
+AREA_NEIGHBORS = 8
+# Base surface with no new point nearby is a missing part only when it outweighs the changed
+# new surface clustered with it this many times. Otherwise it is the far side of the same
+# change: the base surface over a dent, or under a glued-on part.
+MISSING_AREA_RATIO = 2.0
+# Smaller regions are dropped. A placeholder until real damage has been measured.
+MIN_REGION_CM2 = 0.5
+
 # Heat map: colors saturate at this many thresholds; bigger meshes are decimated for the browser.
 HEATMAP_SATURATION_THRESHOLDS = 5.0
 HEATMAP_MAX_FACES = 100_000
