@@ -9,6 +9,7 @@ import { loadModel, type LoadedModel } from "@/lib/modelLoader";
 import { toDisplay } from "@/lib/format";
 import { COLORS, RAMP_CSS } from "@/lib/heatmap";
 import type { BakedHeatmap, Item, LengthUnit } from "@/lib/types";
+import { useLiveScans } from "@/lib/liveScans";
 import { useComparison, type Comparison } from "@/lib/useComparison";
 import DecisionPanel from "./DecisionPanel";
 import Histogram from "./Histogram";
@@ -20,6 +21,7 @@ import VerdictBanner from "./VerdictBanner";
 
 export default function ItemView({ item }: { item: Item }) {
   const state = useComparison(item);
+  const live = useLiveScans(item);
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:py-6">
       <header className="flex flex-col gap-1">
@@ -30,6 +32,12 @@ export default function ItemView({ item }: { item: Item }) {
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {item.kind === "rental" ? "Rental car pickup and return comparison" : "Shipping handoff comparison"}
         </p>
+        {item.source === "supabase" && (
+          <p className="flex items-center gap-1.5 text-xs text-zinc-500" role="status">
+            <span className={`h-2 w-2 rounded-full ${live.updating ? "animate-pulse bg-amber-500" : "bg-emerald-500"}`} />
+            {live.updating ? "New scan received. Updating…" : "Live: this page updates when a new scan is uploaded."}
+          </p>
+        )}
       </header>
       <section className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
         <h2 className="mb-3 text-sm font-semibold text-zinc-500">Version timeline</h2>
@@ -61,7 +69,7 @@ export default function ItemView({ item }: { item: Item }) {
         </>
       )}
       {state.status === "ready" && <ComparisonView data={state.data} />}
-      {item.source === "supabase" ? <ScanDecisionPanel item={item} /> : <DecisionPanel item={item} />}
+      {item.source === "supabase" ? <ScanDecisionPanel item={item} decision={live.decision} onDecided={live.decided} /> : <DecisionPanel item={item} />}
     </main>
   );
 }

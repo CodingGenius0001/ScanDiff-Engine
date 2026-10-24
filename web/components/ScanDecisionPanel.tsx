@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { fetchDecision, writeDecision, type Decision } from "@/lib/scans";
+import { useState } from "react";
+import { writeDecision, type Decision } from "@/lib/scans";
 import type { Item } from "@/lib/types";
 
 const DECISION_TEXT: Record<Decision, string> = { accept: "Accepted", dispute: "Disputed" };
@@ -12,25 +12,19 @@ const DECISION_TEXT: Record<Decision, string> = { accept: "Accepted", dispute: "
  * Accept or Dispute for real scans. The decision is stored on the newest
  * check scan's row, where the iOS app also writes it, so both always agree.
  */
-export default function ScanDecisionPanel({ item }: { item: Item }) {
+interface Props {
+  item: Item;
+  /** Stored decision from live updates (including ones made on the phone); undefined until first read. */
+  decision: Decision | null | undefined;
+  onDecided: (decision: Decision) => void;
+}
+
+export default function ScanDecisionPanel({ item, decision, onDecided }: Props) {
   const router = useRouter();
   const checkScanId = item.versions.length > 1 ? item.versions[item.versions.length - 1].scanId : null;
-  const [decision, setDecision] = useState<Decision | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const loaded = decision !== undefined;
   const [saving, setSaving] = useState<Decision | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!checkScanId) return;
-    let cancelled = false;
-    fetchDecision(checkScanId)
-      .then((d) => !cancelled && setDecision(d))
-      .catch((e: Error) => !cancelled && setError(e.message))
-      .finally(() => !cancelled && setLoaded(true));
-    return () => {
-      cancelled = true;
-    };
-  }, [checkScanId]);
 
   async function decide(next: Decision) {
     if (!checkScanId) return;
@@ -38,7 +32,7 @@ export default function ScanDecisionPanel({ item }: { item: Item }) {
     setError(null);
     try {
       await writeDecision(checkScanId, next);
-      setDecision(next);
+      onDecided(next);
       if (next === "dispute") router.push(`/item/${encodeURIComponent(item.id)}/evidence`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
