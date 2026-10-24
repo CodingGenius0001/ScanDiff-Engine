@@ -60,9 +60,18 @@ def test_texture_names_and_file_hashes_parse():
     ]
     metadata = ScanMetadata.model_validate(raw)
 
-    assert metadata.textures == ["texture_0.png", "texture_2.png", "texture_1.png"]
+    assert [texture.file for texture in metadata.textures] == ["texture_0.png", "texture_2.png", "texture_1.png"]
     # Empty hashes are skipped, and model_sha256 wins over a conflicting `files` entry.
     assert expected_hashes(metadata) == {"model.obj": "ab" * 32, raw["model_file"]: raw["model_sha256"]}
+
+
+def test_textures_with_hashes_parse_and_are_checked():
+    raw = json.loads(FIXTURE.read_text())
+    raw["textures"] = [{"file": "texture_0.png", "sha256": "cd" * 32}, "texture_1.png"]
+    metadata = ScanMetadata.model_validate(raw)
+
+    assert [texture.file for texture in metadata.textures] == ["texture_0.png", "texture_1.png"]
+    assert expected_hashes(metadata) == {"texture_0.png": "cd" * 32, raw["model_file"]: raw["model_sha256"]}
 
 
 def test_transform_must_end_with_one_and_be_a_rotation():
