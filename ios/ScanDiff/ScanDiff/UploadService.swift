@@ -92,13 +92,15 @@ struct UploadService {
                 func enqueueNext() {
                     guard let job = pending.popFirst() else { return }
                     group.addTask {
-                        try await client.storage
-                            .from("scans")
-                            .upload(
-                                job.path,
-                                fileURL: job.file,
-                                options: FileOptions(contentType: job.contentType, upsert: true)
-                            )
+                        try await Self.withRetry {
+                            _ = try await client.storage
+                                .from("scans")
+                                .upload(
+                                    job.path,
+                                    fileURL: job.file,
+                                    options: FileOptions(contentType: job.contentType, upsert: true)
+                                )
+                        }
                     }
                 }
                 for _ in 0..<Self.maxConcurrentUploads {
@@ -110,6 +112,20 @@ struct UploadService {
             }
         } catch {
             throw ScanError.uploadFailed(error.localizedDescription)
+        }
+    }
+
+    /// Safe to repeat because every file is written with upsert.
+    private static func withRetry(attempts: Int = 3, _ operation: () async throws -> Void) async throws {
+        for attempt in 1...attempts {
+            do {
+                try await operation()
+                return
+            } catch {
+                if attempt == attempts || Task.isCancelled { throw error }
+                Diagnostics.log("upload retry \(attempt) after: \(error.localizedDescription)")
+                try await Task.sleep(for: .seconds(Double(attempt)))
+            }
         }
     }
 

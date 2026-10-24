@@ -343,8 +343,10 @@ final class ScanSessionModel {
                 imagesDirectory: folders.images,
                 modelUSDZ: output,
                 bundleDirectory: folders.bundle,
-                createdBy: DeviceInfo.createdBy,
-                device: DeviceInfo.description
+                createdBy: SupabaseProvider.client?.auth.currentUser?.id.uuidString.lowercased() ?? "signed-out",
+                device: DeviceInfo.modelIdentifier,
+                iosVersion: DeviceInfo.systemVersion,
+                imageCount: shotCount
             )
             let prepared = try await Task.detached(priority: .userInitiated) {
                 try ScanBundle.make(input, poses: poses)
@@ -388,21 +390,41 @@ final class ScanSessionModel {
             let receipt = try await UploadService().upload(prepared)
             self.receipt = receipt
             Diagnostics.log("upload done version=\(receipt.version)")
-            if request.kind == .check {
-                if let baselineID = receipt.baselineID {
-                    diff = try await EngineClients.make().diff(baseID: baselineID, newID: receipt.scanID)
-                } else {
-                    errorMessage = "No baseline scan exists for this item yet."
-                }
-                stage = .result
-            } else {
-                stage = .saved
-            }
         } catch {
             Diagnostics.log("upload failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             stage = .review
+            return
         }
+        if request.kind == .check {
+            await runDiff()
+        } else {
+            stage = .saved
+        }
+    }
+
+    /// Separate from upload so a failed comparison can be retried without
+    /// uploading the scan again.
+    func runDiff() async {
+        guard let receipt else { return }
+        diff = nil
+        errorMessage = nil
+        guard let baselineID = receipt.baselineID else {
+            errorMessage = "No baseline scan exists for this item yet, so there is nothing to compare against."
+            stage = .result
+            return
+        }
+        stage = .comparing
+        let started = Date()
+        do {
+            let result = try await EngineClients.make().diff(baseID: baselineID, newID: receipt.scanID)
+            diff = result
+            Diagnostics.log("diff done triage=\(result.triage.rawValue) regions=\(result.regions.count) mock=\(result.isMock) in \(String(format: "%.1f", Date().timeIntervalSince(started)))s")
+        } catch {
+            Diagnostics.log("diff failed: \(error.localizedDescription)")
+            errorMessage = error.localizedDescription
+        }
+        stage = .result
     }
 
     func decide(_ decision: String) async {

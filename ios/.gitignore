@@ -1,4 +1,6 @@
 ScanDiff/Configuration/Secrets.xcconfig
+# Xcode index data written inside the project bundle by command-line builds.
+**/*.xcodeproj/-Xcc/
 **/xcuserdata/
 **/*.xcuserstate
 DerivedData/

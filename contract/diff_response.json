@@ -1,0 +1,222 @@
+{
+  "is_mock": false,
+  "heatmap_url": "https://zzwgwfvngafjwegzebqt.supabase.co/storage/v1/object/public/scans/diffs/d562800360b24df8851e057f6d86499d/heatmap.glb",
+  "base_model_url": "https://zzwgwfvngafjwegzebqt.supabase.co/storage/v1/object/public/scans/diffs/d562800360b24df8851e057f6d86499d/base_model.glb",
+  "new_model_url": "https://zzwgwfvngafjwegzebqt.supabase.co/storage/v1/object/public/scans/diffs/d562800360b24df8851e057f6d86499d/new_model.glb",
+  "heatmap_legend": {
+    "min_mm": -15.0,
+    "max_mm": 15.0,
+    "threshold_mm": 3.0,
+    "colormap": "diverging_blue_gray_red",
+    "neutral_band_mm": 3.0
+  },
+  "histogram": {
+    "bin_edges_mm": [
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+      11.0,
+      12.0,
+      13.0,
+      14.0,
+      15.0
+    ],
+    "counts": [
+      15367,
+      9286,
+      5731,
+      3527,
+      2137,
+      1733,
+      1276,
+      843,
+      591,
+      379,
+      279,
+      260,
+      178,
+      161,
+      783
+    ],
+    "bins_mm": [
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+      11.0,
+      12.0,
+      13.0,
+      14.0,
+      15.0
+    ]
+  },
+  "stats": {
+    "changed_fraction": 0.2802806454610094,
+    "max_change_mm": 31.569004483490993,
+    "noise_floor_mm": 1.0,
+    "threshold_mm": 3.0,
+    "icp_fitness": 0.5472478897745174,
+    "icp_rmse_mm": 1.2148969893971604,
+    "diff_time_s": 4.23
+  },
+  "regions": [
+    {
+      "id": "r1",
+      "label": "needs_review",
+      "damage_type": "dent_damage",
+      "kind": "dent",
+      "area_cm2": 41.362,
+      "max_depth_mm": 31.569,
+      "mean_depth_mm": 13.136,
+      "centroid_m": [
+        0.003824,
+        0.096478,
+        0.026054
+      ],
+      "radius_m": 0.054081,
+      "bbox_min_m": [
+        -0.039401,
+        0.059702,
+        0.011833
+      ],
+      "bbox_max_m": [
+        0.046729,
+        0.133386,
+        0.052673
+      ],
+      "confidence": 0.475,
+      "reason": "32 mm deep, 41 cm\u00b2 dent around the middle.",
+      "before_crop_url": "https://zzwgwfvngafjwegzebqt.supabase.co/storage/v1/object/public/scans/diffs/d562800360b24df8851e057f6d86499d/regions/1_before.jpg",
+      "after_crop_url": null,
+      "triage": "inconclusive",
+      "bbox": {
+        "min": [
+          -0.039401,
+          0.059702,
+          0.011833
+        ],
+        "max": [
+          0.046729,
+          0.133386,
+          0.052673
+        ]
+      },
+      "max_mm": 31.569,
+      "mean_mm": 13.136
+    },
+    {
+      "id": "r2",
+      "label": "needs_review",
+      "damage_type": "dent_damage",
+      "kind": "dent",
+      "area_cm2": 48.389,
+      "max_depth_mm": 19.672,
+      "mean_depth_mm": 8.017,
+      "centroid_m": [
+        0.040075,
+        0.053788,
+        -0.048578
+      ],
+      "radius_m": 0.077364,
+      "bbox_min_m": [
+        -0.010893,
+        0.02205,
+        -0.094254
+      ],
+      "bbox_max_m": [
+        0.067839,
+        0.091712,
+        0.027134
+      ],
+      "confidence": 0.467,
+      "reason": "20 mm deep, 48 cm\u00b2 dent with sharp edges near the bottom.",
+      "before_crop_url": "https://zzwgwfvngafjwegzebqt.supabase.co/storage/v1/object/public/scans/diffs/d562800360b24df8851e057f6d86499d/regions/2_before.jpg",
+      "after_crop_url": "https://zzwgwfvngafjwegzebqt.supabase.co/storage/v1/object/public/scans/diffs/d562800360b24df8851e057f6d86499d/regions/2_after.jpg",
+      "triage": "inconclusive",
+      "bbox": {
+        "min": [
+          -0.010893,
+          0.02205,
+          -0.094254
+        ],
+        "max": [
+          0.067839,
+          0.091712,
+          0.027134
+        ]
+      },
+      "max_mm": 19.672,
+      "mean_mm": 8.017
+    },
+    {
+      "id": "r3",
+      "label": "needs_review",
+      "damage_type": "dent_damage",
+      "kind": "added",
+      "area_cm2": 55.62,
+      "max_depth_mm": 15.425,
+      "mean_depth_mm": 6.887,
+      "centroid_m": [
+        0.004266,
+        0.011467,
+        -0.066912
+      ],
+      "radius_m": 0.058388,
+      "bbox_min_m": [
+        -0.045533,
+        0.001612,
+        -0.107349
+      ],
+      "bbox_max_m": [
+        0.044676,
+        0.039399,
+        -0.018289
+      ],
+      "confidence": 0.86,
+      "reason": "15 mm high, 56 cm\u00b2 bump near the bottom.",
+      "before_crop_url": null,
+      "after_crop_url": null,
+      "triage": "damage",
+      "bbox": {
+        "min": [
+          -0.045533,
+          0.001612,
+          -0.107349
+        ],
+        "max": [
+          0.044676,
+          0.039399,
+          -0.018289
+        ]
+      },
+      "max_mm": 15.425,
+      "mean_mm": 6.887
+    }
+  ],
+  "uncovered_regions": [],
+  "verdict": "damage_likely",
+  "verdict_confidence": 0.5223213399679448,
+  "verdict_reason": "Likely damage: 15 mm high, 56 cm\u00b2 bump near the bottom. (7 more like it)",
+  "base_fingerprint": "146e47c40a59acc3e321bb5f80bbac35d63bb400ea6bcf325c41fdf93d29f95a",
+  "new_fingerprint": "92da0f7083cf2d68f9ea804fcccd29865678865434e7bb50d3b67d4b7eb02280",
+  "diff_id": "d562800360b24df8851e057f6d86499d",
+  "compared_fraction": null,
+  "triage": "damage",
+  "confidence": 0.5223213399679448,
+  "reason": "Likely damage: 15 mm high, 56 cm\u00b2 bump near the bottom. (7 more like it)"
+}

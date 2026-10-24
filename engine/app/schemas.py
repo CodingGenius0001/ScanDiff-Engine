@@ -4,15 +4,20 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
-from scandiff.config import ROTATION_ATOL
+from scandiff.config import DAMAGE_MIN_CONFIDENCE, ROTATION_ATOL
 
 Label = Literal["normal_wear", "needs_review"]
 DamageType = Literal["normal_wear", "scratch_scuff", "dent_damage", "missing_part"]
 Kind = Literal["dent", "added", "missing"]
 Verdict = Literal["accept", "damage_likely", "needs_review"]
 ScanSide = Literal["base", "new"]
+# Plain-language triage shared with the iOS app (contract/README.md). Derived from the fields
+# above, never computed separately, so it cannot disagree with `verdict` or a region's label.
+Triage = Literal["no_change", "wear", "damage", "inconclusive"]
+RegionTriage = Literal["wear", "damage", "inconclusive"]
+_DAMAGE_TYPES = ("dent_damage", "missing_part")
 
 def _point_m(description: str) -> type[list[float]]:
     return Annotated[list[float], Field(min_length=3, max_length=3, description=description)]
@@ -62,6 +67,30 @@ class Region(BaseModel):
     before_crop_url: str | None = None
     after_crop_url: str | None = None
 
+    @computed_field(description="wear, damage (counts toward damage_likely), or inconclusive.")
+    @property
+    def triage(self) -> RegionTriage:
+        if self.label == "normal_wear":
+            return "wear"
+        if self.damage_type in _DAMAGE_TYPES and self.confidence > DAMAGE_MIN_CONFIDENCE:
+            return "damage"
+        return "inconclusive"
+
+    @computed_field(description="{min, max}: bbox_min_m and bbox_max_m.")
+    @property
+    def bbox(self) -> dict[str, list[float]]:
+        return {"min": self.bbox_min_m, "max": self.bbox_max_m}
+
+    @computed_field(description="Same as max_depth_mm.")
+    @property
+    def max_mm(self) -> float:
+        return self.max_depth_mm
+
+    @computed_field(description="Same as mean_depth_mm.")
+    @property
+    def mean_mm(self) -> float:
+        return self.mean_depth_mm
+
     @field_validator("reason")
     @classmethod
     def reason_is_one_line(cls, value: str) -> str:
@@ -92,6 +121,11 @@ class Histogram(BaseModel):
     counts: list[int] = Field(
         description="Unitless sample count in each bin. One fewer entry than bin_edges_mm."
     )
+
+    @computed_field(description="Same as bin_edges_mm.")
+    @property
+    def bins_mm(self) -> list[float]:
+        return self.bin_edges_mm
 
 
 class Stats(BaseModel):
@@ -176,6 +210,29 @@ class DiffResponse(BaseModel):
     base_fingerprint: str
     new_fingerprint: str
     diff_id: str
+    compared_fraction: UnitInterval | None = Field(
+        default=None,
+        description="Fraction of the base surface both scans covered, from 0 to 1. Null until coverage is computed.",
+    )
+
+    @computed_field(description="no_change, wear, damage, or inconclusive. A triage, not a guarantee.")
+    @property
+    def triage(self) -> Triage:
+        if self.verdict == "damage_likely":
+            return "damage"
+        if self.verdict == "needs_review":
+            return "inconclusive"
+        return "wear" if self.regions else "no_change"
+
+    @computed_field(description="Same as verdict_confidence.")
+    @property
+    def confidence(self) -> float:
+        return self.verdict_confidence
+
+    @computed_field(description="Same as verdict_reason.")
+    @property
+    def reason(self) -> str:
+        return self.verdict_reason
 
 
 Flat16 = Annotated[list[float], Field(min_length=16, max_length=16)]

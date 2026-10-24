@@ -29,7 +29,10 @@ export function getDiff(baseId: string, newId: string): Promise<DiffResult> {
   const key = `${baseId}|${newId}`;
   let p = cache.get(key);
   if (!p) {
-    p = API_BASE ? fetchDiff(API_BASE, baseId, newId) : mockDiff(baseId, newId);
+    // Catalog demo items (mug-001, car-001) only exist in the browser mock, so they
+    // stay on it even when the engine is configured for real scans.
+    const isCatalogPair = baseId in MOCK_SCANS && newId in MOCK_SCANS;
+    p = API_BASE && !isCatalogPair ? fetchDiff(API_BASE, baseId, newId) : mockDiff(baseId, newId);
     // A failed request should be retryable, not cached forever.
     p.catch(() => cache.delete(key));
     cache.set(key, p);
@@ -79,6 +82,22 @@ const REQUIRED: (keyof DiffResponse)[] = [
 /** Engine positions are meters; the web app works in millimeters. */
 export const M_TO_MM = 1000;
 
+/**
+ * The engine says accept | damage_likely | needs_review; the components use
+ * match | minor_wear | needs_review. accept with regions means only normal wear.
+ */
+export function toVerdict(verdict: DiffResponse["verdict"] | string, regionCount: number): DiffResult["verdict"] {
+  switch (verdict) {
+    case "accept":
+      return regionCount > 0 ? "minor_wear" : "match";
+    case "match":
+    case "minor_wear":
+      return verdict;
+    default:
+      return "needs_review";
+  }
+}
+
 function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): DiffResult {
   if (!raw || typeof raw !== "object") throw new Error("Diff response is not a JSON object");
   const missing = REQUIRED.filter((k) => !(k in raw));
@@ -125,12 +144,13 @@ function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): Diff
       coveredBy: u.only_in === "base" ? "baseline_only" : "new_only",
       description: `About ${u.area_cm2.toFixed(1)} cm² of surface.`,
     })),
-    verdict: r.verdict,
+    verdict: toVerdict(r.verdict, r.regions.length),
     verdictConfidence: r.verdict_confidence,
     verdictReason: r.verdict_reason,
     summary: {
       maxDistance: r.stats.max_change_mm,
       fractionAboveThreshold: r.stats.changed_fraction,
+      ...(typeof r.compared_fraction === "number" ? { coveredFraction: r.compared_fraction } : {}),
     },
     quality: {
       noiseFloor: r.stats.noise_floor_mm,

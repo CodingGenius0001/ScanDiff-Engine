@@ -42,6 +42,8 @@ enum ScanBundle {
         let bundleDirectory: URL
         let createdBy: String
         let device: String
+        let iosVersion: String
+        let imageCount: Int
         var createdAt = Date()
     }
 
@@ -89,6 +91,8 @@ enum ScanBundle {
             created_by: input.createdBy,
             created_at: Timestamps.iso8601UTC(input.createdAt),
             device: input.device,
+            ios_version: input.iosVersion,
+            image_count: input.imageCount,
             model_file: modelFileName,
             model_sha256: modelDigest,
             obj_file: objFileName,

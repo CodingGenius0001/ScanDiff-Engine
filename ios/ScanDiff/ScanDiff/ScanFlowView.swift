@@ -25,6 +25,8 @@ struct ScanFlowView: View {
                             }
                         }
                     }
+            case .comparing:
+                ComparingView()
             case .saved:
                 SavedScanView(model: model, onClose: onClose)
             case .result:
