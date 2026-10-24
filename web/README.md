@@ -22,9 +22,17 @@ Everything runs on mock data generated in code. No backend, database or API key 
 | `lib/types.ts` | All data types | Assumed shapes | Match the backend contract |
 | `lib/diffClient.ts` | `getDiff(baseId, newId)` | Returns mock data | Calls the diff API and maps its response |
 | `lib/modelLoader.ts` | `loadModel(url)` | GLB and PLY | Add any other format the iOS app exports |
+| `lib/items.ts` | Item title, price, scan history | Mock catalog | Backend item source |
 | `lib/orderStatus.ts` | Checkout status flow | `localStorage` | Driven by real database updates |
 
-The open assumptions are listed in `TODO.md`.
+The open assumptions are listed in `TODO.md`. Mock data lives only in `lib/mock/`.
+
+## Pages
+
+- `/` home
+- `/checkout/mug-001` demo checkout (shipping and returns)
+- `/item/mug-001`, `/item/car-001` comparison viewer
+- `/item/<id>/evidence` printable dispute evidence
 
 ## Deploy to Vercel
 

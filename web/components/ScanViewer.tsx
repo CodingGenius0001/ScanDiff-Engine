@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Html, OrbitControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { useEffect, useMemo, useRef, type ComponentRef } from "react";
 import * as THREE from "three";
 import type { CameraLink } from "@/lib/cameraSync";
@@ -32,6 +32,8 @@ interface Props {
 }
 
 export default function ScanViewer(props: Props) {
+  // Marker badges are plain DOM buttons over the canvas, positioned each frame.
+  const badges = useRef(new Map<string, HTMLButtonElement>());
   return (
     <figure className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
       <figcaption className="border-b border-zinc-200 px-3 py-2 dark:border-zinc-800">
@@ -50,9 +52,33 @@ export default function ScanViewer(props: Props) {
           <Model {...props} />
           <LinkedControls link={props.link} />
           {props.markers.map((m) => (
-            <MarkerView key={m.id} marker={m} selected={m.id === props.selectedId} onSelect={props.onSelect} />
+            <MarkerSphere key={m.id} marker={m} selected={m.id === props.selectedId} />
           ))}
+          <BadgeProjector markers={props.markers} badges={badges} />
         </Canvas>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {props.markers.map((m) => {
+            const selected = m.id === props.selectedId;
+            return (
+              <button
+                key={m.id}
+                ref={(el) => {
+                  if (el) badges.current.set(m.id, el);
+                  else badges.current.delete(m.id);
+                }}
+                type="button"
+                onClick={() => props.onSelect(m.id)}
+                aria-label={m.kind === "nodata" ? "No data region" : `Region ${m.number}`}
+                style={{ visibility: "hidden" }}
+                className={`pointer-events-auto absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full border-2 text-[11px] font-bold shadow ${
+                  selected ? "border-white bg-zinc-900 text-white" : "border-zinc-900 bg-white text-zinc-900"
+                } ${m.kind === "nodata" ? "border-dashed" : ""}`}
+              >
+                {m.kind === "nodata" ? "–" : m.number}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </figure>
   );
@@ -117,36 +143,42 @@ function LinkedControls({ link }: { link: CameraLink }) {
   );
 }
 
-function MarkerView({
-  marker,
-  selected,
-  onSelect,
-}: {
-  marker: Marker;
-  selected: boolean;
-  onSelect: (id: string) => void;
-}) {
+function MarkerSphere({ marker, selected }: { marker: Marker; selected: boolean }) {
+  if (!selected) return null;
   const color = marker.kind === "nodata" ? COLORS.noData : "#111827";
   return (
-    <group position={marker.center}>
-      {selected && (
-        <mesh>
-          <sphereGeometry args={[marker.radius, 24, 16]} />
-          <meshBasicMaterial color={color} wireframe transparent opacity={0.35} />
-        </mesh>
-      )}
-      <Html center zIndexRange={[10, 0]}>
-        <button
-          type="button"
-          onClick={() => onSelect(marker.id)}
-          aria-label={`Region ${marker.number}`}
-          className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[11px] font-bold shadow ${
-            selected ? "border-white bg-zinc-900 text-white" : "border-zinc-900 bg-white text-zinc-900"
-          } ${marker.kind === "nodata" ? "border-dashed" : ""}`}
-        >
-          {marker.kind === "nodata" ? "–" : marker.number}
-        </button>
-      </Html>
-    </group>
+    <mesh position={marker.center}>
+      <sphereGeometry args={[marker.radius, 24, 16]} />
+      <meshBasicMaterial color={color} wireframe transparent opacity={0.35} />
+    </mesh>
   );
+}
+
+/** Moves each badge to its marker's screen position every frame. */
+function BadgeProjector({
+  markers,
+  badges,
+}: {
+  markers: Marker[];
+  badges: React.RefObject<Map<string, HTMLButtonElement>>;
+}) {
+  const camera = useThree((s) => s.camera);
+  const size = useThree((s) => s.size);
+  const v = useMemo(() => new THREE.Vector3(), []);
+  useFrame(() => {
+    for (const m of markers) {
+      const el = badges.current.get(m.id);
+      if (!el) continue;
+      v.set(...m.center).project(camera);
+      if (v.z > 1 || v.z < -1) {
+        el.style.visibility = "hidden";
+        continue;
+      }
+      const x = ((v.x + 1) / 2) * size.width - 12;
+      const y = ((1 - v.y) / 2) * size.height - 12;
+      el.style.transform = `translate(${x}px, ${y}px)`;
+      el.style.visibility = "visible";
+    }
+  });
+  return null;
 }
