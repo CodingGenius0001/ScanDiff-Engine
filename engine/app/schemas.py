@@ -10,8 +10,8 @@ from scandiff.config import ROTATION_ATOL
 
 Label = Literal["normal_wear", "needs_review"]
 DamageType = Literal["normal_wear", "scratch_scuff", "dent_damage", "missing_part"]
-Kind = Literal["dent", "added"]
-Verdict = Literal["match", "minor_wear", "needs_review"]
+Kind = Literal["dent", "added", "missing"]
+Verdict = Literal["accept", "damage_likely", "needs_review"]
 ScanSide = Literal["base", "new"]
 
 def _point_m(description: str) -> type[list[float]]:
@@ -194,12 +194,21 @@ def _require_rotation(rotation: np.ndarray) -> None:
 
 
 class TextureFile(BaseModel):
-    """One extra texture file named by a later app version."""
+    """One texture that model.mtl references. Older apps send just the name; newer ones add its hex sha256."""
 
     model_config = ConfigDict(extra="ignore")
 
     file: str
-    sha256: str
+    sha256: str = ""
+
+
+class FileRecord(BaseModel):
+    """One bundle file and its hex sha256, from `files` in metadata.json. An empty hash means unknown."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    name: str
+    sha256: str = ""
 
 
 class PhotoMeta(BaseModel):
@@ -255,3 +264,12 @@ class ScanMetadata(BaseModel):
     photos: list[PhotoMeta]
     units: str = "m"
     textures: list[TextureFile] = Field(default_factory=list)
+    files: list[FileRecord] = Field(default_factory=list)
+
+    @field_validator("textures", mode="before")
+    @classmethod
+    def texture_names_are_files(cls, value: object) -> object:
+        """Accept plain names as well as {file, sha256}: the app has sent both."""
+        if isinstance(value, list):
+            return [{"file": item} if isinstance(item, str) else item for item in value]
+        return value

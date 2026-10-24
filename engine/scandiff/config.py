@@ -88,6 +88,64 @@ CALIBRATED = _calibration is not None
 NOISE_SIGMA_MM = _calibration["sigma_mm"] if CALIBRATED else 1.0
 THRESHOLD_MM = _calibration["threshold_mm"] if CALIBRATED else 3.0
 
+# Regions: DBSCAN over the changed points, with eps in voxels.
+REGION_EPS_VOXELS = 3.0
+REGION_MIN_SAMPLES = 15
+# Neighborhood for the depth gradient at a region's edge, in voxels.
+REGION_GRADIENT_RADIUS_VOXELS = 2.0
+# Each point's area comes from a normal fitted to this many nearest points.
+AREA_NEIGHBORS = 8
+# Base surface with no new point nearby is a missing part only when it outweighs the changed
+# new surface clustered with it this many times. Otherwise it is the far side of the same
+# change: the base surface over a dent, or under a glued-on part.
+MISSING_AREA_RATIO = 2.0
+# Smaller regions are dropped. A placeholder until real damage has been measured.
+MIN_REGION_CM2 = 0.5
+
+# Region photos: a view must face the region at least this much (cosine), and a mesh hit
+# blocks it only if it is this far plus the region's depth in front of the region.
+PHOTO_MIN_FACING = 0.2
+OCCLUSION_TOLERANCE_MM = 5.0
+# Crops: the region's projected box plus this share of its size, at least CROP_MIN_PX
+# across in the photo, then resized to CROP_SIZE_PX square.
+CROP_PADDING = 0.3
+CROP_MIN_PX = 160
+CROP_SIZE_PX = 256
+CROP_JPEG_QUALITY = 90
+# Length of the world-up step projected to find which way is up in a photo.
+CROP_UP_PROBE_MM = 50.0
+
+# Classification. Each rule multiplies soft steps: logistic curves centered on these numbers
+# and CLASSIFY_SOFTNESS of them wide, so a region near a cutoff shares its score between
+# labels. CLASSIFY_PRIOR is added to every label before normalizing, so a region no rule
+# fits comes out uncertain instead of confidently wrong.
+CLASSIFY_SOFTNESS = 0.15
+CLASSIFY_PRIOR = 0.05
+MISSING_MIN_AREA_CM2 = 2.0
+MISSING_MIN_DEPTH_MM = 10.0
+# Spread (RMS radius over a flat disc's) above this is spread out, below it compact.
+COMPACT_MAX_SPREAD = 1.5
+DENT_MIN_DEPTH_THRESHOLDS = 2.0
+DENT_MIN_SHARPNESS = 0.6
+SCRATCH_MIN_ASPECT = 4.0
+SCRATCH_MAX_EXTRA_MM = 1.5
+SCRATCH_MAX_AREA_CM2 = 3.0
+WEAR_MAX_AREA_CM2 = 8.0
+WEAR_MAX_EXTRA_MM = 1.5
+# With a vision answer, labels are GEOMETRY_WEIGHT geometry and the rest vision.
+GEOMETRY_WEIGHT = 0.6
+VISION_TIMEOUT_S = 4.0
+VISION_DEFAULT_PROVIDER = "anthropic"
+VISION_DEFAULT_MODEL = "claude-opus-5-5"
+# Only the most severe regions get photo crops and a vision call.
+MAX_CROPPED_REGIONS = 8
+
+# Verdict
+ACCEPT_FRACTION = 0.02
+DAMAGE_MIN_CONFIDENCE = 0.7
+# Below this share of the new scan within ALIGN_GATE_DISTANCE_MM of the base, a person checks.
+REVIEW_MIN_FITNESS = 0.8
+
 # Heat map: colors saturate at this many thresholds; bigger meshes are decimated for the browser.
 HEATMAP_SATURATION_THRESHOLDS = 5.0
 HEATMAP_MAX_FACES = 100_000

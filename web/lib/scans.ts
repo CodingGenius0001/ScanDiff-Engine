@@ -48,7 +48,12 @@ export async function fetchScan(id: string): Promise<ScanMeta | undefined> {
  * uploaded after it. The page compares the baseline with the newest check.
  */
 export async function fetchItem(itemId: string): Promise<Item | undefined> {
-  if (!supabase) return undefined;
+  return itemFromRows(itemId, await fetchItemRows(itemId));
+}
+
+/** Every scan row for an item, oldest version first. */
+export async function fetchItemRows(itemId: string): Promise<ScanRow[]> {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("scans")
     .select(COLUMNS)
@@ -56,9 +61,13 @@ export async function fetchItem(itemId: string): Promise<Item | undefined> {
     .order("version", { ascending: true })
     .returns<ScanRow[]>();
   if (error) throw new Error(`Could not read scans for ${itemId}: ${error.message}`);
-  const baseline = data?.filter((r) => r.kind === "baseline").at(-1);
+  return data;
+}
+
+export function itemFromRows(itemId: string, rows: ScanRow[]): Item | undefined {
+  const baseline = rows.filter((r) => r.kind === "baseline").at(-1);
   if (!baseline) return undefined;
-  const checks = data!.filter((r) => r.kind === "check" && r.version > baseline.version);
+  const checks = rows.filter((r) => r.kind === "check" && r.version > baseline.version);
   const version = (r: ScanRow, label: string): ScanVersion => ({ scanId: r.id, label, capturedAt: r.created_at });
   return {
     id: itemId,

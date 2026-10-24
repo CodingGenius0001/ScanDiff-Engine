@@ -1,51 +1,52 @@
 import { formatDistance, formatPercent, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
 import type { DiffResult } from "@/lib/types";
 
-const STYLE = {
-  match: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100",
-  minor_wear: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100",
-  needs_review: "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100",
+const TONE = {
+  match: { ring: "border-emerald-400/30", glow: "from-emerald-500/15", text: "text-emerald-300", dot: "bg-emerald-400" },
+  minor_wear: { ring: "border-amber-400/30", glow: "from-amber-500/15", text: "text-amber-300", dot: "bg-amber-400" },
+  needs_review: { ring: "border-red-400/30", glow: "from-red-500/15", text: "text-red-300", dot: "bg-red-400" },
 };
 
 const ICON = { match: "✓", minor_wear: "!", needs_review: "!!" };
 
 export default function VerdictBanner({ diff }: { diff: DiffResult }) {
   const v = VERDICT_TEXT[diff.verdict];
+  const t = TONE[diff.verdict];
+  const stats: [string, string][] = [
+    ["Largest change", formatDistance(diff.summary.maxDistance, diff.units)],
+    ["Change threshold", formatDistance(diff.noiseThreshold, diff.units)],
+    ["Above threshold", `${formatPercent(diff.summary.fractionAboveThreshold)} of surface`],
+  ];
+  if (diff.summary.coveredFraction !== undefined) {
+    stats.push(["Covered by both scans", formatPercent(diff.summary.coveredFraction)]);
+  } else if (diff.verdictConfidence !== undefined) {
+    stats.push(["Verdict confidence", formatPercent(diff.verdictConfidence)]);
+  }
+
   return (
-    <section role="status" className={`rounded-xl border px-4 py-3 ${STYLE[diff.verdict]}`}>
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span aria-hidden className="text-lg font-black">{ICON[diff.verdict]}</span>
-        <h2 className="text-lg font-bold">Verdict: {v.title}</h2>
-        <span className="text-sm">{diff.verdictReason ?? v.detail}</span>
+    <section role="status" className={`relative overflow-hidden rounded-2xl border ${t.ring} bg-white/[0.02] p-1.5`}>
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${t.glow} to-transparent`} />
+      <div className="relative flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 pb-3 pt-2.5">
+        <span aria-hidden className={`font-mono text-sm font-black ${t.text}`}>
+          {ICON[diff.verdict]}
+        </span>
+        <h2 className="text-xl font-bold tracking-tight">
+          Verdict: <span className={t.text}>{v.title}</span>
+        </h2>
+        <span className="text-sm text-zinc-300">{diff.verdictReason ?? v.detail}</span>
       </div>
-      <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
-        <div>
-          <dt className="opacity-75">Largest change</dt>
-          <dd className="font-semibold">{formatDistance(diff.summary.maxDistance, diff.units)}</dd>
-        </div>
-        <div>
-          <dt className="opacity-75">Change threshold</dt>
-          <dd className="font-semibold">{formatDistance(diff.noiseThreshold, diff.units)}</dd>
-        </div>
-        <div>
-          <dt className="opacity-75">Above threshold</dt>
-          <dd className="font-semibold">{formatPercent(diff.summary.fractionAboveThreshold)} of surface</dd>
-        </div>
-        {diff.summary.coveredFraction !== undefined ? (
-          <div>
-            <dt className="opacity-75">Covered by both scans</dt>
-            <dd className="font-semibold">{formatPercent(diff.summary.coveredFraction)}</dd>
+      <dl className="relative grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        {stats.map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-white/[0.06] bg-black/30 px-3 py-2.5">
+            <dt className="label text-[10px]">{label}</dt>
+            <dd className="mt-1 font-mono text-lg font-semibold tabular-nums text-white">{value}</dd>
           </div>
-        ) : (
-          diff.verdictConfidence !== undefined && (
-            <div>
-              <dt className="opacity-75">Verdict confidence</dt>
-              <dd className="font-semibold">{formatPercent(diff.verdictConfidence)}</dd>
-            </div>
-          )
-        )}
+        ))}
       </dl>
-      <p className="mt-2 text-[11px] opacity-75">Source: {SOURCE_TEXT[diff.source].short}</p>
+      <p className="relative flex items-center gap-1.5 px-3 pb-1 pt-2 font-mono text-[11px] text-zinc-500">
+        <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
+        Source: {SOURCE_TEXT[diff.source].short}
+      </p>
     </section>
   );
 }

@@ -14,7 +14,8 @@ export interface Marker {
   number: number;
   center: Vec3;
   radius: number;
-  kind: "change" | "nodata";
+  /** "missing": a part that is gone, so it has no surface on the new scan's heat map. */
+  kind: "change" | "missing" | "nodata";
 }
 
 interface Props {
@@ -35,19 +36,20 @@ export default function ScanViewer(props: Props) {
   // Marker badges are plain DOM buttons over the canvas, positioned each frame.
   const badges = useRef(new Map<string, HTMLButtonElement>());
   return (
-    <figure className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <figcaption className="border-b border-zinc-200 px-3 py-2 dark:border-zinc-800">
-        <div className="text-sm font-semibold">{props.title}</div>
-        <div className="text-xs text-zinc-500 dark:text-zinc-400">{props.subtitle}</div>
+    <figure className="panel flex flex-col overflow-hidden p-1.5">
+      <figcaption className="px-2.5 pb-2 pt-1.5">
+        <div className="text-sm font-semibold tracking-tight">{props.title}</div>
+        <div className="font-mono text-[11px] text-zinc-500">{props.subtitle}</div>
       </figcaption>
-      <div className="relative h-64 touch-none sm:h-80 lg:h-[420px]">
+      <div className="stage relative h-64 touch-none overflow-hidden rounded-xl sm:h-80 lg:h-[420px]">
         <Canvas
           dpr={[1, 2]}
           camera={{ fov: 40, near: props.model.radius / 100, far: props.model.radius * 50 }}
         >
-          <color attach="background" args={["#f4f4f5"]} />
-          <hemisphereLight args={["#ffffff", "#9ca3af", 1.6]} />
-          <directionalLight position={[1, 2, 1.5]} intensity={1.6} />
+          {/* Transparent canvas: the dot-grid stage shows through. A violet rim light from behind. */}
+          <hemisphereLight args={["#ffffff", "#3f3f46", 0.9]} />
+          <directionalLight position={[1, 2, 1.5]} intensity={1.1} />
+          <directionalLight position={[-1, 0.6, -2]} intensity={0.9} color="#a78bfa" />
           <directionalLight position={[-1.5, 0.5, -1]} intensity={0.6} />
           <Model {...props} />
           <LinkedControls link={props.link} />
@@ -68,10 +70,14 @@ export default function ScanViewer(props: Props) {
                 }}
                 type="button"
                 onClick={() => props.onSelect(m.id)}
-                aria-label={m.kind === "nodata" ? "No data region" : `Region ${m.number}`}
+                aria-label={m.kind === "nodata" ? "No data region" : m.kind === "missing" ? `Region ${m.number}, missing part` : `Region ${m.number}`}
                 style={{ visibility: "hidden" }}
-                className={`pointer-events-auto absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full border-2 text-[11px] font-bold shadow ${
-                  selected ? "border-white bg-zinc-900 text-white" : "border-zinc-900 bg-white text-zinc-900"
+                className={`pointer-events-auto absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full border font-mono text-[11px] font-bold backdrop-blur ${
+                  selected
+                    ? "border-accent bg-accent text-zinc-950 shadow-[0_0_14px_var(--color-accent)]"
+                    : m.kind === "missing"
+                      ? "border-2 border-rose-400 bg-rose-500/15 text-rose-200 shadow-[0_0_12px_rgb(251_113_133/0.5)]"
+                      : "border-white/50 bg-zinc-950/80 text-white"
                 } ${m.kind === "nodata" ? "border-dashed" : ""}`}
               >
                 {m.kind === "nodata" ? "–" : m.number}
@@ -145,7 +151,7 @@ function LinkedControls({ link }: { link: CameraLink }) {
 
 function MarkerSphere({ marker, selected }: { marker: Marker; selected: boolean }) {
   if (!selected) return null;
-  const color = marker.kind === "nodata" ? COLORS.noData : "#111827";
+  const color = marker.kind === "nodata" ? COLORS.noData : marker.kind === "missing" ? "#fb7185" : "#a78bfa";
   return (
     <mesh position={marker.center}>
       <sphereGeometry args={[marker.radius, 24, 16]} />

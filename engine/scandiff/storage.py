@@ -149,8 +149,9 @@ def read_metadata(path: Path) -> ScanMetadata:
 
 
 def expected_hashes(metadata: ScanMetadata) -> dict[str, str]:
-    hashes = {metadata.model_file: metadata.model_sha256}
-    hashes.update({texture.file: texture.sha256 for texture in metadata.textures})
+    hashes = {texture.file: texture.sha256 for texture in metadata.textures if texture.sha256}
+    hashes.update({record.name: record.sha256 for record in metadata.files if record.sha256})
+    hashes[metadata.model_file] = metadata.model_sha256
     return hashes
 
 
@@ -186,6 +187,19 @@ def fetch_model(scan: str) -> tuple[Path, ScanMetadata]:
     metadata.json is always downloaded fresh. The model is kept when a local
     copy already matches `model_sha256`.
     """
+    return _fetch(scan, photos=False)
+
+
+def fetch_scan(scan: str) -> tuple[Path, ScanMetadata]:
+    """`fetch_model`, plus every key photo the metadata lists. Returns the model's path; its folder holds the rest.
+
+    A photo is kept when the local copy matches its hash in `files`, or, with
+    no hash, when it is already there: a scan's files do not change.
+    """
+    return _fetch(scan, photos=True)
+
+
+def _fetch(scan: str, photos: bool) -> tuple[Path, ScanMetadata]:
     settings = load_settings()
     client = connect(settings)
     item_id, scan_id = resolve_folder(client, settings, scan)
@@ -198,6 +212,13 @@ def fetch_model(scan: str) -> tuple[Path, ScanMetadata]:
     if not is_current(model, None, metadata.model_sha256):
         download(client, settings.bucket, f"{folder}/{metadata.model_file}", model)
     verify_model_sha256(model, metadata.model_sha256)
+    if photos:
+        hashes = expected_hashes(metadata)
+        for photo in metadata.photos:
+            local = target / photo.file
+            sha256 = hashes.get(photo.file)
+            if not (is_current(local, None, sha256) if sha256 else local.is_file()):
+                download(client, settings.bucket, f"{folder}/{photo.file}", local)
     return model, metadata
 
 

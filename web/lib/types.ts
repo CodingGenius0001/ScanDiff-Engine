@@ -54,6 +54,8 @@ export interface FlaggedRegion {
   maxDistance: number;
   /** Which scan shows the change: "new" (shape moved) or "baseline" (material missing in new scan). */
   seenOn: "baseline" | "new";
+  /** Shape of the change, when the engine reports it. "missing": a part is gone, so the new scan has no surface there. */
+  kind?: "dent" | "added" | "missing";
   description: string;
   /** Optional photo crops of the region from each scan's reference photos. */
   beforeCropUrl?: string | null;

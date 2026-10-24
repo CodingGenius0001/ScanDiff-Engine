@@ -24,11 +24,8 @@ export default function CheckoutView({ item }: { item: Item }) {
   const stepIndex = order.status === "disputed" ? 2 : STEPS.findIndex((s) => s.status === order.status);
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-12 pt-6 sm:pt-10">
       <header className="flex flex-col gap-2">
-        <Link href="/" className="text-xs font-semibold text-zinc-500 underline">
-          ScanDiff
-        </Link>
         <DemoBadge className="w-fit text-sm" />
         <p className="text-xs text-zinc-500">
           Fake marketplace listing for a demo. No card is charged, nothing is held or released, and there is no Apple
@@ -36,27 +33,27 @@ export default function CheckoutView({ item }: { item: Item }) {
         </p>
       </header>
 
-      <section className="flex gap-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="flex gap-4 panel">
         <MugIcon />
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-bold sm:text-xl">{item.title}</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{item.title}</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Sold by Demo Pottery Co. · Scanned before packing</p>
-          <p className="mt-2 text-2xl font-bold">{formatPrice(price)}</p>
+          <p className="mt-2 font-mono text-2xl font-semibold tabular-nums">{formatPrice(price)}</p>
         </div>
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="panel">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-semibold">Order status</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Order status</h2>
           <StatusPill status={order.status} kind={item.kind} />
         </div>
         <ol className="mt-3 grid grid-cols-4 gap-1 text-center text-[11px] sm:text-xs">
           {STEPS.map((s, i) => (
             <li key={s.status} className="flex flex-col items-center gap-1">
               <span
-                className={`h-2 w-full rounded-full ${i <= stepIndex ? "bg-zinc-900 dark:bg-white" : "bg-zinc-200 dark:bg-zinc-700"}`}
+                className={`h-2 w-full rounded-full ${i <= stepIndex ? "bg-accent shadow-[0_0_10px_var(--color-accent)]" : "bg-white/10"}`}
               />
-              <span className={i === stepIndex ? "font-semibold" : "text-zinc-500"}>{s.label}</span>
+              <span className={`font-mono ${i === stepIndex ? "font-semibold text-white" : "text-zinc-500"}`}>{s.label}</span>
             </li>
           ))}
         </ol>
@@ -67,7 +64,7 @@ export default function CheckoutView({ item }: { item: Item }) {
               <button
                 type="button"
                 onClick={() => pay(item.id, item.kind)}
-                className="min-h-12 rounded-lg bg-blue-800 px-4 text-base font-semibold text-white hover:bg-blue-900"
+                className="min-h-12 rounded-full bg-gradient-to-r from-blue-700 to-indigo-600 px-5 text-base font-semibold text-white shadow-[0_8px_30px_-8px_rgb(79_70_229)] transition hover:brightness-110"
               >
                 Pay with Visa (demo)
               </button>
@@ -87,7 +84,7 @@ export default function CheckoutView({ item }: { item: Item }) {
                 onClick={() => {
                   if (uploadScan(item.id, item.kind)) router.push(`/item/${item.id}`);
                 }}
-                className="min-h-12 rounded-lg bg-zinc-900 px-4 font-semibold text-white dark:bg-white dark:text-zinc-900"
+                className="min-h-12 rounded-full bg-zinc-900 px-5 font-semibold text-white dark:bg-white dark:text-zinc-900"
               >
                 Simulate: buyer scan uploaded
               </button>
@@ -98,7 +95,7 @@ export default function CheckoutView({ item }: { item: Item }) {
               <p className="text-sm">The buyer&apos;s scan is uploaded. Review the comparison to accept or dispute.</p>
               <Link
                 href={`/item/${item.id}`}
-                className="flex min-h-12 items-center justify-center rounded-lg bg-zinc-900 px-4 font-semibold text-white dark:bg-white dark:text-zinc-900"
+                className="flex min-h-12 items-center justify-center rounded-full bg-zinc-900 px-5 font-semibold text-white dark:bg-white dark:text-zinc-900"
               >
                 Open comparison
               </Link>
@@ -119,7 +116,7 @@ export default function CheckoutView({ item }: { item: Item }) {
       <button
         type="button"
         onClick={() => resetOrder(item.id, item.kind)}
-        className="min-h-11 self-start rounded-lg border border-zinc-300 px-3 text-sm font-semibold dark:border-zinc-700"
+        className="min-h-11 self-start rounded-full border border-white/10 px-4 font-mono text-xs text-zinc-400 transition-colors hover:border-white/25 hover:text-white"
       >
         Reset demo
       </button>
@@ -174,7 +171,7 @@ function Receipt({ item, releasedAt, heldAt }: { item: Item; releasedAt?: string
 
 function MugIcon() {
   return (
-    <svg viewBox="0 0 64 64" className="h-20 w-20 shrink-0 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-800" aria-hidden>
+    <svg viewBox="0 0 64 64" className="stage h-20 w-20 shrink-0 rounded-xl p-2 text-zinc-300" aria-hidden>
       <path d="M12 14h32v30a10 10 0 0 1-10 10H22a10 10 0 0 1-10-10z" fill="#a1a1aa" />
       <path d="M44 22h4a8 8 0 0 1 0 16h-4" fill="none" stroke="#a1a1aa" strokeWidth="5" />
       <ellipse cx="28" cy="14" rx="16" ry="3" fill="#71717a" />

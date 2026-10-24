@@ -25,15 +25,15 @@ export default function EvidenceView({ item }: { item: Item }) {
         <button
           type="button"
           onClick={() => window.print()}
-          className="min-h-11 rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900"
+          className="min-h-11 rounded-full bg-zinc-900 px-5 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900"
         >
           Print or save as PDF
         </button>
       </div>
 
-      <header className="border-b border-zinc-300 pb-3">
+      <header className="border-b border-zinc-300 pb-3 dark:border-white/10">
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">ScanDiff dispute evidence</p>
-        <h1 className="text-2xl font-bold">{item.title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{item.title}</h1>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
           <span>Item ID: {item.id}</span>
           {item.source === "supabase" ? <ScanDecision item={item} /> : <StatusPill status={order.status} kind={item.kind} />}
@@ -105,7 +105,7 @@ function Evidence({ diff }: { diff: DiffResult }) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-zinc-300 text-xs text-zinc-500">
+              <tr className="border-b border-zinc-300 text-xs text-zinc-500 dark:border-white/15">
                 <th className="py-1 pr-2">#</th>
                 <th className="py-1 pr-2">Description</th>
                 <th className="py-1 pr-2">Label</th>
@@ -116,7 +116,7 @@ function Evidence({ diff }: { diff: DiffResult }) {
             </thead>
             <tbody>
               {diff.flaggedRegions.map((r, i) => (
-                <tr key={r.id} className="border-b border-zinc-200 align-top">
+                <tr key={r.id} className="border-b border-zinc-200 align-top dark:border-white/[0.06]">
                   <td className="py-1.5 pr-2">{i + 1}</td>
                   <td className="py-1.5 pr-2">{r.description}</td>
                   <td className="py-1.5 pr-2">{LABEL_TEXT[r.label]}</td>
@@ -169,7 +169,7 @@ function Field({ label, value, wide }: { label: string; value: string; wide?: bo
 
 function ScanCard({ role, scan }: { role: string; scan: ScanMeta }) {
   return (
-    <div className="rounded-lg border border-zinc-300 p-3 text-sm">
+    <div className="rounded-xl border border-zinc-300 p-3 text-sm dark:border-white/10 dark:bg-white/[0.02]">
       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{role}</div>
       <div className="font-semibold">{scan.name}</div>
       <div>Captured {formatDate(scan.capturedAt)}</div>

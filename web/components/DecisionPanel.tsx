@@ -14,9 +14,9 @@ export default function DecisionPanel({ item }: { item: Item }) {
   const shipping = item.kind === "shipping";
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <section className="panel">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold">{shipping ? "Buyer decision" : "Return decision"}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{shipping ? "Buyer decision" : "Return decision"}</h2>
         <StatusPill status={order.status} kind={item.kind} />
       </div>
       {shipping && <DemoBadge className="mt-2 w-fit" />}
@@ -39,7 +39,7 @@ export default function DecisionPanel({ item }: { item: Item }) {
           onClick={() => {
             if (approve(item.id, item.kind) && shipping) router.push(`/checkout/${item.id}`);
           }}
-          className="min-h-11 rounded-lg bg-emerald-600 px-4 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-11 rounded-full bg-emerald-500 px-5 font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Accept
         </button>
@@ -49,7 +49,7 @@ export default function DecisionPanel({ item }: { item: Item }) {
           onClick={() => {
             if (dispute(item.id, item.kind)) router.push(`/item/${item.id}/evidence`);
           }}
-          className="min-h-11 rounded-lg border-2 border-red-600 px-4 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950"
+          className="min-h-11 rounded-full border border-red-500/60 px-5 font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-300 dark:hover:bg-red-500/10"
         >
           Dispute
         </button>
