@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { fetchItemIds } from "@/lib/scans";
 
 export default function Home() {
   return (
@@ -42,6 +44,37 @@ export default function Home() {
           <div className="text-lg font-semibold">Open the mug comparison directly</div>
         </Link>
       </div>
+      <Suspense fallback={<p className="text-sm text-zinc-500">Loading scanned items…</p>}>
+        <ScannedItems />
+      </Suspense>
     </main>
+  );
+}
+
+/** Items the iOS app has uploaded to Supabase. */
+async function ScannedItems() {
+  let ids: string[];
+  try {
+    ids = await fetchItemIds();
+  } catch (e) {
+    return <p className="text-sm text-red-700">{e instanceof Error ? e.message : String(e)}</p>;
+  }
+  if (ids.length === 0) return null;
+  return (
+    <section>
+      <h2 className="mb-2 text-sm font-semibold text-zinc-500">Scanned with the iPhone app</h2>
+      <ul className="flex flex-col gap-2">
+        {ids.map((id) => (
+          <li key={id}>
+            <Link
+              href={`/item/${encodeURIComponent(id)}`}
+              className="block rounded-lg border border-zinc-200 bg-white px-4 py-3 font-semibold hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
+            >
+              {id}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

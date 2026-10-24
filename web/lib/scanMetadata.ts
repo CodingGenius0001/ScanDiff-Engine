@@ -30,11 +30,15 @@ const KIND_NAME: Record<string, string> = {
   return: "Return scan",
 };
 
+export function scanName(kind: string): string {
+  return KIND_NAME[kind] ?? `Scan (${kind})`;
+}
+
 /** `modelUrl` is where the engine published this scan as GLB (it cannot be the USDZ). */
 export function toScanMeta(meta: IosScanMetadata, modelUrl: string): ScanMeta {
   return {
     id: meta.scan_id,
-    name: KIND_NAME[meta.kind] ?? `Scan (${meta.kind})`,
+    name: scanName(meta.kind),
     capturedAt: meta.created_at,
     capturedBy: meta.created_by,
     device: meta.device,

@@ -1,6 +1,10 @@
 /* Generated from engine/contract/diff_response.schema.json by npm run gen:contract. Do not edit by hand. */
 
 /**
+ * True when this is the engine's fixed example response, not a comparison of the two scans.
+ */
+export type IsMock = boolean;
+/**
  * Heatmap GLB in the base scan frame, meters, with signed blue/gray/red vertex colors already applied.
  */
 export type HeatmapUrl = string;
@@ -148,11 +152,14 @@ export type DiffId = string;
 /**
  * Comparison of a new scan against a base scan, for the web viewer.
  *
- * All three GLBs are in the base scan frame, in meters. The upload is USDZ, which three.js cannot load,
- * so the engine publishes both scans as GLB. `new_model_url` is already aligned into the base frame.
- * `heatmap_url` is the base surface with vertex colors already applied on the signed blue/gray/red scale.
+ * All three GLBs are in the base scan frame, in meters, with +Y up as in ARKit and glTF. Every
+ * position in this response (centroid_m, bbox_*_m) is in that frame too. The upload is USDZ, which
+ * three.js cannot load, so the engine publishes both scans as GLB. `new_model_url` is already aligned
+ * into the base frame. `heatmap_url` is the base surface with vertex colors already applied on the
+ * signed blue/gray/red scale.
  */
 export interface DiffResponse {
+  is_mock: IsMock;
   heatmap_url: HeatmapUrl;
   base_model_url: BaseModelUrl;
   new_model_url: NewModelUrl;

@@ -10,8 +10,8 @@ export function generateStaticParams() {
 export default function ItemPage({ params }: PageProps<"/item/[id]">) {
   return (
     <Suspense fallback={null}>
-      {params.then(({ id }) => {
-        const item = getItem(id);
+      {params.then(async ({ id }) => {
+        const item = await getItem(id);
         if (!item) notFound();
         return <ItemView item={item} />;
       })}

@@ -10,8 +10,8 @@ export function generateStaticParams() {
 export default function EvidencePage({ params }: PageProps<"/item/[id]/evidence">) {
   return (
     <Suspense fallback={null}>
-      {params.then(({ id }) => {
-        const item = getItem(id);
+      {params.then(async ({ id }) => {
+        const item = await getItem(id);
         if (!item) notFound();
         return <EvidenceView item={item} />;
       })}

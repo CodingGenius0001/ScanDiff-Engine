@@ -177,6 +177,8 @@ export interface Item {
   title: string;
   /** Price in cents for shipping listings. */
   priceCents?: number;
+  /** "supabase" for real scans from the iOS app; mock items omit it. */
+  source?: "supabase";
   /** Scans in time order. The first is the baseline. */
   versions: ScanVersion[];
 }

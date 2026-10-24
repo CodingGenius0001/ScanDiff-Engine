@@ -22,8 +22,7 @@ Set these in `web/.env.local` (copy `.env.example`). They are read at build time
 | Variable | Effect |
 | --- | --- |
 | `NEXT_PUBLIC_DIFF_API_URL` | Empty: browser mock. Set (e.g. `http://localhost:8000`): call the engine's `POST /diff`. |
-| `NEXT_PUBLIC_DIFF_API_MOCK` | `true`: ask the engine for its fixed example (`?mock=true`). The page labels it as an example. |
-| `NEXT_PUBLIC_DIFF_UP_AXIS` | `Y` (default) or `Z`, the engine frame's up axis. |
+| `NEXT_PUBLIC_DIFF_API_MOCK` | `true`: ask the engine for its fixed example (`?mock=true`). The page labels any response with `is_mock: true` as an example either way. |
 
 The page always shows where its data came from (browser mock, engine example, or engine).
 

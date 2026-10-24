@@ -8,13 +8,12 @@
  */
 import type { DiffResponse } from "./contract";
 import { getScan } from "./items";
-import type { DiffResult, ScanMeta, UpAxis } from "./types";
+import { MOCK_SCANS } from "./mock/catalog";
+import type { DiffResult, ScanMeta } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_DIFF_API_URL?.replace(/\/+$/, "") || null;
 /** Ask the engine for its fake response (`?mock=true`). */
 const API_MOCK = process.env.NEXT_PUBLIC_DIFF_API_MOCK === "true";
-// TODO(backend): confirm the engine frame's up axis. ARKit is Y up.
-const API_UP_AXIS: UpAxis = process.env.NEXT_PUBLIC_DIFF_UP_AXIS === "Z" ? "Z" : "Y";
 
 const cache = new Map<string, Promise<DiffResult>>();
 
@@ -31,6 +30,9 @@ export function getDiff(baseId: string, newId: string): Promise<DiffResult> {
 }
 
 async function mockDiff(baseId: string, newId: string): Promise<DiffResult> {
+  if (!(baseId in MOCK_SCANS)) {
+    throw new Error("Real scans need the engine. Set NEXT_PUBLIC_DIFF_API_URL in web/.env.local.");
+  }
   // Loaded lazily so the mock (and three.js) stay out of pages that do not need them.
   const { buildMockDiff } = await import("./mock/scenarios");
   return buildMockDiff(baseId, newId);
@@ -43,16 +45,18 @@ async function fetchDiff(base: string, baseId: string, newId: string): Promise<D
     body: JSON.stringify({ base_id: baseId, new_id: newId }),
   });
   if (!res.ok) throw new Error(`Diff request failed (${res.status})`);
-  return toDiffResult(await res.json(), scanMeta(baseId), scanMeta(newId));
+  const [raw, baseScan, newScan] = await Promise.all([res.json(), scanMeta(baseId), scanMeta(newId)]);
+  return toDiffResult(raw, baseScan, newScan);
 }
 
-function scanMeta(id: string): ScanMeta {
-  const scan = getScan(id);
+async function scanMeta(id: string): Promise<ScanMeta> {
+  const scan = await getScan(id);
   if (!scan) throw new Error(`Unknown scan "${id}"`);
   return scan;
 }
 
 const REQUIRED: (keyof DiffResponse)[] = [
+  "is_mock",
   "heatmap_url",
   "base_model_url",
   "new_model_url",
@@ -75,12 +79,13 @@ function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): Diff
   const mm = (p: [number, number, number]) => p.map((v) => v * M_TO_MM) as [number, number, number];
 
   return {
-    source: API_MOCK ? "engine_mock" : "engine",
+    source: r.is_mock || API_MOCK ? "engine_mock" : "engine",
     diffId: r.diff_id,
     baseScan: { ...baseScan, modelUrl: r.base_model_url, format: "glb", sha256: r.base_fingerprint ?? null },
     newScan: { ...newScan, modelUrl: r.new_model_url, format: "glb", sha256: r.new_fingerprint ?? null },
     units: "mm",
-    upAxis: API_UP_AXIS,
+    // The contract fixes every engine position and GLB as +Y up (ARKit and glTF).
+    upAxis: "Y",
     modelScale: M_TO_MM,
     noiseThreshold: r.stats.threshold_mm,
     heatmap: {

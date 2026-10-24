@@ -12,9 +12,10 @@ export function generateStaticParams() {
 export default function CheckoutPage({ params }: PageProps<"/checkout/[id]">) {
   return (
     <Suspense fallback={null}>
-      {params.then(({ id }) => {
-        const item = getItem(id);
-        if (!item || item.kind !== "shipping") notFound();
+      {params.then(async ({ id }) => {
+        const item = await getItem(id);
+        // Real Supabase items have no price yet, so they have no demo checkout.
+        if (!item || item.kind !== "shipping" || item.priceCents === undefined) notFound();
         return <CheckoutView item={item} />;
       })}
     </Suspense>

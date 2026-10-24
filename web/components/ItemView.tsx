@@ -49,8 +49,14 @@ export default function ItemView({ item }: { item: Item }) {
           </button>
         </div>
       )}
+      {state.status === "waiting" && (
+        <div className="rounded-xl border border-zinc-200 p-6 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400" role="status">
+          Baseline scan received. Waiting for a check scan to compare it with.
+        </div>
+      )}
       {state.status === "ready" && <ComparisonView data={state.data} />}
-      <DecisionPanel item={item} />
+      {/* TODO: Accept and Dispute for real scans (write scans.decision). The demo order flow is mock only. */}
+      {item.source !== "supabase" && <DecisionPanel item={item} />}
     </main>
   );
 }

@@ -34,7 +34,7 @@ export default function EvidenceView({ item }: { item: Item }) {
         <h1 className="text-2xl font-bold">{item.title}</h1>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
           <span>Item ID: {item.id}</span>
-          <StatusPill status={order.status} kind={item.kind} />
+          {item.source !== "supabase" && <StatusPill status={order.status} kind={item.kind} />}
           {disputedAt && <span>Disputed {formatDate(disputedAt)}</span>}
         </div>
         <p className="mt-2 text-sm">
@@ -47,6 +47,9 @@ export default function EvidenceView({ item }: { item: Item }) {
       </header>
 
       {state.status === "loading" && <p className="text-sm text-zinc-500">Loading comparison…</p>}
+      {state.status === "waiting" && (
+        <p className="text-sm text-zinc-500">Only a baseline scan exists, so there is no comparison yet.</p>
+      )}
       {state.status === "error" && (
         <p className="text-sm text-red-700" role="alert">
           Could not load the comparison: {state.message}

@@ -15,6 +15,8 @@ export interface Comparison {
 
 type State =
   | { status: "loading" }
+  /** The item has a baseline but no later scan to compare with yet. */
+  | { status: "waiting" }
   | { status: "error"; message: string }
   | { status: "ready"; data: Comparison };
 
@@ -25,7 +27,10 @@ export function useComparison(item: Item, withModels = true): State & { retry: (
   const [state, setState] = useState<State>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
 
+  const waiting = item.versions.length < 2;
+
   useEffect(() => {
+    if (waiting) return;
     let cancelled = false;
     (async () => {
       try {
@@ -48,10 +53,10 @@ export function useComparison(item: Item, withModels = true): State & { retry: (
     return () => {
       cancelled = true;
     };
-  }, [baseId, newId, withModels, attempt]);
+  }, [baseId, newId, withModels, attempt, waiting]);
 
   return {
-    ...state,
+    ...(waiting ? { status: "waiting" as const } : state),
     retry: () => {
       setState({ status: "loading" });
       setAttempt((a) => a + 1);
