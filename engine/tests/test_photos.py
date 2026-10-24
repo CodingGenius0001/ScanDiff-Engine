@@ -78,6 +78,7 @@ def _region(anchor, normal, half=0.005) -> RegionGeom:
         point_count=1,
         sharpness=0.5,
         spread=1.0,
+        aspect_ratio=1.0,
         anchor_m=anchor,
         normal=np.asarray(normal, dtype=float),
     )

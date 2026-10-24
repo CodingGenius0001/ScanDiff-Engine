@@ -13,18 +13,20 @@ from app.mock import (
     ensure_sample_glb,
     mock_diff_response,
 )
+from app.pipeline import run_diff
 from app.scan_models import scan_model_glb
 from app.schemas import DiffRequest, DiffResponse
 from scandiff.errors import (
+    AlignmentFailed,
     ChecksumMismatch,
     InvalidMetadata,
+    ScaleMismatch,
     ScanNotFound,
+    ScanTooSparse,
     StorageNotConfigured,
     UnsupportedFormat,
+    UploadFailed,
 )
-
-# Flip to True once the real pipeline is wired into /diff.
-PIPELINE_READY = False
 
 ensure_sample_glb()
 
@@ -58,15 +60,44 @@ def schema_example(request: Request) -> DiffResponse:
     return _mock(request)
 
 
-@app.post("/diff", response_model=DiffResponse)
+@app.post(
+    "/diff",
+    response_model=DiffResponse,
+    responses={
+        404: {"description": "No scan with that id in the scans bucket."},
+        422: {
+            "description": "A scan is invalid, too sparse, a different size, or could not be aligned; "
+            "`detail` says which, in words the app can show (for example \"alignment failed, please re-scan\")."
+        },
+        502: {"description": "A result file could not be uploaded to Supabase Storage."},
+        503: {"description": "Supabase is not configured on the engine."},
+    },
+)
 def diff(body: DiffRequest, request: Request, mock: bool = False) -> DiffResponse:
-    """Compare two scans. Returns a fake response until the pipeline is wired, or with ?mock=true."""
-    if mock or not PIPELINE_READY:
+    """Compare the new scan against the base scan. `?mock=true` returns the fixed example instead.
+
+    Takes several seconds: it downloads both scans, aligns them, measures and
+    classifies every change, and uploads the heat map, both models and region crops.
+    """
+    if mock:
         return _mock(request)
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail=f"Diff is not implemented for {body.base_id} -> {body.new_id}",
-    )
+    try:
+        return run_diff(body.base_id, body.new_id)
+    except StorageNotConfigured as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+    except ScanNotFound as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    except (
+        InvalidMetadata,
+        ChecksumMismatch,
+        UnsupportedFormat,
+        ScanTooSparse,
+        ScaleMismatch,
+        AlignmentFailed,
+    ) as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+    except UploadFailed as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
 
 
 @app.get(

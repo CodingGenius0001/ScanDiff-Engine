@@ -1,16 +1,19 @@
 import re
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.schemas import DiffResponse
+from scandiff.errors import AlignmentFailed, ScaleMismatch, ScanNotFound, StorageNotConfigured, UploadFailed
 
 client = TestClient(app)
 BODY = {"base_id": "scan_a", "new_id": "scan_b"}
+MOCK_DIFF = "/diff?mock=true"
 
 
-def test_diff_returns_mock_response():
-    response = client.post("/diff", json=BODY)
+def test_mock_response_fills_every_field():
+    response = client.post(MOCK_DIFF, json=BODY)
 
     assert response.status_code == 200
     result = DiffResponse.model_validate(response.json())
@@ -39,15 +42,36 @@ def test_diff_returns_mock_response():
 
 
 def test_mock_query_param_returns_mock_response():
-    response = client.post("/diff?mock=true", json=BODY)
+    response = client.post(MOCK_DIFF, json=BODY)
 
     assert response.status_code == 200
     assert response.json()["diff_id"] == "mock-diff-0001"
     assert response.json()["is_mock"] is True
 
 
+@pytest.mark.parametrize(
+    "error, status",
+    [
+        (ScanNotFound("No scan folder named scan_a."), 404),
+        (AlignmentFailed("alignment failed, please re-scan"), 422),
+        (ScaleMismatch("different objects or units"), 422),
+        (StorageNotConfigured("no Supabase"), 503),
+        (UploadFailed("bucket refused"), 502),
+    ],
+)
+def test_real_diff_turns_pipeline_errors_into_statuses(monkeypatch, error, status):
+    def fail(base_id, new_id):
+        raise error
+
+    monkeypatch.setattr("app.main.run_diff", fail)
+    response = client.post("/diff", json=BODY)
+
+    assert response.status_code == status
+    assert response.json()["detail"] == str(error)
+
+
 def test_mock_numbers_agree():
-    result = DiffResponse.model_validate(client.post("/diff", json=BODY).json())
+    result = DiffResponse.model_validate(client.post(MOCK_DIFF, json=BODY).json())
 
     deepest = max(result.regions, key=lambda region: region.max_depth_mm)
     assert deepest.max_depth_mm == result.stats.max_change_mm
@@ -56,7 +80,7 @@ def test_mock_numbers_agree():
 
 
 def test_mock_uncovered_patch_is_on_the_side_not_the_bottom():
-    result = DiffResponse.model_validate(client.post("/diff", json=BODY).json())
+    result = DiffResponse.model_validate(client.post(MOCK_DIFF, json=BODY).json())
 
     x, y, z = result.uncovered_regions[0].centroid_m
     assert x < -0.04
@@ -64,7 +88,7 @@ def test_mock_uncovered_patch_is_on_the_side_not_the_bottom():
 
 
 def test_model_urls_serve_glbs():
-    payload = client.post("/diff", json=BODY).json()
+    payload = client.post(MOCK_DIFF, json=BODY).json()
 
     for key in ("heatmap_url", "base_model_url", "new_model_url"):
         response = client.get(payload[key])
@@ -73,6 +97,6 @@ def test_model_urls_serve_glbs():
 
 
 def test_cors_allows_any_origin():
-    response = client.post("/diff", json=BODY, headers={"Origin": "http://localhost:5173"})
+    response = client.post(MOCK_DIFF, json=BODY, headers={"Origin": "http://localhost:5173"})
 
     assert response.headers["access-control-allow-origin"] == "*"

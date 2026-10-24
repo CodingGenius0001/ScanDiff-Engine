@@ -29,3 +29,36 @@ def test_real_scan_loads_and_cleans(scan_dir):
     extents = sorted_extents(cloud)
     assert MIN_EXTENT_M <= extents[0], f"smallest extent {extents[0] * 1000:.1f} mm"
     assert extents[-1] <= MAX_EXTENT_M, f"largest extent {extents[-1] * 1000:.1f} mm"
+
+
+COFFEE_PAIR = [
+    SCANS_DIR / "coffee-maker-1" / "4D4B567F-8B1A-4146-8F55-EF59EF8A3A07",
+    SCANS_DIR / "coffe-maker-2" / "371735CF-77D6-4C1F-960D-725012A74B2B",
+]
+
+
+@pytest.mark.skipif(
+    not all((scan / "photo_01.jpg").is_file() for scan in COFFEE_PAIR), reason="coffee-maker scans not downloaded"
+)
+def test_full_comparison_of_the_coffee_maker_rescan(monkeypatch, tmp_path):
+    from app.pipeline import compare, load_scan
+    from scandiff import classify, storage
+
+    def save(data: bytes, path: str) -> str:
+        (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / path).write_bytes(data)
+        return f"https://example.test/{path}"
+
+    monkeypatch.setattr(storage, "upload_file", save)
+    monkeypatch.setattr("scandiff.photos.upload_file", save)
+    monkeypatch.setattr(classify, "vision_provider", lambda: None)
+    base, new = (load_scan(find_model_file(scan), storage.read_metadata(scan / "metadata.json")) for scan in COFFEE_PAIR)
+
+    result = compare(base, new, diff_id="real")
+
+    assert result.regions and not result.is_mock
+    assert result.stats.diff_time_s < 60
+    assert all("\n" not in region.reason for region in result.regions)
+    # The cord moved between scans, so most crops of the worst regions exist on at least one side.
+    assert sum(bool(region.before_crop_url or region.after_crop_url) for region in result.regions[:8]) >= 4
+    assert (tmp_path / "diffs/real/heatmap.glb").stat().st_size > 0

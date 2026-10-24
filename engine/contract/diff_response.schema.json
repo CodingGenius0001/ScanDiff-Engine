@@ -347,8 +347,8 @@
     },
     "verdict": {
       "enum": [
-        "match",
-        "minor_wear",
+        "accept",
+        "damage_likely",
         "needs_review"
       ],
       "title": "Verdict",
