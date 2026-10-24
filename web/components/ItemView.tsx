@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { CameraLink, viewFrom } from "@/lib/cameraSync";
@@ -23,24 +22,26 @@ export default function ItemView({ item }: { item: Item }) {
   const state = useComparison(item);
   const live = useLiveScans(item);
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:py-6">
-      <header className="flex flex-col gap-1">
-        <Link href="/" className="text-xs font-semibold text-zinc-500 underline">
-          ScanDiff
-        </Link>
-        <h1 className="text-xl font-bold sm:text-2xl">{item.title}</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {item.kind === "rental" ? "Rental car pickup and return comparison" : "Shipping handoff comparison"}
-        </p>
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 pb-12 pt-6 sm:pt-10">
+      <header className="flex flex-col gap-2">
+        <span className="label">
+          {item.kind === "rental" ? "Rental · pickup vs return" : "Shipping · handoff comparison"}
+        </span>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">{item.title}</h1>
         {item.source === "supabase" && (
-          <p className="flex items-center gap-1.5 text-xs text-zinc-500" role="status">
-            <span className={`h-2 w-2 rounded-full ${live.updating ? "animate-pulse bg-amber-500" : "bg-emerald-500"}`} />
+          <p className="flex items-center gap-2 font-mono text-xs text-zinc-400" role="status">
+            <span className="relative flex h-2 w-2">
+              <span
+                className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${live.updating ? "bg-amber-400" : "bg-emerald-400"}`}
+              />
+              <span className={`relative inline-flex h-2 w-2 rounded-full ${live.updating ? "bg-amber-400" : "bg-emerald-400"}`} />
+            </span>
             {live.updating ? "New scan received. Updating…" : "Live: this page updates when a new scan is uploaded."}
           </p>
         )}
       </header>
-      <section className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-3 text-sm font-semibold text-zinc-500">Version timeline</h2>
+      <section className="panel">
+        <h2 className="label mb-3">Version timeline</h2>
         <Timeline
           versions={item.versions}
           baseId={item.versions[0].scanId}
@@ -48,12 +49,12 @@ export default function ItemView({ item }: { item: Item }) {
         />
       </section>
       {state.status === "loading" && (
-        <div className="rounded-xl border border-zinc-200 p-8 text-center text-sm text-zinc-500" role="status">
-          Computing comparison…
+        <div className="panel scanning stage flex h-72 items-center justify-center" role="status">
+          <span className="label text-zinc-300">Computing comparison…</span>
         </div>
       )}
       {state.status === "error" && (
-        <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-900" role="alert">
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200" role="alert">
           Could not load the comparison: {state.message}{" "}
           <button type="button" onClick={state.retry} className="font-semibold underline">
             Try again
@@ -62,7 +63,8 @@ export default function ItemView({ item }: { item: Item }) {
       )}
       {state.status === "waiting" && (
         <>
-          <div className="rounded-xl border border-zinc-200 p-4 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400" role="status">
+          <div className="panel flex items-center gap-3 text-sm text-zinc-300" role="status">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-accent shadow-[0_0_10px_var(--color-accent)]" />
             Baseline scan received. Waiting for a check scan to compare it with.
           </div>
           <BaselinePreview item={item} />
@@ -140,8 +142,8 @@ function ComparisonView({ data }: { data: Comparison }) {
       <VerdictBanner diff={diff} />
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 text-sm font-semibold dark:border-zinc-700 dark:bg-zinc-900">
-            <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} className="h-4 w-4" />
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 text-sm font-medium transition-colors hover:border-white/25 has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10 has-[:checked]:text-violet-100">
+            <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} className="h-4 w-4 accent-violet-500" />
             Heat map
           </label>
           <button
@@ -151,11 +153,11 @@ function ComparisonView({ data }: { data: Comparison }) {
               setSelectedId(null);
               link.flyTo(h.position, h.target);
             }}
-            className="min-h-11 rounded-lg border border-zinc-300 bg-white px-3 text-sm font-semibold dark:border-zinc-700 dark:bg-zinc-900"
+            className="min-h-11 rounded-full border border-white/10 bg-white/[0.03] px-4 text-sm font-medium transition-colors hover:border-white/25"
           >
             Reset view
           </button>
-          <span className="text-xs text-zinc-500">Drag to rotate. Both views move together.</span>
+          <span className="font-mono text-[11px] text-zinc-500">Drag to rotate · views are linked</span>
         </div>
         {heat &&
           (diff.heatmap ? (
@@ -202,7 +204,7 @@ function ComparisonView({ data }: { data: Comparison }) {
           </div>
         )}
         {selected && (
-          <div className="rounded-lg border border-zinc-900 bg-zinc-900 px-3 py-2 text-sm text-white dark:border-white dark:bg-white dark:text-zinc-900" role="status">
+          <div className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm text-violet-50 shadow-[0_0_30px_-10px_var(--color-accent)]" role="status">
             {"label" in selected ? (
               <>
                 <span className="font-semibold">{selected.label === "needs_review" ? "Needs review" : "Normal wear"}</span>
@@ -220,12 +222,12 @@ function ComparisonView({ data }: { data: Comparison }) {
         )}
       </section>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="mb-3 text-base font-semibold">Flagged regions</h2>
+        <section className="panel">
+          <h2 className="label mb-3">Flagged regions</h2>
           <RegionList diff={diff} selectedId={selectedId} onSelect={select} />
         </section>
-        <section className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-base font-semibold">
+        <section className="panel">
+          <h2 className="label">
             {diff.heatmap ? "Change from the baseline surface" : "Distance per vertex, both scans"}
           </h2>
           <p className="mb-2 text-xs text-zinc-500">Areas with no data are left out.</p>
@@ -243,7 +245,7 @@ function ComparisonView({ data }: { data: Comparison }) {
 
 function Legend({ threshold, max, units }: { threshold: number; max: number; units: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] text-zinc-400">
       <span className="flex items-center gap-1.5">
         <span className="h-3 w-5 rounded-sm" style={{ background: COLORS.noChange }} />
         No change (≤ {threshold} {units})
@@ -269,7 +271,7 @@ function Legend({ threshold, max, units }: { threshold: number; max: number; uni
 function SignedLegend({ heatmap, units }: { heatmap: BakedHeatmap; units: LengthUnit }) {
   const swatch = (background: string) => <span className="h-3 w-5 rounded-sm" style={{ background }} />;
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] text-zinc-400">
       <span className="flex items-center gap-1.5">
         {swatch(SIGNED.dent)}
         Dent (down to {heatmap.min} {units})

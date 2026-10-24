@@ -20,22 +20,24 @@ export default function RegionList({ diff, selectedId, onSelect }: Props) {
               type="button"
               onClick={() => onSelect(r.id)}
               aria-pressed={selected}
-              className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+              className={`w-full rounded-xl border px-3 py-2.5 text-left transition-colors ${
                 selected
-                  ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
-                  : "border-zinc-200 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
+                  ? "border-accent/50 bg-accent/10"
+                  : "border-white/[0.07] bg-black/20 hover:border-white/20"
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-current text-[11px] font-bold">
-                  {i + 1}
+                <span className={`w-6 shrink-0 font-mono text-xs ${selected ? "text-accent" : "text-zinc-500"}`}>
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="text-sm font-semibold">{r.description}</span>
               </div>
-              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 pl-8 text-xs opacity-80">
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-8 font-mono text-[11px] text-zinc-400">
                 <span
-                  className={`rounded px-1.5 font-semibold ${
-                    r.label === "needs_review" ? "bg-red-100 text-red-900" : "bg-amber-100 text-amber-900"
+                  className={`rounded-full border px-2 py-0.5 font-semibold ${
+                    r.label === "needs_review"
+                      ? "border-red-400/30 bg-red-500/10 text-red-300"
+                      : "border-amber-400/30 bg-amber-500/10 text-amber-300"
                   }`}
                 >
                   {LABEL_TEXT[r.label]}
@@ -72,19 +74,15 @@ export default function RegionList({ diff, selectedId, onSelect }: Props) {
               type="button"
               onClick={() => onSelect(u.id)}
               aria-pressed={selected}
-              className={`w-full rounded-lg border border-dashed px-3 py-2 text-left ${
-                selected
-                  ? "border-zinc-900 bg-zinc-100 dark:border-white dark:bg-zinc-800"
-                  : "border-zinc-300 bg-zinc-50 hover:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+              className={`w-full rounded-xl border border-dashed px-3 py-2.5 text-left transition-colors ${
+                selected ? "border-zinc-300 bg-white/[0.06]" : "border-white/15 bg-transparent hover:border-white/30"
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-zinc-500 text-[11px] font-bold">
-                  –
-                </span>
+                <span className="w-6 shrink-0 font-mono text-xs text-zinc-500">—</span>
                 <span className="text-sm font-semibold">No data</span>
               </div>
-              <div className="mt-1 pl-8 text-xs text-zinc-600 dark:text-zinc-400">
+              <div className="mt-1 pl-8 text-xs text-zinc-400">
                 {u.description} Covered by {u.coveredBy === "baseline_only" ? "the baseline scan only" : "the new scan only"},
                 so it is not compared and not counted as damage.
               </div>

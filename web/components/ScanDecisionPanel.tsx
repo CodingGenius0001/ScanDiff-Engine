@@ -42,11 +42,11 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
   }
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <section className="panel">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold">Decision on the latest check scan</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Decision on the latest check scan</h2>
         {decision && (
-          <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold dark:bg-zinc-800">
+          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 font-mono text-[11px] font-semibold">
             {DECISION_TEXT[decision]}
           </span>
         )}
@@ -63,7 +63,7 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
             type="button"
             disabled={!loaded || saving !== null || decision === "accept"}
             onClick={() => decide("accept")}
-            className="min-h-11 rounded-lg bg-emerald-600 px-4 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 rounded-full bg-emerald-500 px-5 font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving === "accept" ? "Saving…" : "Accept"}
           </button>
@@ -71,7 +71,7 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
             type="button"
             disabled={!loaded || saving !== null || decision === "dispute"}
             onClick={() => decide("dispute")}
-            className="min-h-11 rounded-lg border-2 border-red-600 px-4 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950"
+            className="min-h-11 rounded-full border border-red-500/60 px-5 font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-300 dark:hover:bg-red-500/10"
           >
             {saving === "dispute" ? "Saving…" : "Dispute"}
           </button>
