@@ -135,6 +135,14 @@ def test_usdz_quads_are_triangulated(tmp_path):
     assert mesh.area == pytest.approx((0.002 * (side - 1)) ** 2)
 
 
+def test_usdz_z_up_becomes_y_up(tmp_path):
+    y_up = read_usd_mesh(_write_usdz(tmp_path / "y.usdz"))
+    z_up = read_usd_mesh(_write_usdz(tmp_path / "z.usdz", points=((0, 0, 100), (100, 0, 100), (0, 100, 100)), offset=(0, 0, 0), up_axis="Z"))
+
+    assert y_up.vertices[0].tolist() == pytest.approx([1.5, 0.0, 0.0])
+    assert np.allclose(z_up.vertices, [[0, 1, 0], [1, 1, 0], [0, 1, -1]])
+
+
 @pytest.mark.parametrize("suffix", [".obj", ".ply", ".glb"])
 def test_load_mesh_merges_scene_geometry(tmp_path, suffix):
     sphere = trimesh.creation.icosphere(subdivisions=5, radius=0.05)
@@ -168,12 +176,14 @@ def _write_usdz(
     indices=(0, 1, 2),
     meters_per_unit=0.01,
     offset=(50, 0, 0),
+    up_axis="Y",
 ) -> Path:
     from pxr import Gf, Usd, UsdGeom, UsdUtils
 
     usda = path.with_suffix(".usda")
     stage = Usd.Stage.CreateNew(str(usda))
     UsdGeom.SetStageMetersPerUnit(stage, meters_per_unit)
+    UsdGeom.SetStageUpAxis(stage, up_axis)
     world = UsdGeom.Xform.Define(stage, "/World")
     world.AddTranslateOp().Set(Gf.Vec3d(*offset))
     mesh = UsdGeom.Mesh.Define(stage, "/World/Mesh")

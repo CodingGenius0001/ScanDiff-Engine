@@ -1,6 +1,7 @@
 """Loading uploads."""
 
 import hashlib
+import json
 import logging
 from pathlib import Path
 
@@ -85,6 +86,30 @@ def load_model(path: Path, metadata: ScanMetadata) -> trimesh.Trimesh:
     return load_mesh(path)
 
 
+def find_model_file(scan_dir: Path) -> Path:
+    """The model in a downloaded scan folder.
+
+    Uses `model_file` from metadata.json when it can be read, otherwise the one
+    file with a supported extension.
+    """
+    try:
+        named = json.loads((scan_dir / "metadata.json").read_text()).get("model_file")
+    except (OSError, ValueError, AttributeError):
+        named = None
+    if named and (scan_dir / named).is_file():
+        return scan_dir / named
+
+    candidates = sorted(
+        path
+        for path in scan_dir.iterdir()
+        if path.suffix.lower() in _USD_SUFFIXES | _TRIMESH_SUFFIXES
+    )
+    if len(candidates) != 1:
+        found = ", ".join(path.name for path in candidates) or "none"
+        raise UnsupportedFormat(f"Expected one model file in {scan_dir}, found {found}.")
+    return candidates[0]
+
+
 def load_mesh(path: str | Path) -> trimesh.Trimesh:
     """Read an OBJ, PLY, GLB, or USD(Z) file as one mesh in meters.
 
@@ -122,7 +147,7 @@ def _check_density(mesh: trimesh.Trimesh, path: Path) -> None:
 
 
 def read_usd_mesh(path: Path) -> trimesh.Trimesh:
-    """Read every mesh prim in a USD(Z) file into one triangle mesh in meters."""
+    """Read every mesh prim in a USD(Z) file into one triangle mesh in meters, +Y up."""
     try:
         from pxr import Gf, Usd, UsdGeom
     except ImportError as exc:
@@ -171,8 +196,12 @@ def _read_usd_mesh(path: Path, Usd, UsdGeom, Gf) -> trimesh.Trimesh:
     if not point_blocks:
         raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}")
 
+    points = np.vstack(point_blocks)
+    if UsdGeom.GetStageUpAxis(stage) == UsdGeom.Tokens.z:
+        # Rotate -90 degrees about X so +Z up becomes +Y up, like ARKit and glTF.
+        points = np.column_stack([points[:, 0], points[:, 2], -points[:, 1]])
     faces = _triangulate(np.array(counts, dtype=np.int64), np.array(indices, dtype=np.int64))
-    return trimesh.Trimesh(vertices=np.vstack(point_blocks), faces=faces, process=False)
+    return trimesh.Trimesh(vertices=points, faces=faces, process=False)
 
 
 def _triangulate(counts: np.ndarray, indices: np.ndarray) -> np.ndarray:

@@ -1,5 +1,8 @@
 """Prepare loaded scans before alignment."""
 
+import time
+from dataclasses import dataclass, field
+
 import numpy as np
 import open3d as o3d
 import trimesh
@@ -8,6 +11,19 @@ from scandiff import config
 from scandiff.errors import ScaleMismatch, ScanTooSparse
 
 MM = 0.001
+
+
+@dataclass
+class CleanReport:
+    """What each step of `clean` did, for debugging real scans."""
+
+    input_points: int
+    downsampled_points: int
+    outlier_points: int
+    plane_points: int
+    # Every point dropped after downsampling: statistical outliers, then the plane.
+    removed: o3d.geometry.PointCloud
+    seconds: dict[str, float] = field(default_factory=dict)
 
 
 def to_point_cloud(
@@ -42,25 +58,61 @@ def clean(pcd: o3d.geometry.PointCloud) -> o3d.geometry.PointCloud:
 
     Raises ScanTooSparse if fewer than config.MIN_POINTS points are left.
     """
+    return clean_with_report(pcd)[0]
+
+
+def clean_with_report(
+    pcd: o3d.geometry.PointCloud,
+) -> tuple[o3d.geometry.PointCloud, CleanReport]:
+    """`clean`, plus point counts, removed points, and time per step."""
+    seconds = {}
+    input_points = len(pcd.points)
+
+    start = time.perf_counter()
     pcd = pcd.voxel_down_sample(config.VOXEL_MM * MM)
-    pcd, _ = pcd.remove_statistical_outlier(
+    seconds["downsample"] = time.perf_counter() - start
+    downsampled_points = len(pcd.points)
+
+    start = time.perf_counter()
+    _, kept = pcd.remove_statistical_outlier(
         nb_neighbors=config.OUTLIER_NB_NEIGHBORS, std_ratio=config.OUTLIER_STD_RATIO
     )
+    removed = pcd.select_by_index(kept, invert=True)
+    pcd = pcd.select_by_index(kept)
+    seconds["outliers"] = time.perf_counter() - start
+    outlier_points = len(removed.points)
+
+    plane_points = 0
     if config.REMOVE_GROUND_PLANE:
+        start = time.perf_counter()
         o3d.utility.random.seed(config.RANDOM_SEED)
         _, plane = pcd.segment_plane(
             distance_threshold=config.PLANE_DISTANCE_MM * MM,
             ransac_n=3,
             num_iterations=config.PLANE_RANSAC_ITERATIONS,
         )
+        removed += pcd.select_by_index(plane)
         pcd = pcd.select_by_index(plane, invert=True)
+        seconds["ground_plane"] = time.perf_counter() - start
+        plane_points = len(plane)
 
     if len(pcd.points) < config.MIN_POINTS:
         raise ScanTooSparse(
             f"{len(pcd.points)} points left after cleaning; at least {config.MIN_POINTS} are needed."
         )
+    start = time.perf_counter()
     _estimate_normals(pcd)
-    return pcd
+    seconds["normals"] = time.perf_counter() - start
+
+    report = CleanReport(
+        input_points=input_points,
+        downsampled_points=downsampled_points,
+        outlier_points=outlier_points,
+        plane_points=plane_points,
+        removed=removed,
+        seconds=seconds,
+    )
+    return pcd, report
 
 
 def _estimate_normals(pcd: o3d.geometry.PointCloud) -> None:
@@ -89,8 +141,8 @@ def scale_check(base: o3d.geometry.PointCloud, new: o3d.geometry.PointCloud) -> 
     any axis differs by more than config.SCALE_TOLERANCE. Past
     config.SCALE_MISMATCH this raises ScaleMismatch instead.
     """
-    base_extents = _sorted_extents(base)
-    new_extents = _sorted_extents(new)
+    base_extents = sorted_extents(base)
+    new_extents = sorted_extents(new)
     ratios = new_extents / base_extents
     worst = float(np.max(np.abs(ratios - 1.0)))
 
@@ -113,8 +165,11 @@ def scale_check(base: o3d.geometry.PointCloud, new: o3d.geometry.PointCloud) -> 
     }
 
 
-def _sorted_extents(pcd: o3d.geometry.PointCloud) -> np.ndarray:
-    """Box extents, measured between percentiles so scan noise doesn't inflate them."""
+def sorted_extents(pcd: o3d.geometry.PointCloud) -> np.ndarray:
+    """Oriented bounding box extents in meters, smallest first.
+
+    Measured between percentiles so scan noise doesn't inflate them.
+    """
     # The minimal box is slow on round items, whose points are all on the hull,
     # so orient the box on an evenly spread subset. PCA is not used because its
     # axes are arbitrary for square or round cross-sections.

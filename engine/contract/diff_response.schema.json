@@ -299,8 +299,13 @@
       "type": "object"
     }
   },
-  "description": "Comparison of a new scan against a base scan, for the web viewer.\n\nAll three GLBs are in the base scan frame, in meters. The upload is USDZ, which three.js cannot load,\nso the engine publishes both scans as GLB. `new_model_url` is already aligned into the base frame.\n`heatmap_url` is the base surface with vertex colors already applied on the signed blue/gray/red scale.",
+  "description": "Comparison of a new scan against a base scan, for the web viewer.\n\nAll three GLBs are in the base scan frame, in meters, with +Y up as in ARKit and glTF. Every\nposition in this response (centroid_m, bbox_*_m) is in that frame too. The upload is USDZ, which\nthree.js cannot load, so the engine publishes both scans as GLB. `new_model_url` is already aligned\ninto the base frame. `heatmap_url` is the base surface with vertex colors already applied on the\nsigned blue/gray/red scale.",
   "properties": {
+    "is_mock": {
+      "description": "True when this is the engine's fixed example response, not a comparison of the two scans.",
+      "title": "Is Mock",
+      "type": "boolean"
+    },
     "heatmap_url": {
       "description": "Heatmap GLB in the base scan frame, meters, with signed blue/gray/red vertex colors already applied.",
       "title": "Heatmap Url",
@@ -373,6 +378,7 @@
     }
   },
   "required": [
+    "is_mock",
     "heatmap_url",
     "base_model_url",
     "new_model_url",

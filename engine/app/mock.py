@@ -33,9 +33,20 @@ _COUNTS = [
 _BASE_FINGERPRINT = "3f9a1c7e5b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f2a4c6e8b0d1f3a"
 _NEW_FINGERPRINT = "a7c2e9f4b1d6083e5a2c7f9b4d1e6a3c8f5b2d7e0a9c4f1b6d3e8a5c2f7b0d9e"
 
-# Seeds sit on a 5 cm mug. Patches stay inside a 3 cm radius.
-_RIM = np.array([0.0, 0.0481, 0.0137])
-_WALL = np.array([0.0354, -0.0122, 0.0333])
+_SPHERE_SUBDIVISIONS = 4
+_SPHERE_RADIUS_M = 0.05
+
+
+def _nearest_vertex(point: list[float]) -> np.ndarray:
+    vertices = trimesh.creation.icosphere(subdivisions=_SPHERE_SUBDIVISIONS, radius=_SPHERE_RADIUS_M).vertices
+    return vertices[np.argmin(np.linalg.norm(vertices - point, axis=1))]
+
+
+# Seeds sit on vertices of the 5 cm mock mug, so each patch's peak change lands on a vertex
+# and max_depth_mm reaches the full depth. +Y is up: the rim is near the top, the wall on the side.
+# Patches stay inside a 3 cm radius.
+_RIM = _nearest_vertex([0.0, 0.0481, 0.0137])
+_WALL = _nearest_vertex([0.0354, -0.0122, 0.0333])
 _RIM_RADIUS = 0.016
 _WALL_RADIUS = 0.009
 
@@ -73,7 +84,7 @@ def _signed_change_mm(vertices: np.ndarray) -> np.ndarray:
 
 def build_base_mesh() -> trimesh.Trimesh:
     """Mug-sized sphere in the base frame, meters, with no heatmap colors."""
-    return trimesh.creation.icosphere(subdivisions=4, radius=0.05)
+    return trimesh.creation.icosphere(subdivisions=_SPHERE_SUBDIVISIONS, radius=_SPHERE_RADIUS_M)
 
 
 def build_aligned_new_mesh() -> trimesh.Trimesh:
@@ -152,8 +163,9 @@ def mock_diff_response(heatmap_url: str, base_model_url: str, new_model_url: str
     signed = _signed_change_mm(vertices)
     rim = np.linalg.norm(vertices - _RIM, axis=1) < _RIM_RADIUS
     wall = np.linalg.norm(vertices - _WALL, axis=1) < _WALL_RADIUS
-    underside = vertices[:, 2] < -0.04
+    underside = vertices[:, 1] < -0.04
     return DiffResponse(
+        is_mock=True,
         heatmap_url=heatmap_url,
         base_model_url=base_model_url,
         new_model_url=new_model_url,

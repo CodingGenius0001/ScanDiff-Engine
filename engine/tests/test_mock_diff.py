@@ -43,6 +43,24 @@ def test_mock_query_param_returns_mock_response():
 
     assert response.status_code == 200
     assert response.json()["diff_id"] == "mock-diff-0001"
+    assert response.json()["is_mock"] is True
+
+
+def test_mock_numbers_agree():
+    result = DiffResponse.model_validate(client.post("/diff", json=BODY).json())
+
+    deepest = max(result.regions, key=lambda region: region.max_depth_mm)
+    assert deepest.max_depth_mm == result.stats.max_change_mm
+    assert f"{deepest.max_depth_mm:.1f} mm" in deepest.reason
+    assert abs(result.heatmap_legend.min_mm) == result.stats.max_change_mm
+
+
+def test_mock_underside_is_minus_y():
+    result = DiffResponse.model_validate(client.post("/diff", json=BODY).json())
+
+    x, y, z = result.uncovered_regions[0].centroid_m
+    assert y < -0.04
+    assert abs(x) < 0.005 and abs(z) < 0.005
 
 
 def test_model_urls_serve_glbs():

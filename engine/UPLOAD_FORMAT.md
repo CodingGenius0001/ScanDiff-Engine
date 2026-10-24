@@ -19,7 +19,7 @@ The upload contains:
 | `created_by` | string | `iPhone` |
 | `device` | string | Model and OS, such as `iPhone18,2, iOS 27.0` |
 | `item_id` | string | Item this scan belongs to |
-| `kind` | string | Free-form, such as `baseline`, `pickup`, or `return` |
+| `kind` | string | `baseline` or `check`. The iOS app sends only these, and the `scans` table rejects anything else |
 | `model_file` | string | USDZ file name in the upload |
 | `model_sha256` | string | Hex sha256 of that file |
 | `scan_id` | string | This capture |

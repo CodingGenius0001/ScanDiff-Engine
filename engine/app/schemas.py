@@ -33,8 +33,10 @@ COLORMAP = "diverging_blue_gray_red"
 
 
 class DiffRequest(BaseModel):
-    base_id: str
-    new_id: str
+    base_id: str = Field(
+        description="`scans.id` of the base scan: the iOS scan_id, also its folder name in the scans bucket."
+    )
+    new_id: str = Field(description="`scans.id` of the new scan to compare against the base.")
 
 
 class Region(BaseModel):
@@ -143,11 +145,16 @@ class HeatmapLegend(BaseModel):
 class DiffResponse(BaseModel):
     """Comparison of a new scan against a base scan, for the web viewer.
 
-    All three GLBs are in the base scan frame, in meters. The upload is USDZ, which three.js cannot load,
-    so the engine publishes both scans as GLB. `new_model_url` is already aligned into the base frame.
-    `heatmap_url` is the base surface with vertex colors already applied on the signed blue/gray/red scale.
+    All three GLBs are in the base scan frame, in meters, with +Y up as in ARKit and glTF. Every
+    position in this response (centroid_m, bbox_*_m) is in that frame too. The upload is USDZ, which
+    three.js cannot load, so the engine publishes both scans as GLB. `new_model_url` is already aligned
+    into the base frame. `heatmap_url` is the base surface with vertex colors already applied on the
+    signed blue/gray/red scale.
     """
 
+    is_mock: bool = Field(
+        description="True when this is the engine's fixed example response, not a comparison of the two scans."
+    )
     heatmap_url: str = Field(
         description="Heatmap GLB in the base scan frame, meters, with signed blue/gray/red vertex colors already applied."
     )
