@@ -123,6 +123,23 @@ def test_scale_check_ignores_rotation():
     assert result["base_extents_mm"] == pytest.approx([30, 60, 100], abs=2)
 
 
+def test_scale_check_square_cross_section_ignores_rotation():
+    base = _box_cloud([0.06, 0.06, 0.03])
+
+    for seed in range(1, 4):
+        result = scale_check(base, _box_cloud([0.06, 0.06, 0.03], rotation_seed=seed))
+        assert result["warning"] is None
+
+
+def test_scale_check_handles_round_items():
+    cloud = clean(to_point_cloud(_sphere(), N_POINTS))
+
+    result = scale_check(cloud, cloud)
+
+    assert result["ratios"] == pytest.approx([1.0, 1.0, 1.0])
+    assert result["base_extents_mm"] == pytest.approx([100, 100, 100], abs=3)
+
+
 def test_scale_check_warns_past_tolerance():
     base = _box_cloud([0.10, 0.06, 0.03])
     new = _box_cloud([0.10, 0.06, 0.03 * 1.08], rotation_seed=2)

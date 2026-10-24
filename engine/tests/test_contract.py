@@ -26,6 +26,12 @@ def test_schema_example_is_the_mock_response():
     assert "centroid_m" in response.json()["regions"][0]
     assert "radius_m" in response.json()["regions"][0]
     assert "bbox_min_m" in response.json()["regions"][0]
+    uncovered = response.json()["uncovered_regions"][0]
+    assert "centroid_m" in uncovered
+    assert "radius_m" in uncovered
+    assert "centroid" not in uncovered
+    assert response.json()["base_model_url"]
+    assert response.json()["new_model_url"]
 
 
 def test_diff_response_schema_stays_current():
@@ -36,5 +42,8 @@ def test_diff_response_schema_stays_current():
         SCHEMA_PATH.write_text(payload)
     assert SCHEMA_PATH.read_text() == payload
     assert "centroid_m" in payload
+    assert "base_model_url" in payload
+    assert "new_model_url" in payload
     assert "heatmap_legend" in payload
     assert "diverging_blue_gray_red" in payload
+    assert "Not a blue-to-red magnitude ramp." in payload

@@ -10,6 +10,8 @@ from scandiff.regions import measure_region
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 SAMPLE_GLB_NAME = "sample_heatmap.glb"
+SAMPLE_BASE_GLB_NAME = "sample_base.glb"
+SAMPLE_NEW_GLB_NAME = "sample_new.glb"
 
 _THRESHOLD_MM = 1.25
 _MAX_CHANGE_MM = 4.87
@@ -69,17 +71,32 @@ def _signed_change_mm(vertices: np.ndarray) -> np.ndarray:
     return signed
 
 
+def build_base_mesh() -> trimesh.Trimesh:
+    """Mug-sized sphere in the base frame, meters, with no heatmap colors."""
+    return trimesh.creation.icosphere(subdivisions=4, radius=0.05)
+
+
+def build_aligned_new_mesh() -> trimesh.Trimesh:
+    """Same sphere with the mock dents, already in the base frame."""
+    mesh = build_base_mesh()
+    signed_m = _signed_change_mm(mesh.vertices) / 1000.0
+    mesh.vertices = mesh.vertices + mesh.vertex_normals * signed_m[:, None]
+    return mesh
+
+
 def build_sample_mesh() -> trimesh.Trimesh:
-    """Mug-sized sphere in the base frame, meters, with the legend's colors applied."""
-    mesh = trimesh.creation.icosphere(subdivisions=4, radius=0.05)
+    """Base surface in the base frame, meters, with the legend's colors applied."""
+    mesh = build_base_mesh()
     mesh.visual = trimesh.visual.ColorVisuals(mesh, vertex_colors=_diverging_colors(_signed_change_mm(mesh.vertices)))
     return mesh
 
 
 def ensure_sample_glb() -> Path:
-    """Write the sample heatmap GLB into `static/`."""
-    path = STATIC_DIR / SAMPLE_GLB_NAME
+    """Write the sample heatmap and both aligned scan GLBs into `static/`."""
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    build_base_mesh().export(STATIC_DIR / SAMPLE_BASE_GLB_NAME, file_type="glb")
+    build_aligned_new_mesh().export(STATIC_DIR / SAMPLE_NEW_GLB_NAME, file_type="glb")
+    path = STATIC_DIR / SAMPLE_GLB_NAME
     build_sample_mesh().export(path, file_type="glb")
     return path
 
@@ -118,14 +135,28 @@ def _region(
     )
 
 
-def mock_diff_response(heatmap_url: str) -> DiffResponse:
-    mesh = build_sample_mesh()
+def _uncovered(region_id: str, points: np.ndarray, *, only_in: str, area_cm2: float) -> UncoveredRegion:
+    extent = measure_region(points)
+    return UncoveredRegion(
+        id=region_id,
+        only_in=only_in,
+        area_cm2=area_cm2,
+        centroid_m=extent.centroid_m.round(6).tolist(),
+        radius_m=round(extent.radius_m, 6),
+    )
+
+
+def mock_diff_response(heatmap_url: str, base_model_url: str, new_model_url: str) -> DiffResponse:
+    mesh = build_base_mesh()
     vertices = mesh.vertices
     signed = _signed_change_mm(vertices)
     rim = np.linalg.norm(vertices - _RIM, axis=1) < _RIM_RADIUS
     wall = np.linalg.norm(vertices - _WALL, axis=1) < _WALL_RADIUS
+    underside = vertices[:, 2] < -0.04
     return DiffResponse(
         heatmap_url=heatmap_url,
+        base_model_url=base_model_url,
+        new_model_url=new_model_url,
         heatmap_legend=_LEGEND,
         histogram=Histogram(bin_edges_mm=_BIN_EDGES_MM, counts=_COUNTS),
         stats=Stats(
@@ -160,12 +191,7 @@ def mock_diff_response(heatmap_url: str) -> DiffResponse:
             ),
         ],
         uncovered_regions=[
-            UncoveredRegion(
-                id="u1",
-                only_in="base",
-                area_cm2=11.3,
-                centroid=[0.0, 0.0, -0.05],
-            ),
+            _uncovered("u1", vertices[underside], only_in="base", area_cm2=11.3),
         ],
         verdict="needs_review",
         verdict_confidence=0.66,

@@ -83,7 +83,7 @@ def _estimate_normals(pcd: o3d.geometry.PointCloud) -> None:
 
 
 def scale_check(base: o3d.geometry.PointCloud, new: o3d.geometry.PointCloud) -> dict:
-    """Compare the two scans' oriented bounding boxes, sorted so rotation doesn't matter.
+    """Compare the two scans' oriented bounding box extents, sorted so rotation doesn't matter.
 
     `ratios` is new / base per axis, smallest axis first. `warning` is set when
     any axis differs by more than config.SCALE_TOLERANCE. Past
@@ -114,4 +114,14 @@ def scale_check(base: o3d.geometry.PointCloud, new: o3d.geometry.PointCloud) -> 
 
 
 def _sorted_extents(pcd: o3d.geometry.PointCloud) -> np.ndarray:
-    return np.sort(np.asarray(pcd.get_minimal_oriented_bounding_box().extent))
+    """Box extents, measured between percentiles so scan noise doesn't inflate them."""
+    # The minimal box is slow on round items, whose points are all on the hull,
+    # so orient the box on an evenly spread subset. PCA is not used because its
+    # axes are arbitrary for square or round cross-sections.
+    subset = pcd.farthest_point_down_sample(min(config.OBB_SUBSET_POINTS, len(pcd.points)))
+    box = subset.get_minimal_oriented_bounding_box()
+    local = (np.asarray(pcd.points) - box.center) @ np.asarray(box.R)
+    low, high = np.percentile(
+        local, [config.EXTENT_PERCENTILE, 100 - config.EXTENT_PERCENTILE], axis=0
+    )
+    return np.sort(high - low)
