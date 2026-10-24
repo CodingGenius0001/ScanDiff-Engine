@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatDate, formatDistance, formatPercent, LABEL_TEXT, VERDICT_TEXT } from "@/lib/format";
+import { formatDate, formatDistance, formatPercent, LABEL_TEXT, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
 import { statusAt, useOrder } from "@/lib/orderStatus";
 import type { DiffResult, Item, ScanMeta } from "@/lib/types";
 import { useComparison } from "@/lib/useComparison";
@@ -41,10 +41,9 @@ export default function EvidenceView({ item }: { item: Item }) {
           This page is tamper-evident evidence of the item&apos;s shape at each handoff. It does not verify that the
           item is as advertised. LiDAR measures shape, not color, so marks and stains are not covered.
         </p>
-        <p className="mt-1 text-xs text-zinc-500">
-          Generated from mock data for a demo. The fingerprints below are placeholders and are not yet anchored, so
-          they are not yet tamper-evident on their own.
-        </p>
+        {state.status === "ready" && (
+          <p className="mt-1 text-xs text-zinc-500">{SOURCE_TEXT[state.data.diff.source].note}</p>
+        )}
       </header>
 
       {state.status === "loading" && <p className="text-sm text-zinc-500">Loading comparison…</p>}
@@ -71,14 +70,29 @@ function Evidence({ diff }: { diff: DiffResult }) {
 
       <Section title="Diff summary">
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 print:grid-cols-3">
-          <Field label="Verdict" value={`${v.title}: ${v.detail}`} wide />
+          <Field label="Verdict" value={`${v.title}: ${diff.verdictReason ?? v.detail}`} wide />
+          {diff.verdictConfidence !== undefined && (
+            <Field label="Verdict confidence" value={formatPercent(diff.verdictConfidence)} />
+          )}
           <Field label="Largest change" value={formatDistance(diff.summary.maxDistance, diff.units)} />
-          <Field label="Mean distance" value={formatDistance(diff.summary.meanDistance, diff.units)} />
-          <Field label="Noise threshold" value={formatDistance(diff.noiseThreshold, diff.units)} />
+          {diff.summary.meanDistance !== undefined && (
+            <Field label="Mean distance" value={formatDistance(diff.summary.meanDistance, diff.units)} />
+          )}
+          <Field label="Change threshold" value={formatDistance(diff.noiseThreshold, diff.units)} />
           <Field label="Surface above threshold" value={formatPercent(diff.summary.fractionAboveThreshold)} />
-          <Field label="Covered by both scans" value={formatPercent(diff.summary.coveredFraction)} />
+          {diff.summary.coveredFraction !== undefined && (
+            <Field label="Covered by both scans" value={formatPercent(diff.summary.coveredFraction)} />
+          )}
+          {diff.quality && (
+            <>
+              <Field label="Estimated sensor noise" value={formatDistance(diff.quality.noiseFloor, diff.units)} />
+              <Field label="Alignment fit (ICP inliers)" value={formatPercent(diff.quality.icpFitness)} />
+              <Field label="Alignment error (ICP RMSE)" value={formatDistance(diff.quality.icpRmse, diff.units)} />
+            </>
+          )}
           <Field label="Units / up axis" value={`${diff.units} / ${diff.upAxis} up`} />
-          <Field label="Computed" value={formatDate(diff.computedAt)} />
+          <Field label={diff.source === "browser_mock" ? "Computed" : "Received"} value={formatDate(diff.computedAt)} />
+          {diff.diffId && <Field label="Diff ID" value={diff.diffId} />}
         </dl>
       </Section>
 
@@ -123,8 +137,8 @@ function Evidence({ diff }: { diff: DiffResult }) {
         </Section>
       )}
 
-      <Section title="Distance per vertex, both scans">
-        <Histogram histogram={diff.histogram} threshold={diff.noiseThreshold} units={diff.units} />
+      <Section title={diff.heatmap ? "Change from the baseline surface" : "Distance per vertex, both scans"}>
+        <Histogram histogram={diff.histogram} threshold={diff.noiseThreshold} units={diff.units} signedScale={!!diff.heatmap} />
       </Section>
     </>
   );
@@ -154,7 +168,10 @@ function ScanCard({ role, scan }: { role: string; scan: ScanMeta }) {
       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{role}</div>
       <div className="font-semibold">{scan.name}</div>
       <div>Captured {formatDate(scan.capturedAt)}</div>
-      <div>By {scan.capturedBy}</div>
+      <div>
+        By {scan.capturedBy}
+        {scan.device && <> on {scan.device}</>}
+      </div>
       <div className="text-xs text-zinc-500">Scan ID: {scan.id}</div>
       <div className="mt-1">
         <span className="text-xs text-zinc-500">SHA-256 fingerprint: </span>

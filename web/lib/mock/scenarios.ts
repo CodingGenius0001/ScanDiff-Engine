@@ -225,6 +225,7 @@ export function buildMockDiff(baseId: string, newId: string): DiffResult {
       : "match";
 
   return {
+    source: "browser_mock",
     baseScan: MOCK_SCANS[baseId],
     newScan: MOCK_SCANS[newId],
     units: "mm",

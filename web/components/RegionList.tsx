@@ -44,6 +44,22 @@ export default function RegionList({ diff, selectedId, onSelect }: Props) {
                 <span>Up to {formatDistance(r.maxDistance, diff.units)}</span>
                 <span>Seen on {r.seenOn === "new" ? "new scan" : "baseline scan"}</span>
               </div>
+              {(r.beforeCropUrl || r.afterCropUrl) && (
+                <div className="mt-2 flex gap-2 pl-8">
+                  {[
+                    ["Before", r.beforeCropUrl],
+                    ["After", r.afterCropUrl],
+                  ].map(([name, url]) =>
+                    url ? (
+                      <figure key={name} className="w-24">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- engine-hosted crops, any origin */}
+                        <img src={url} alt={`${name} photo of region ${i + 1}`} className="aspect-square w-full rounded object-cover" />
+                        <figcaption className="text-[11px] opacity-80">{name}</figcaption>
+                      </figure>
+                    ) : null,
+                  )}
+                </div>
+              )}
             </button>
           </li>
         );

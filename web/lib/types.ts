@@ -1,10 +1,9 @@
 /**
  * All data types shared by the ScanDiff web app.
  *
- * These shapes are the web app's own internal contract. They are ASSUMPTIONS
- * until the backend and iOS teammates confirm their formats (see TODO.md).
- * When the real formats arrive, map them onto these types inside
- * `diffClient.ts` and `modelLoader.ts`; components should not need to change.
+ * These shapes are the web app's own internal contract. The engine's real
+ * response (`contract.ts`, generated from the engine's JSON schema) is mapped
+ * onto them inside `diffClient.ts`, so components only ever see these types.
  */
 
 export type Vec3 = [number, number, number];
@@ -34,6 +33,10 @@ export interface ScanMeta {
    * Placeholder: it is not anchored anywhere independent yet.
    */
   sha256: string | null;
+  /** Phone model and OS, e.g. "iPhone18,2, iOS 27.0". */
+  device?: string;
+  /** Free-form role from the app, e.g. "baseline", "pickup" or "return". */
+  kind?: string;
 }
 
 export type RegionLabel = "normal_wear" | "needs_review";
@@ -52,6 +55,9 @@ export interface FlaggedRegion {
   /** Which scan shows the change: "new" (shape moved) or "baseline" (material missing in new scan). */
   seenOn: "baseline" | "new";
   description: string;
+  /** Optional photo crops of the region from each scan's reference photos. */
+  beforeCropUrl?: string | null;
+  afterCropUrl?: string | null;
 }
 
 export interface UncoveredRegion {
@@ -73,26 +79,61 @@ export interface Histogram {
 
 export interface DiffSummary {
   maxDistance: number;
-  meanDistance: number;
+  /** Not reported by the engine. */
+  meanDistance?: number;
   /** Fraction (0 to 1) of covered vertices above the noise threshold. */
   fractionAboveThreshold: number;
-  /** Fraction (0 to 1) of vertices covered by both scans. */
-  coveredFraction: number;
+  /** Fraction (0 to 1) of vertices covered by both scans. Not reported by the engine. */
+  coveredFraction?: number;
+}
+
+/** Where a DiffResult came from, shown on screen so mock data is never presented as live. */
+export type DiffSource = "browser_mock" | "engine_mock" | "engine";
+
+/**
+ * A model whose colors are already baked into its vertices (the engine's
+ * heat map). Colors use a signed scale: blue is a dent, gray is within
+ * `neutralBand` of zero, red is added material.
+ */
+export interface BakedHeatmap {
+  modelUrl: string;
+  format: ModelFormat;
+  /** Signed scale ends and gray band half-width, in `units`. */
+  min: number;
+  max: number;
+  neutralBand: number;
+}
+
+/** Alignment and noise numbers reported by the engine, in `units`. */
+export interface DiffQuality {
+  noiseFloor: number;
+  icpFitness: number;
+  icpRmse: number;
+  diffTimeSeconds: number;
 }
 
 export interface DiffResult {
+  source: DiffSource;
+  /** Engine's id for this comparison, when there is one. */
+  diffId?: string;
   baseScan: ScanMeta;
   newScan: ScanMeta;
   units: LengthUnit;
   upAxis: UpAxis;
+  /**
+   * Multiply model file coordinates by this to get `units`, e.g. 1000 when
+   * models are in meters and `units` is "mm". Defaults to 1.
+   */
+  modelScale?: number;
   /** Changes at or below this distance are treated as scanner noise. */
   noiseThreshold: number;
   /**
    * One distance per vertex of the NEW model, measured to the baseline
    * surface, in `units`. null = no data (area covered by only one scan).
    * Index i matches vertex i of the model returned by `loadModel`.
+   * Absent when the engine sends a baked heat map instead.
    */
-  newToBase: (number | null)[];
+  newToBase?: (number | null)[];
   /**
    * One distance per vertex of the BASELINE model, measured to the new
    * surface. Shows material that is missing from the new scan. Optional:
@@ -104,12 +145,19 @@ export interface DiffResult {
    * baseline frame. Not applied yet: the app assumes models arrive aligned.
    */
   alignment?: number[];
+  /** Engine heat map on the baseline surface. When present, the viewer shows it instead of computing colors. */
+  heatmap?: BakedHeatmap;
   histogram: Histogram;
   flaggedRegions: FlaggedRegion[];
   uncoveredRegions: UncoveredRegion[];
   verdict: Verdict;
+  /** 0 to 1, from the engine. */
+  verdictConfidence?: number;
+  /** One-line reason for the verdict, from the engine. */
+  verdictReason?: string;
   summary: DiffSummary;
-  /** ISO 8601 time the diff was computed. */
+  quality?: DiffQuality;
+  /** ISO 8601 time the diff was computed (or received, for the engine, which does not report it). */
   computedAt: string;
 }
 

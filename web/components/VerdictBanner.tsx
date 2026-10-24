@@ -1,4 +1,4 @@
-import { formatDistance, formatPercent, VERDICT_TEXT } from "@/lib/format";
+import { formatDistance, formatPercent, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
 import type { DiffResult } from "@/lib/types";
 
 const STYLE = {
@@ -16,7 +16,7 @@ export default function VerdictBanner({ diff }: { diff: DiffResult }) {
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span aria-hidden className="text-lg font-black">{ICON[diff.verdict]}</span>
         <h2 className="text-lg font-bold">Verdict: {v.title}</h2>
-        <span className="text-sm">{v.detail}</span>
+        <span className="text-sm">{diff.verdictReason ?? v.detail}</span>
       </div>
       <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
         <div>
@@ -24,18 +24,28 @@ export default function VerdictBanner({ diff }: { diff: DiffResult }) {
           <dd className="font-semibold">{formatDistance(diff.summary.maxDistance, diff.units)}</dd>
         </div>
         <div>
-          <dt className="opacity-75">Noise threshold</dt>
+          <dt className="opacity-75">Change threshold</dt>
           <dd className="font-semibold">{formatDistance(diff.noiseThreshold, diff.units)}</dd>
         </div>
         <div>
           <dt className="opacity-75">Above threshold</dt>
           <dd className="font-semibold">{formatPercent(diff.summary.fractionAboveThreshold)} of surface</dd>
         </div>
-        <div>
-          <dt className="opacity-75">Covered by both scans</dt>
-          <dd className="font-semibold">{formatPercent(diff.summary.coveredFraction)}</dd>
-        </div>
+        {diff.summary.coveredFraction !== undefined ? (
+          <div>
+            <dt className="opacity-75">Covered by both scans</dt>
+            <dd className="font-semibold">{formatPercent(diff.summary.coveredFraction)}</dd>
+          </div>
+        ) : (
+          diff.verdictConfidence !== undefined && (
+            <div>
+              <dt className="opacity-75">Verdict confidence</dt>
+              <dd className="font-semibold">{formatPercent(diff.verdictConfidence)}</dd>
+            </div>
+          )
+        )}
       </dl>
+      <p className="mt-2 text-[11px] opacity-75">Source: {SOURCE_TEXT[diff.source].short}</p>
     </section>
   );
 }

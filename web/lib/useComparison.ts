@@ -9,6 +9,8 @@ export interface Comparison {
   diff: DiffResult;
   baseModel: LoadedModel;
   newModel: LoadedModel;
+  /** The engine's baked heat map, when the diff has one. */
+  heatModel: LoadedModel | null;
 }
 
 type State =
@@ -28,14 +30,16 @@ export function useComparison(item: Item, withModels = true): State & { retry: (
     (async () => {
       try {
         const diff = await getDiff(baseId, newId);
-        const [baseModel, newModel] = withModels
+        const scale = diff.modelScale ?? 1;
+        const [baseModel, newModel, heatModel] = withModels
           ? await Promise.all([
-              loadModel(diff.baseScan.modelUrl, diff.baseScan.format, diff.upAxis),
-              loadModel(diff.newScan.modelUrl, diff.newScan.format, diff.upAxis),
+              loadModel(diff.baseScan.modelUrl, diff.baseScan.format, diff.upAxis, scale),
+              loadModel(diff.newScan.modelUrl, diff.newScan.format, diff.upAxis, scale),
+              diff.heatmap ? loadModel(diff.heatmap.modelUrl, diff.heatmap.format, diff.upAxis, scale) : null,
             ])
-          : [null, null];
+          : [null, null, null];
         if (!cancelled) {
-          setState({ status: "ready", data: { diff, baseModel: baseModel!, newModel: newModel! } });
+          setState({ status: "ready", data: { diff, baseModel: baseModel!, newModel: newModel!, heatModel } });
         }
       } catch (e) {
         if (!cancelled) setState({ status: "error", message: e instanceof Error ? e.message : String(e) });

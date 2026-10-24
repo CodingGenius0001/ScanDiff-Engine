@@ -10,8 +10,10 @@ export default function Home() {
           tamper-evident evidence of condition at handoff. It does not verify that an item is as advertised.
         </p>
         <p className="mt-2 text-xs text-zinc-500">
-          Phone LiDAR measures shape, not color, so scuffs and stains are not detected. All data on this site is mock
-          data.
+          Phone LiDAR measures shape, not color, so scuffs and stains are not detected.{" "}
+          {process.env.NEXT_PUBLIC_DIFF_API_URL
+            ? "Comparisons come from the ScanDiff engine. Item names, prices and timestamps are demo data."
+            : "All data on this site is mock data."}
         </p>
       </header>
       <div className="grid gap-3 sm:grid-cols-2">
