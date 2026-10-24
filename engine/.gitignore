@@ -8,3 +8,5 @@ data/
 # Offline uploads from scandiff.storage.upload_file. The mock's sample GLBs stay tracked.
 static/*
 !static/sample_*.glb
+# Debug output from scripts, such as check_projection.py overlays.
+out/

@@ -102,6 +102,19 @@ MISSING_AREA_RATIO = 2.0
 # Smaller regions are dropped. A placeholder until real damage has been measured.
 MIN_REGION_CM2 = 0.5
 
+# Region photos: a view must face the region at least this much (cosine), and a mesh hit
+# blocks it only if it is this far plus the region's depth in front of the region.
+PHOTO_MIN_FACING = 0.2
+OCCLUSION_TOLERANCE_MM = 5.0
+# Crops: the region's projected box plus this share of its size, at least CROP_MIN_PX
+# across in the photo, then resized to CROP_SIZE_PX square.
+CROP_PADDING = 0.3
+CROP_MIN_PX = 160
+CROP_SIZE_PX = 256
+CROP_JPEG_QUALITY = 90
+# Length of the world-up step projected to find which way is up in a photo.
+CROP_UP_PROBE_MM = 50.0
+
 # Heat map: colors saturate at this many thresholds; bigger meshes are decimated for the browser.
 HEATMAP_SATURATION_THRESHOLDS = 5.0
 HEATMAP_MAX_FACES = 100_000

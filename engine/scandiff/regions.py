@@ -9,6 +9,7 @@ from scipy.spatial import cKDTree
 from sklearn.cluster import DBSCAN
 
 from scandiff import config
+from scandiff.distance import outward_normals
 from scandiff.preprocess import MM
 
 CM2 = 1e-4
@@ -56,7 +57,9 @@ class RegionGeom:
     `sharpness` is the mean slope of the depth across the region's edge, in mm
     of depth per mm along the surface. `spread` is the RMS distance from the
     centroid over that of a flat disc of the same area: 1 is a compact patch,
-    larger is elongated or scattered.
+    larger is elongated or scattered. `anchor_m` is the region's point nearest
+    its centroid, which on a curved region can lie off the surface, and
+    `normal` the mean outward normal there; photos use both to find a view.
     """
 
     kind: RegionKind
@@ -68,6 +71,10 @@ class RegionGeom:
     point_count: int
     sharpness: float
     spread: float
+    anchor_m: np.ndarray
+    normal: np.ndarray
+    before_crop_url: str | None = None
+    after_crop_url: str | None = None
 
     @property
     def severity(self) -> float:
@@ -79,7 +86,9 @@ class _Surface:
     """One cloud, with what measuring regions on it needs."""
 
     points: np.ndarray
+    # Unsigned, fitted to the nearest few points; for areas and slopes.
     normals: np.ndarray
+    outward: np.ndarray
     areas: np.ndarray
     depth: np.ndarray
     tree: cKDTree
@@ -144,7 +153,7 @@ def _surface(cloud: o3d.geometry.PointCloud, depth: np.ndarray) -> _Surface:
     points = np.asarray(cloud.points)
     tree = cKDTree(points)
     normals = _local_normals(points, tree)
-    return _Surface(points, normals, point_areas(normals), depth, tree)
+    return _Surface(points, normals, outward_normals(cloud), point_areas(normals), depth, tree)
 
 
 def _local_normals(points: np.ndarray, tree: cKDTree) -> np.ndarray:
@@ -177,8 +186,11 @@ def _measure(kind: RegionKind, surface: _Surface, indices: np.ndarray) -> Region
     areas = surface.areas[indices]
     area = float(areas.sum())
     depth_mm = surface.depth[indices] / MM
-    extent = measure_region(surface.points[indices])
-    rms_m = np.sqrt(np.mean(np.sum((surface.points[indices] - extent.centroid_m) ** 2, axis=1)))
+    points = surface.points[indices]
+    extent = measure_region(points)
+    from_centroid = np.linalg.norm(points - extent.centroid_m, axis=1)
+    rms_m = np.sqrt(np.mean(from_centroid**2))
+    normal = surface.outward[indices].sum(axis=0)
     return RegionGeom(
         kind=kind,
         indices=indices,
@@ -190,6 +202,8 @@ def _measure(kind: RegionKind, surface: _Surface, indices: np.ndarray) -> Region
         sharpness=_edge_sharpness(surface, indices),
         # A flat disc of area A has an RMS radius of sqrt(A / 2 pi).
         spread=float(rms_m / np.sqrt(area / (2 * np.pi))),
+        anchor_m=points[np.argmin(from_centroid)],
+        normal=normal / max(np.linalg.norm(normal), 1e-12),
     )
 
 
