@@ -19,3 +19,7 @@ class ScanTooSparse(ScanDiffError):
 
 class ScaleMismatch(ScanDiffError):
     """The two scans differ in size by more than a rescan could explain."""
+
+
+class AlignmentFailed(ScanDiffError):
+    """The new scan could not be aligned to the base scan."""

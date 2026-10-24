@@ -33,3 +33,21 @@ SCALE_MISMATCH = 0.20
 OBB_SUBSET_POINTS = 300
 # Extents run from this percentile to 100 minus it along each box axis.
 EXTENT_PERCENTILE = 0.5
+
+# Global registration runs on a coarser copy; these factors scale its voxel size.
+GLOBAL_VOXEL_FACTOR = 2.5
+GLOBAL_NORMAL_RADIUS_FACTOR = 2.0
+FPFH_RADIUS_FACTOR = 5.0
+FPFH_MAX_NN = 100
+GLOBAL_DISTANCE_FACTOR = 1.5
+RANSAC_EDGE_LENGTH_RATIO = 0.9
+RANSAC_MAX_ITERATIONS = 100_000
+RANSAC_CONFIDENCE = 0.999
+
+# Point-to-plane ICP, coarse to fine.
+ICP_DISTANCES_MM = (10.0, 5.0, 2.0)
+ICP_MAX_ITERATIONS = 50
+
+# An alignment below MIN_FITNESS or above MAX_RMSE_MM (at the finest ICP distance) is rejected.
+MIN_FITNESS = 0.6
+MAX_RMSE_MM = 1.5
