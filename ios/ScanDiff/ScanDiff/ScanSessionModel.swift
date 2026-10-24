@@ -14,6 +14,8 @@ final class ScanSessionModel {
     private let processingService = ProcessingService()
     private var didStartProcessing = false
     private var observationTasks: [Task<Void, Never>] = []
+    private var autoDetectTask: Task<Void, Never>?
+    private var bannerTask: Task<Void, Never>?
 
     var stage: ScanStage = .preflight
     var session: ObjectCaptureSession?
@@ -22,6 +24,14 @@ final class ScanSessionModel {
     var completedPasses = 0
     var isPassPromptShown = false
     var detectionFailed = false
+    /// Short-lived guidance shown when the app moves on by itself.
+    var progressBanner: String?
+    /// Bumped each time an orbit completes, to drive a success haptic.
+    var orbitCompletions = 0
+    var didCaptureBottom = false
+
+    var currentOrbit: Int { completedPasses + 1 }
+    var plannedOrbits: Int { request.kind.plannedOrbits }
     var progress = 0.0
     var statusMessage = "Reconstructing the model…"
     var prepared: PreparedScan?
@@ -114,6 +124,10 @@ final class ScanSessionModel {
     private func releaseCaptureSession() {
         observationTasks.forEach { $0.cancel() }
         observationTasks.removeAll()
+        autoDetectTask?.cancel()
+        autoDetectTask = nil
+        bannerTask?.cancel()
+        progressBanner = nil
         session = nil
         isPassPromptShown = false
         UIApplication.shared.isIdleTimerDisabled = false
@@ -122,8 +136,43 @@ final class ScanSessionModel {
 
     func startDetecting() {
         guard let session else { return }
+        autoDetectTask?.cancel()
         detectionFailed = !session.startDetecting()
         Diagnostics.log("startDetecting ok=\(!detectionFailed)")
+    }
+
+    /// Tries to find the object on its own once tracking is steady and the
+    /// object is in view, so the user doesn't have to tap. The manual button
+    /// stays as a fallback.
+    private func scheduleAutoDetect() {
+        autoDetectTask?.cancel()
+        autoDetectTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1.5))
+            for _ in 0..<20 {
+                guard !Task.isCancelled, let self, let session = self.session,
+                      session.state == .ready else { return }
+                let steady = session.cameraTracking == .normal
+                    && !session.feedback.contains(.outOfFieldOfView)
+                    && !session.feedback.contains(.movingTooFast)
+                if steady, session.startDetecting() {
+                    Diagnostics.log("auto-detect found the object")
+                    self.detectionFailed = false
+                    return
+                }
+                try? await Task.sleep(for: .seconds(1.5))
+            }
+            self?.detectionFailed = true
+        }
+    }
+
+    private func showBanner(_ message: String) {
+        progressBanner = message
+        bannerTask?.cancel()
+        bannerTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            self?.progressBanner = nil
+        }
     }
 
     func redetect() {
@@ -157,6 +206,7 @@ final class ScanSessionModel {
             return
         }
         if flip && (canFlipObject || overrideNotFlippable) {
+            didCaptureBottom = true
             Diagnostics.log("beginNewScanPassAfterFlip")
             session.beginNewScanPassAfterFlip()
         } else {
@@ -178,17 +228,40 @@ final class ScanSessionModel {
         Diagnostics.log("session resumed")
     }
 
+    /// Moves through the orbit plan without stopping: the next orbit starts on
+    /// its own, a check finishes on its own, and only a baseline pauses once
+    /// at the end to offer the bottom pass.
     private func passCompleted() {
         guard case .capture = stage, let session, !isPassPromptShown else { return }
         completedOrbit = true
         completedPasses += 1
-        session.pause()
-        isPassPromptShown = true
-        Diagnostics.log("pass \(completedPasses) complete, paused, flippable=\(canFlipObject)")
+        orbitCompletions += 1
+        Diagnostics.log("pass \(completedPasses)/\(plannedOrbits) complete shots=\(shotCount) flippable=\(canFlipObject)")
+
+        if completedPasses < plannedOrbits || finishBlocker != nil {
+            session.pause()
+            session.beginNewScanPass()
+            session.resume()
+            let next = request.kind.orbitGuidance(currentOrbit)
+            showBanner(finishBlocker.map { "Keep circling. \($0)" } ?? "Orbit \(completedPasses) done. \(next).")
+            Diagnostics.log("auto-advanced to orbit \(currentOrbit)")
+            return
+        }
+
+        switch request.kind {
+        case .check:
+            Diagnostics.log("auto-finish check scan")
+            session.finish()
+        case .baseline:
+            session.pause()
+            isPassPromptShown = true
+        }
     }
 
     private func handle(_ state: ObjectCaptureSession.CaptureState) {
         switch state {
+        case .ready:
+            scheduleAutoDetect()
         case .completed:
             finishCaptureIfNeeded()
         case .failed(let error):

@@ -24,6 +24,8 @@ enum Diagnostics {
     static func start() {
         queue.async { trimIfNeeded() }
         log("launch \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") on \(DeviceInfo.description)")
+        let environment = ProcessInfo.processInfo.environment
+        log("metal debug layer=\(environment["MTL_DEBUG_LAYER"] ?? "unset") shader validation=\(environment["MTL_SHADER_VALIDATION"] ?? "unset")")
         NSSetUncaughtExceptionHandler { exception in
             Diagnostics.logSync("UNCAUGHT EXCEPTION \(exception.name.rawValue): \(exception.reason ?? "") \(exception.callStackSymbols.prefix(8).joined(separator: " | "))")
         }

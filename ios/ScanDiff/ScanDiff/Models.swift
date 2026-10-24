@@ -14,6 +14,24 @@ enum ScanKind: String, CaseIterable, Identifiable, Codable {
         case .check: "Check"
         }
     }
+
+    /// Orbits walked before the scan finishes or offers the bottom pass.
+    /// A baseline is the reference, so it gets a second, higher orbit; a check
+    /// only has to cover what the diff compares.
+    var plannedOrbits: Int {
+        switch self {
+        case .baseline: 2
+        case .check: 1
+        }
+    }
+
+    func orbitGuidance(_ orbit: Int) -> String {
+        switch orbit {
+        case 1: "Hold the phone a little above the object and look down slightly"
+        case 2: "Raise the phone higher and look down at the top"
+        default: "Go lower and look up at the sides"
+        }
+    }
 }
 
 struct ScanRequest: Equatable {
@@ -72,6 +90,12 @@ struct FileRecord: Codable, Equatable {
     var sha256: String
 }
 
+/// Matches the engine's `TextureFile` schema.
+struct TextureRecord: Codable, Equatable {
+    var file: String
+    var sha256: String
+}
+
 struct ScanMetadata: Codable, Equatable {
     var scan_id: String
     var item_id: String
@@ -83,7 +107,7 @@ struct ScanMetadata: Codable, Equatable {
     var model_sha256: String
     var obj_file: String
     var material_file: String
-    var textures: [String]
+    var textures: [TextureRecord]
     var mesh_cleanup: MeshCleanupSummary
     var files: [FileRecord]
     var photos: [PhotoRecord]

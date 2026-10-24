@@ -113,7 +113,14 @@ Files land at `scans/<item_id>/<scan_id>/`. The table row’s `model_url` is the
 
 `model.mtl` is rewritten after ModelIO's export so viewers show color: texture paths are relative (ModelIO writes `/texture_0.png`), `Kd` is `1 1 1` under a diffuse map (viewers multiply it into the texture, and ModelIO writes 0.18 grey), and the normal map uses `norm` instead of `map_tangentSpaceNormal`.
 
-`model.obj` is cleaned before export; `model.usdz` is kept exactly as reconstruction produced it. The cleanup drops zero-area triangles and floating fragments under 5% of the main object's triangle count, and Taubin-smooths only open boundary loops. It never smooths the surface, so dents and chips are preserved. Topology is computed on position-welded vertices, so UV seams are not treated as holes. `mesh_cleanup` records what was changed.
+`model.obj` is cleaned before export; `model.usdz` is kept exactly as reconstruction produced it. The cleanup:
+
+- drops zero-area triangles and floating fragments under 5% of the main object's triangle count,
+- pulls back single-vertex spikes (a vertex more than 2.5 local edge lengths out of its one-ring),
+- Taubin-smooths only open boundary loops,
+- writes **shading normals** from a bilateral normal filter (Zheng et al. 2011), so viewers render a cleaner, sharper shape: ripple flattens while creases and edges stay crisp.
+
+Vertex positions are never smoothed. At on-device mesh resolution a few-millimetre dent spans only a few triangles, so geometric smoothing would erode real damage: in testing, smoothing capped at 0.5 mm shaved 0.5 mm off a 3 mm dent. With shading-only refinement the same dent keeps 100% of its depth. `mesh_cleanup` reports `surface_roughness_deg` (geometry, unchanged) and `shading_roughness_deg` (filtered normals); on the coffee-maker scan these are 14.2° and 8.8°. Topology is computed on position-welded vertices, so UV seams are not treated as holes. Cleanup takes about 25 ms for an 18,000-triangle scan.
 
 `camera_transform` is 16 floats, column-major, camera-to-world. It comes from the camera poses that `PhotogrammetrySession` solves during reconstruction, so it is in the same coordinate frame as `model.usdz`. `intrinsics` is 9 floats, column-major, in pixels. On iOS 26 they come from the solved pose; on iOS 17–18 they are estimated from the photo's 35mm-equivalent focal length. Photos are stored in raw sensor orientation with no EXIF rotation, so the pixel grid matches the intrinsics. Key photos are the sharpest frame in each of 10 slices of a circle around the object, with at least 8. `created_at` is ISO8601 UTC.
 
@@ -129,6 +136,10 @@ A separate ARKit session is not used for poses because it would take the camera 
 6. The first build asks the phone to trust the developer certificate: Settings → General → VPN & Device Management.
 
 Koushik’s iPhone (13 Pro Max) has LiDAR and is a valid capture device. It was not connected while this project was built, and Xcode had no signing certificate, so nothing was installed.
+
+## If capture freezes when run from Xcode
+
+Launching from Xcode attaches the debugger and turns on Metal API Validation. On iOS 27, RealityKit's bounding-box rendering can trip that validation, and Xcode then pauses the whole app: the phone looks frozen right after the box appears, and no crash report is written. The shared scheme turns off GPU validation and GPU frame capture for Run. If it still happens, check Xcode's debug navigator for the stop reason, or launch ScanDiff from the home screen instead. The same build runs normally there.
 
 ## Not verified on a device
 

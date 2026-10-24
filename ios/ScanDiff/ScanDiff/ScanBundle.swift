@@ -93,7 +93,9 @@ enum ScanBundle {
             model_sha256: modelDigest,
             obj_file: objFileName,
             material_file: materialFileName,
-            textures: textures,
+            textures: textures.compactMap { name in
+                files.first { $0.name == name }.map { TextureRecord(file: name, sha256: $0.sha256) }
+            },
             mesh_cleanup: cleanup,
             files: files,
             photos: photos

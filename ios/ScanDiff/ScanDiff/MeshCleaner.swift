@@ -6,18 +6,37 @@ struct MeshCleanupSummary: Codable, Equatable {
     var removed_components = 0
     var removed_triangles = 0
     var smoothed_boundary_vertices = 0
+    var spikes_removed = 0
+    /// Largest vertex move made by spike removal. Nothing else moves vertices.
+    var max_shift_mm: Float = 0
+    /// Mean angle between neighbouring faces of the geometry, unchanged by refinement.
+    var surface_roughness_deg: Float = 0
+    /// The same measure for the filtered shading normals written to model.obj.
+    var shading_roughness_deg: Float = 0
+    var faces = 0
 
     mutating func add(_ other: MeshCleanupSummary) {
+        let total = faces + other.faces
+        func blend(_ a: Float, _ b: Float) -> Float {
+            total > 0 ? (a * Float(faces) + b * Float(other.faces)) / Float(total) : 0
+        }
+        surface_roughness_deg = blend(surface_roughness_deg, other.surface_roughness_deg)
+        shading_roughness_deg = blend(shading_roughness_deg, other.shading_roughness_deg)
         removed_components += other.removed_components
         removed_triangles += other.removed_triangles
         smoothed_boundary_vertices += other.smoothed_boundary_vertices
+        spikes_removed += other.spikes_removed
+        max_shift_mm = max(max_shift_mm, other.max_shift_mm)
+        faces = total
     }
 }
 
-/// Cleans reconstruction artifacts without smoothing the surface, so real
-/// damage (dents, chips, scratches) survives for the diff engine:
+/// Cleans reconstruction artifacts while keeping real damage (dents, chips,
+/// scratches) for the diff engine:
 /// - drops degenerate triangles,
 /// - drops floating fragments much smaller than the main object,
+/// - removes single-vertex spikes and writes edge-preserving shading normals
+///   (see MeshRefiner); no other vertex moves,
 /// - Taubin-smooths only open boundary loops (ragged cut edges),
 /// - compacts away vertices nothing references.
 /// Topology is computed on position-welded vertices so UV seams, where
@@ -55,13 +74,33 @@ enum MeshCleaner {
         summary.removed_components = droppedComponents
         summary.removed_triangles += nondegenerate.count - kept.count
 
-        let smoothed = smoothBoundaries(kept, welded: welded, positions: positions)
-        summary.smoothed_boundary_vertices = smoothed.count
+        let refined = MeshRefiner.refine(triangles: kept, welded: welded, positions: positions)
+        summary.faces = refined.stats.faces
+        summary.spikes_removed = refined.stats.spikesRemoved
+        summary.max_shift_mm = refined.stats.maxShift * 1000
+        summary.surface_roughness_deg = refined.stats.surfaceRoughness
+        summary.shading_roughness_deg = refined.stats.shadingRoughness
 
-        guard summary.removed_triangles > 0 || !smoothed.isEmpty else {
+        var working = positions
+        for (id, point) in refined.positions {
+            working[Int(id)] = point
+        }
+        let smoothedBoundary = smoothBoundaries(kept, welded: welded, positions: working)
+        summary.smoothed_boundary_vertices = smoothedBoundary.count
+        let finalPositions = refined.positions.merging(smoothedBoundary) { _, boundary in boundary }
+
+        guard summary.removed_triangles > 0 || !finalPositions.isEmpty || !refined.normals.isEmpty else {
             return summary
         }
-        rebuild(mesh: mesh, layout: layout, submeshes: submeshes, triangles: kept, welded: welded, smoothed: smoothed)
+        rebuild(
+            mesh: mesh,
+            layout: layout,
+            submeshes: submeshes,
+            triangles: kept,
+            welded: welded,
+            smoothed: finalPositions,
+            normals: refined.normals
+        )
         return summary
     }
 
@@ -199,8 +238,12 @@ enum MeshCleaner {
         submeshes: [MDLSubmesh],
         triangles: [Triangle],
         welded: [UInt32],
-        smoothed: [UInt32: SIMD3<Float>]
+        smoothed: [UInt32: SIMD3<Float>],
+        normals: [UInt32: SIMD3<Float>]
     ) {
+        let normalAttribute = mesh.vertexDescriptor.attributeNamed(MDLVertexAttributeNormal)
+        let normalBuffer = normalAttribute.flatMap { $0.format == .float3 || $0.format == .float4 ? $0.bufferIndex : nil }
+        let normalOffset = normalAttribute?.offset ?? 0
         var remap = [Int32](repeating: -1, count: mesh.vertexCount)
         var order: [Int] = []
         order.reserveCapacity(mesh.vertexCount)
@@ -234,6 +277,15 @@ enum MeshCleaner {
                         target[0] = p.x
                         target[1] = p.y
                         target[2] = p.z
+                    }
+                }
+                if bufferIndex == normalBuffer {
+                    for (newIndex, raw) in order.enumerated() {
+                        guard let n = normals[welded[raw]] else { continue }
+                        let target = (base + newIndex * stride + normalOffset).assumingMemoryBound(to: Float.self)
+                        target[0] = n.x
+                        target[1] = n.y
+                        target[2] = n.z
                     }
                 }
             }

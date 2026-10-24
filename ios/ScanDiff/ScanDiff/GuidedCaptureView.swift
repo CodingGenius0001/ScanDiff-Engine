@@ -21,7 +21,18 @@ struct GuidedCaptureView: View {
                 VStack(spacing: 12) {
                     topBar(step: step(for: session.state))
                     if !model.isPassPromptShown {
-                        QualityBanner(issue: QualityIssue.top(feedback: session.feedback, tracking: session.cameraTracking))
+                        if let banner = model.progressBanner {
+                            Label(banner, systemImage: "checkmark.circle.fill")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(Color.green.opacity(0.85), in: Capsule())
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        } else {
+                            QualityBanner(issue: QualityIssue.top(feedback: session.feedback, tracking: session.cameraTracking))
+                        }
                     }
                     Spacer(minLength: 0)
                     if model.isPassPromptShown {
@@ -43,6 +54,8 @@ struct GuidedCaptureView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: model.isPassPromptShown)
+        .animation(.spring(duration: 0.3), value: model.progressBanner)
+        .sensoryFeedback(.success, trigger: model.orbitCompletions)
         .onAppear {
             model.startCaptureIfNeeded()
         }
@@ -137,12 +150,17 @@ private struct InstructionCard: View {
             heading("Starting camera…", "Hold the phone steady.")
             ProgressView()
         case .ready:
-            heading("Point at your object", "Center it on screen from about an arm's length away, then tap Find object.")
-            primary("Find object", systemImage: "viewfinder") {
-                model.startDetecting()
+            HStack(spacing: 12) {
+                if !model.detectionFailed {
+                    ProgressView()
+                }
+                heading("Point at your object", "Center it on screen from about an arm's length away. It's found automatically.")
             }
             if model.detectionFailed {
                 note("Couldn't find it. Move a little closer and make sure the whole object is on screen.", warning: true)
+                primary("Find object", systemImage: "viewfinder") {
+                    model.startDetecting()
+                }
             }
         case .detecting:
             heading("Fit the box", "Drag its edges to wrap the object. Keep the table out.")
@@ -165,17 +183,22 @@ private struct InstructionCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(orbitTitle)
                         .font(.title3.bold())
-                    Text("Walk slowly around the object and keep it centered. Photos are taken automatically.")
+                    Text("\(model.request.kind.orbitGuidance(model.currentOrbit)), and walk slowly all the way around. Photos are taken automatically.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
             }
-            primary("Finish scan", systemImage: "checkmark") {
-                model.finishCapture()
-            }
-            .disabled(model.finishBlocker != nil)
             if let blocker = model.finishBlocker {
                 note(blocker, warning: false)
+            } else {
+                Button {
+                    model.finishCapture()
+                } label: {
+                    Text("Finish early")
+                        .frame(maxWidth: .infinity, minHeight: 30)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
         case .finishing:
             heading("Saving photos…", "Keep the app open.")
@@ -194,12 +217,10 @@ private struct InstructionCard: View {
     }
 
     private var orbitTitle: String {
-        switch model.completedPasses {
-        case 0: "Orbit 1 · eye level"
-        case 1: "Orbit 2 · from higher up"
-        case 2: "Orbit 3 · from lower down"
-        default: "Extra orbit"
-        }
+        let orbit = model.currentOrbit
+        return orbit <= model.plannedOrbits
+            ? "Orbit \(orbit) of \(model.plannedOrbits)"
+            : (model.didCaptureBottom ? "Bottom orbit" : "Extra orbit")
     }
 
     private func heading(_ title: String, _ detail: String?) -> some View {

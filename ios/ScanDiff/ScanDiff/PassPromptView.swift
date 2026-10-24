@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Shown with capture paused each time an orbit completes, so the screen
-/// clearly reads as paused rather than frozen.
+/// Shown once, with capture paused, after a baseline's planned orbits: the
+/// only point where the scan waits for a decision (capturing the bottom).
 struct PassPromptView: View {
     @Bindable var model: ScanSessionModel
 
@@ -11,28 +11,34 @@ struct PassPromptView: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Orbit \(model.completedPasses) done")
+                Text(model.didCaptureBottom ? "Bottom captured" : "Capture the bottom?")
                     .font(.title2.bold())
                 Text(guidance)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
             VStack(spacing: 10) {
-                if model.canFlipObject {
-                    choice("I flipped it, keep going", systemImage: "arrow.triangle.2.circlepath", prominent: true) {
+                if model.didCaptureBottom {
+                    choice("Finish scan", systemImage: "checkmark", prominent: true) {
+                        model.finishFromPrompt()
+                    }
+                } else if model.canFlipObject {
+                    choice("I flipped it, scan the bottom", systemImage: "arrow.triangle.2.circlepath", prominent: true) {
                         model.beginNextPass(flip: true)
                     }
-                }
-                choice(nextAngleTitle, systemImage: "camera.rotate", prominent: !model.canFlipObject) {
-                    model.beginNextPass(flip: false)
-                }
-                if !model.canFlipObject {
+                    choice("Finish without the bottom", systemImage: "checkmark", prominent: false) {
+                        model.finishFromPrompt()
+                    }
+                } else {
+                    choice("Finish without the bottom", systemImage: "checkmark", prominent: true) {
+                        model.finishFromPrompt()
+                    }
                     choice("I laid it on its side anyway", systemImage: "arrow.triangle.2.circlepath", prominent: false) {
                         model.beginNextPass(flip: true, overrideNotFlippable: true)
                     }
                 }
-                choice("Finish scan", systemImage: "checkmark", prominent: false) {
-                    model.finishFromPrompt()
+                choice("One more orbit, low and looking up", systemImage: "camera.rotate", prominent: false) {
+                    model.beginNextPass(flip: false)
                 }
             }
         }
@@ -41,15 +47,14 @@ struct PassPromptView: View {
         .background(CaptureChrome.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
-    private var nextAngleTitle: String {
-        model.completedPasses == 1 ? "Go around again, from higher up" : "Go around again, low, looking up"
-    }
-
     private var guidance: String {
-        if model.canFlipObject {
-            return "To capture the bottom, gently lay the object on its side, then tap \"I flipped it\". Or circle it again from a different height."
+        if model.didCaptureBottom {
+            return "Top, sides and bottom are covered. Finish, or add a low orbit for extra detail on the sides."
         }
-        return "The bottom can only be captured if the object is laid on its side. If that's safe (empty it first, keep cords in place), lay it down and tap \"anyway\". Otherwise circle again from a different height; the underside will stay uncaptured."
+        if model.canFlipObject {
+            return "Damage on the underside only shows up if the bottom is scanned. Gently lay the object on its side, then continue."
+        }
+        return "Object Capture thinks this object can't be flipped. If it's safe (emptied, cords in place), lay it on its side and scan the bottom. Otherwise the underside is marked as not covered."
     }
 
     @ViewBuilder
