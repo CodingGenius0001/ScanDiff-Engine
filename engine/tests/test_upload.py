@@ -66,7 +66,13 @@ def test_transform_must_end_with_one_and_be_a_rotation():
 
 
 def test_jpeg_scale_and_hash_and_mesh(tmp_path, caplog):
-    photo = PhotoMeta(file="photo_01.jpg", camera_transform=IDENTITY_TRANSFORM, intrinsics=INTRINSICS)
+    photo = PhotoMeta(
+        file="photo_01.jpg",
+        camera_transform=IDENTITY_TRANSFORM,
+        intrinsics=INTRINSICS,
+        image_width=100,
+        image_height=80,
+    )
     image = Image.new("RGB", (25, 20))
     with caplog.at_level(logging.WARNING):
         scaled = intrinsics_for_image(photo, image)
@@ -78,6 +84,15 @@ def test_jpeg_scale_and_hash_and_mesh(tmp_path, caplog):
 
     full = intrinsics_for_image(photo, Image.new("RGB", (100, 80)))
     assert full[0, 0] == pytest.approx(100.0)
+
+    # Like the first real scan: a full-frame 4032x3024 JPEG, no frame size, cx off center.
+    off_center = [2890.4, 0.0, 0.0, 0.0, 2890.4, 0.0, 2039.1, 1508.9, 1.0]
+    legacy = PhotoMeta(file="photo_02.jpg", camera_transform=IDENTITY_TRANSFORM, intrinsics=off_center)
+    caplog.clear()
+    with caplog.at_level(logging.WARNING):
+        unscaled = intrinsics_for_image(legacy, Image.new("RGB", (4032, 3024)))
+    assert np.allclose(unscaled, legacy.K)
+    assert "no image_width/image_height" in caplog.text
 
     mesh_path = _write_usdz(tmp_path / "model.usdz")
     digest = hashlib.sha256(mesh_path.read_bytes()).hexdigest()

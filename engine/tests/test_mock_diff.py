@@ -55,12 +55,12 @@ def test_mock_numbers_agree():
     assert abs(result.heatmap_legend.min_mm) == result.stats.max_change_mm
 
 
-def test_mock_underside_is_minus_y():
+def test_mock_uncovered_patch_is_on_the_side_not_the_bottom():
     result = DiffResponse.model_validate(client.post("/diff", json=BODY).json())
 
     x, y, z = result.uncovered_regions[0].centroid_m
-    assert y < -0.04
-    assert abs(x) < 0.005 and abs(z) < 0.005
+    assert x < -0.04
+    assert abs(y) < 0.005 and abs(z) < 0.005
 
 
 def test_model_urls_serve_glbs():

@@ -17,7 +17,8 @@ RANDOM_SEED = 0
 VOXEL_MM = 2.0
 OUTLIER_NB_NEIGHBORS = 20
 OUTLIER_STD_RATIO = 2.0
-# Off by default: on a boxy item the largest plane can be a side of the item, not the table.
+# Off by default: Object Capture leaves the table out and the app scans the item's bottom too,
+# so the largest plane is part of the item (a side, or the base), not the table.
 REMOVE_GROUND_PLANE = False
 PLANE_DISTANCE_MM = 3.0
 PLANE_RANSAC_ITERATIONS = 1000

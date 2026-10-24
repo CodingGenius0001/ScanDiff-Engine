@@ -39,18 +39,24 @@ def verify_model_sha256(path: Path, expected: str) -> None:
 def intrinsics_for_image(photo: PhotoMeta, image: Image.Image) -> np.ndarray:
     """Intrinsics for this JPEG.
 
-    Missing `image_width` / `image_height` means the full camera frame is
-    `(round(2*cx), round(2*cy))`. A smaller JPEG is a downscale of that frame:
-    fx, fy, cx, and cy are scaled to match, and a warning is logged.
+    `image_width` / `image_height` are the camera frame the intrinsics belong to.
+    A smaller JPEG is a downscale of that frame: fx, fy, cx, and cy are scaled to
+    match, and a warning is logged.
+
+    Scans from before the app sent the frame size have full-frame JPEGs, so
+    their intrinsics are used unscaled. The frame cannot be guessed from cx and
+    cy: the principal point is off center by tens of pixels.
     """
     matrix = photo.K.copy()
-    jpeg_w, jpeg_h = image.size
     frame_w = photo.image_width
     frame_h = photo.image_height
-    if frame_w is None:
-        frame_w = int(round(2 * float(matrix[0, 2])))
-    if frame_h is None:
-        frame_h = int(round(2 * float(matrix[1, 2])))
+    if frame_w is None or frame_h is None:
+        logger.warning(
+            "%s has no image_width/image_height; using its intrinsics unscaled", photo.file
+        )
+        return matrix
+
+    jpeg_w, jpeg_h = image.size
 
     scale_x = jpeg_w / frame_w if jpeg_w < frame_w else 1.0
     scale_y = jpeg_h / frame_h if jpeg_h < frame_h else 1.0

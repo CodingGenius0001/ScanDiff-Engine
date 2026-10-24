@@ -163,7 +163,8 @@ def mock_diff_response(heatmap_url: str, base_model_url: str, new_model_url: str
     signed = _signed_change_mm(vertices)
     rim = np.linalg.norm(vertices - _RIM, axis=1) < _RIM_RADIUS
     wall = np.linalg.norm(vertices - _WALL, axis=1) < _WALL_RADIUS
-    underside = vertices[:, 1] < -0.04
+    # Both scans include the item's bottom, so the uncovered example is a side patch the new scan missed.
+    missed_side = vertices[:, 0] < -0.04
     return DiffResponse(
         is_mock=True,
         heatmap_url=heatmap_url,
@@ -203,7 +204,7 @@ def mock_diff_response(heatmap_url: str, base_model_url: str, new_model_url: str
             ),
         ],
         uncovered_regions=[
-            _uncovered("u1", vertices[underside], only_in="base", area_cm2=11.3),
+            _uncovered("u1", vertices[missed_side], only_in="base", area_cm2=28.3),
         ],
         verdict="needs_review",
         verdict_confidence=0.66,

@@ -36,8 +36,8 @@ Camera positions are meters. The mesh loader multiplies USD points by the stage 
 | `file` | string | JPEG file name |
 | `camera_transform` | 16 numbers | ARKit `simd_float4x4`, flattened column-major. The last element is `1` |
 | `intrinsics` | 9 numbers | ARKit `simd_float3x3`, flattened column-major |
-| `image_width` | integer | Optional full-frame width in pixels |
-| `image_height` | integer | Optional full-frame height in pixels |
+| `image_width` | integer | Full camera frame width in pixels. Every new scan sends it; scans from before it was added do not |
+| `image_height` | integer | Full camera frame height in pixels. Sent together with `image_width` |
 
 Both arrays are parsed column-major, then transposed:
 
@@ -48,8 +48,12 @@ K = np.array(intrinsics, dtype=float).reshape(3, 3).T
 
 After that, the camera position is `T_cam_to_world[:3, 3]`, and `K` is `[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]`. `PhotoMeta.T_cam_to_world` and `PhotoMeta.K` are the only way to read these. The upper 3×3 of `T` must be a rotation (determinant about 1, orthonormal within `1e-3`) and `K[2, 2]` must be 1. A failure means the flat list was parsed row-major.
 
-Intrinsics belong to the full camera frame. For a 4032×3024 frame, `cx` and `cy` are about 2037 and 1512. When a JPEG is loaded, its real size comes from Pillow. If `image_width` or `image_height` is missing, that side of the frame is `round(2 * cx)` or `round(2 * cy)`. If the JPEG is smaller than the frame, `fx`, `fy`, `cx`, and `cy` are scaled down to the JPEG and a warning is logged.
+Intrinsics belong to the full camera frame, `image_width` × `image_height`. When a JPEG is loaded, its real size comes from Pillow. If the JPEG is smaller than the frame, `fx`, `fy`, `cx`, and `cy` are scaled down to the JPEG and a warning is logged.
+
+Scans without `image_width` / `image_height` came from an older app build that always saved full-frame JPEGs, so their intrinsics are used unscaled and a warning is logged. The frame cannot be guessed from the principal point: on the first real capture, a 4032×3024 frame had `cx` 2039.1 and `cy` 1508.9, so `2 * cx` overshoots the width by 46 px.
 
 ## Model file
+
+The model covers the whole item, underside included: the app also captures the bottom, so both scans of a pair can be compared everywhere. Scans from before bottom capture was added have a closed underside that Object Capture filled in, not one the phone saw.
 
 `trimesh` cannot read USDZ. The loader uses `usd-core` (`pxr`) for points, face indices, and `metersPerUnit`. If that read fails, it raises `UnsupportedFormat` and asks the app to also send an OBJ.
