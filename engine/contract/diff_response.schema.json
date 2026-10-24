@@ -1,0 +1,399 @@
+{
+  "$defs": {
+    "HeatmapLegend": {
+      "description": "How to read vertex colors on the heatmap GLB.\n\nThe GLB is in the base scan's frame, in meters, with these colors already applied.\nThe scale is signed, not a magnitude ramp from unchanged to large change:\nblue is a dent (negative), gray is inside the neutral band around zero, and red is added material (positive).",
+      "properties": {
+        "min_mm": {
+          "description": "Low end of the color scale, millimeters of signed change from the base surface. Negative is a dent.",
+          "title": "Min Mm",
+          "type": "number"
+        },
+        "max_mm": {
+          "description": "High end of the color scale, millimeters of signed change from the base surface. Positive is added material.",
+          "title": "Max Mm",
+          "type": "number"
+        },
+        "threshold_mm": {
+          "description": "Comparison threshold, millimeters from the base surface. Matches stats.threshold_mm.",
+          "title": "Threshold Mm",
+          "type": "number"
+        },
+        "colormap": {
+          "const": "diverging_blue_gray_red",
+          "default": "diverging_blue_gray_red",
+          "description": "Signed scale baked into the heatmap GLB vertex colors. Blue is a dent, gray is within neutral_band_mm of zero, red is added material. Not a blue-to-red magnitude ramp.",
+          "title": "Colormap",
+          "type": "string"
+        },
+        "neutral_band_mm": {
+          "description": "Half-width of the gray band around zero, millimeters. Equal to threshold_mm.",
+          "title": "Neutral Band Mm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "min_mm",
+        "max_mm",
+        "threshold_mm",
+        "neutral_band_mm"
+      ],
+      "title": "HeatmapLegend",
+      "type": "object"
+    },
+    "Histogram": {
+      "properties": {
+        "bin_edges_mm": {
+          "description": "Histogram bin edges, millimeters of absolute change from the base surface.",
+          "items": {
+            "type": "number"
+          },
+          "title": "Bin Edges Mm",
+          "type": "array"
+        },
+        "counts": {
+          "description": "Unitless sample count in each bin. One fewer entry than bin_edges_mm.",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "bin_edges_mm",
+        "counts"
+      ],
+      "title": "Histogram",
+      "type": "object"
+    },
+    "Region": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "enum": [
+            "normal_wear",
+            "needs_review"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "damage_type": {
+          "enum": [
+            "normal_wear",
+            "scratch_scuff",
+            "dent_damage",
+            "missing_part"
+          ],
+          "title": "Damage Type",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "dent",
+            "added"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "area_cm2": {
+          "description": "Region area on the base surface, square centimeters.",
+          "title": "Area Cm2",
+          "type": "number"
+        },
+        "max_depth_mm": {
+          "description": "Largest absolute change in the region, millimeters from the base surface.",
+          "title": "Max Depth Mm",
+          "type": "number"
+        },
+        "mean_depth_mm": {
+          "description": "Mean absolute change over the region, millimeters from the base surface.",
+          "title": "Mean Depth Mm",
+          "type": "number"
+        },
+        "centroid_m": {
+          "description": "Centroid [x, y, z] in the base scan frame, meters.",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Centroid M",
+          "type": "array"
+        },
+        "radius_m": {
+          "description": "Max distance from centroid_m to any point in the region, meters, in the base scan frame.",
+          "title": "Radius M",
+          "type": "number"
+        },
+        "bbox_min_m": {
+          "description": "Axis-aligned minimum corner [x, y, z] of the region in the base scan frame, meters.",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Bbox Min M",
+          "type": "array"
+        },
+        "bbox_max_m": {
+          "description": "Axis-aligned maximum corner [x, y, z] of the region in the base scan frame, meters.",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Bbox Max M",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Unitless score from 0 to 1.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "before_crop_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Before Crop Url"
+        },
+        "after_crop_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "After Crop Url"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "damage_type",
+        "kind",
+        "area_cm2",
+        "max_depth_mm",
+        "mean_depth_mm",
+        "centroid_m",
+        "radius_m",
+        "bbox_min_m",
+        "bbox_max_m",
+        "confidence",
+        "reason"
+      ],
+      "title": "Region",
+      "type": "object"
+    },
+    "Stats": {
+      "properties": {
+        "changed_fraction": {
+          "description": "Unitless fraction of the base surface whose change exceeds threshold_mm, from 0 to 1.",
+          "title": "Changed Fraction",
+          "type": "number"
+        },
+        "max_change_mm": {
+          "description": "Largest absolute change, millimeters from the base surface.",
+          "title": "Max Change Mm",
+          "type": "number"
+        },
+        "noise_floor_mm": {
+          "description": "Estimated sensor noise, millimeters, in the base scan frame.",
+          "title": "Noise Floor Mm",
+          "type": "number"
+        },
+        "threshold_mm": {
+          "description": "Change at or below this is treated as unchanged, millimeters from the base surface.",
+          "title": "Threshold Mm",
+          "type": "number"
+        },
+        "icp_fitness": {
+          "description": "Unitless ICP inlier ratio from 0 to 1, after alignment into the base scan frame.",
+          "title": "Icp Fitness",
+          "type": "number"
+        },
+        "icp_rmse_mm": {
+          "description": "ICP residual RMSE, millimeters, in the base scan frame.",
+          "title": "Icp Rmse Mm",
+          "type": "number"
+        },
+        "diff_time_s": {
+          "description": "Pipeline runtime, seconds.",
+          "title": "Diff Time S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "changed_fraction",
+        "max_change_mm",
+        "noise_floor_mm",
+        "threshold_mm",
+        "icp_fitness",
+        "icp_rmse_mm",
+        "diff_time_s"
+      ],
+      "title": "Stats",
+      "type": "object"
+    },
+    "UncoveredRegion": {
+      "description": "Surface that only one of the two scans captured, so it cannot be compared.\n\n`centroid_m` and `radius_m` match Region, so a marker can be placed and sized.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "only_in": {
+          "enum": [
+            "base",
+            "new"
+          ],
+          "title": "Only In",
+          "type": "string"
+        },
+        "area_cm2": {
+          "description": "Uncovered area on that scan, square centimeters.",
+          "title": "Area Cm2",
+          "type": "number"
+        },
+        "centroid_m": {
+          "description": "Centroid [x, y, z] in the base scan frame, meters.",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Centroid M",
+          "type": "array"
+        },
+        "radius_m": {
+          "description": "Max distance from centroid_m to any point in the uncovered patch, meters, in the base scan frame.",
+          "title": "Radius M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "only_in",
+        "area_cm2",
+        "centroid_m",
+        "radius_m"
+      ],
+      "title": "UncoveredRegion",
+      "type": "object"
+    }
+  },
+  "description": "Comparison of a new scan against a base scan, for the web viewer.\n\nAll three GLBs are in the base scan frame, in meters, with +Y up as in ARKit and glTF. Every\nposition in this response (centroid_m, bbox_*_m) is in that frame too. The upload is USDZ, which\nthree.js cannot load, so the engine publishes both scans as GLB. `new_model_url` is already aligned\ninto the base frame. `heatmap_url` is the new scan's surface, also aligned into the base frame,\nwith vertex colors already applied on the signed blue/gray/red scale. A part removed since the base\nscan has no surface in it; regions and stats still report it.",
+  "properties": {
+    "is_mock": {
+      "description": "True when this is the engine's fixed example response, not a comparison of the two scans.",
+      "title": "Is Mock",
+      "type": "boolean"
+    },
+    "heatmap_url": {
+      "description": "Heatmap GLB: the new scan's surface aligned into the base scan frame, meters, with signed blue/gray/red vertex colors already applied.",
+      "title": "Heatmap Url",
+      "type": "string"
+    },
+    "base_model_url": {
+      "description": "Base scan as GLB, in the base scan frame, meters. No heatmap colors.",
+      "title": "Base Model Url",
+      "type": "string"
+    },
+    "new_model_url": {
+      "description": "New scan as GLB, aligned into the base scan frame, meters. No heatmap colors.",
+      "title": "New Model Url",
+      "type": "string"
+    },
+    "heatmap_legend": {
+      "$ref": "#/$defs/HeatmapLegend"
+    },
+    "histogram": {
+      "$ref": "#/$defs/Histogram"
+    },
+    "stats": {
+      "$ref": "#/$defs/Stats"
+    },
+    "regions": {
+      "items": {
+        "$ref": "#/$defs/Region"
+      },
+      "title": "Regions",
+      "type": "array"
+    },
+    "uncovered_regions": {
+      "items": {
+        "$ref": "#/$defs/UncoveredRegion"
+      },
+      "title": "Uncovered Regions",
+      "type": "array"
+    },
+    "verdict": {
+      "enum": [
+        "match",
+        "minor_wear",
+        "needs_review"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    },
+    "verdict_confidence": {
+      "description": "Unitless confidence in the verdict, from 0 to 1.",
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Verdict Confidence",
+      "type": "number"
+    },
+    "verdict_reason": {
+      "title": "Verdict Reason",
+      "type": "string"
+    },
+    "base_fingerprint": {
+      "title": "Base Fingerprint",
+      "type": "string"
+    },
+    "new_fingerprint": {
+      "title": "New Fingerprint",
+      "type": "string"
+    },
+    "diff_id": {
+      "title": "Diff Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "is_mock",
+    "heatmap_url",
+    "base_model_url",
+    "new_model_url",
+    "heatmap_legend",
+    "histogram",
+    "stats",
+    "regions",
+    "uncovered_regions",
+    "verdict",
+    "verdict_confidence",
+    "verdict_reason",
+    "base_fingerprint",
+    "new_fingerprint",
+    "diff_id"
+  ],
+  "title": "DiffResponse",
+  "type": "object"
+}

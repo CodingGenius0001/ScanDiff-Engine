@@ -20,6 +20,20 @@ def test_diff_returns_mock_response():
     assert sorted(r.label for r in result.regions) == ["needs_review", "normal_wear"]
     assert sorted(r.damage_type for r in result.regions) == ["dent_damage", "normal_wear"]
     assert [u.only_in for u in result.uncovered_regions] == ["base"]
+    assert result.base_model_url.endswith("/sample_base.glb")
+    assert result.new_model_url.endswith("/sample_new.glb")
+    assert result.heatmap_legend.colormap == "diverging_blue_gray_red"
+    assert result.heatmap_legend.neutral_band_mm == result.stats.threshold_mm
+    for region in result.regions:
+        assert "centroid_m" in region.model_dump()
+        assert "centroid" not in region.model_dump()
+        assert 0.005 <= region.radius_m <= 0.03
+        assert max(abs(value) for value in region.centroid_m) < 0.3
+    for uncovered in result.uncovered_regions:
+        assert "centroid_m" in uncovered.model_dump()
+        assert "centroid" not in uncovered.model_dump()
+        assert uncovered.radius_m > 0
+        assert max(abs(value) for value in uncovered.centroid_m) < 0.3
     for fingerprint in (result.base_fingerprint, result.new_fingerprint):
         assert re.fullmatch(r"[0-9a-f]{64}", fingerprint)
 
@@ -29,15 +43,33 @@ def test_mock_query_param_returns_mock_response():
 
     assert response.status_code == 200
     assert response.json()["diff_id"] == "mock-diff-0001"
+    assert response.json()["is_mock"] is True
 
 
-def test_heatmap_url_serves_a_glb():
-    heatmap_url = client.post("/diff", json=BODY).json()["heatmap_url"]
+def test_mock_numbers_agree():
+    result = DiffResponse.model_validate(client.post("/diff", json=BODY).json())
 
-    response = client.get(heatmap_url)
+    deepest = max(result.regions, key=lambda region: region.max_depth_mm)
+    assert deepest.max_depth_mm == result.stats.max_change_mm
+    assert f"{deepest.max_depth_mm:.1f} mm" in deepest.reason
+    assert abs(result.heatmap_legend.min_mm) == result.stats.max_change_mm
 
-    assert response.status_code == 200
-    assert response.content[:4] == b"glTF"
+
+def test_mock_uncovered_patch_is_on_the_side_not_the_bottom():
+    result = DiffResponse.model_validate(client.post("/diff", json=BODY).json())
+
+    x, y, z = result.uncovered_regions[0].centroid_m
+    assert x < -0.04
+    assert abs(y) < 0.005 and abs(z) < 0.005
+
+
+def test_model_urls_serve_glbs():
+    payload = client.post("/diff", json=BODY).json()
+
+    for key in ("heatmap_url", "base_model_url", "new_model_url"):
+        response = client.get(payload[key])
+        assert response.status_code == 200
+        assert response.content[:4] == b"glTF"
 
 
 def test_cors_allows_any_origin():

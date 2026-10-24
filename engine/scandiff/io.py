@@ -1,29 +1,23 @@
 """Loading uploads."""
 
 import hashlib
+import json
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+import trimesh
 from PIL import Image
 
 from app.schemas import PhotoMeta, ScanMetadata
-from scandiff.errors import ChecksumMismatch, UnsupportedFormat
+from scandiff import config
+from scandiff.errors import ChecksumMismatch, ScanTooSparse, UnsupportedFormat
 
 logger = logging.getLogger(__name__)
 
 _USD_SUFFIXES = {".usdz", ".usd", ".usda", ".usdc"}
+_TRIMESH_SUFFIXES = {".obj", ".ply", ".glb"}
 _OBJ_HINT = "Ask the app to also send an OBJ."
-
-
-@dataclass(frozen=True)
-class LoadedMesh:
-    """Triangle-or-ngon mesh in meters."""
-
-    points: np.ndarray
-    face_indices: np.ndarray
-    face_counts: np.ndarray
 
 
 def file_sha256(path: Path) -> str:
@@ -45,18 +39,24 @@ def verify_model_sha256(path: Path, expected: str) -> None:
 def intrinsics_for_image(photo: PhotoMeta, image: Image.Image) -> np.ndarray:
     """Intrinsics for this JPEG.
 
-    Missing `image_width` / `image_height` means the full camera frame is
-    `(round(2*cx), round(2*cy))`. A smaller JPEG is a downscale of that frame:
-    fx, fy, cx, and cy are scaled to match, and a warning is logged.
+    `image_width` / `image_height` are the camera frame the intrinsics belong to.
+    A smaller JPEG is a downscale of that frame: fx, fy, cx, and cy are scaled to
+    match, and a warning is logged.
+
+    Scans from before the app sent the frame size have full-frame JPEGs, so
+    their intrinsics are used unscaled. The frame cannot be guessed from cx and
+    cy: the principal point is off center by tens of pixels.
     """
     matrix = photo.K.copy()
-    jpeg_w, jpeg_h = image.size
     frame_w = photo.image_width
     frame_h = photo.image_height
-    if frame_w is None:
-        frame_w = int(round(2 * float(matrix[0, 2])))
-    if frame_h is None:
-        frame_h = int(round(2 * float(matrix[1, 2])))
+    if frame_w is None or frame_h is None:
+        logger.warning(
+            "%s has no image_width/image_height; using its intrinsics unscaled", photo.file
+        )
+        return matrix
+
+    jpeg_w, jpeg_h = image.size
 
     scale_x = jpeg_w / frame_w if jpeg_w < frame_w else 1.0
     scale_y = jpeg_h / frame_h if jpeg_h < frame_h else 1.0
@@ -86,15 +86,76 @@ def load_jpeg_intrinsics(photo: PhotoMeta, path: Path) -> np.ndarray:
         return intrinsics_for_image(photo, image)
 
 
-def load_model(path: Path, metadata: ScanMetadata) -> LoadedMesh:
-    """Check `model_sha256`, then read the USDZ into a mesh in meters."""
+def load_model(path: Path, metadata: ScanMetadata) -> trimesh.Trimesh:
+    """Check `model_sha256`, then read the model into one mesh in meters."""
     verify_model_sha256(path, metadata.model_sha256)
     return load_mesh(path)
 
 
-def load_mesh(path: Path) -> LoadedMesh:
-    if path.suffix.lower() not in _USD_SUFFIXES:
-        raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}")
+def find_model_file(scan_dir: Path) -> Path:
+    """The model in a downloaded scan folder.
+
+    Uses `model_file` from metadata.json when it can be read, otherwise the one
+    file with a supported extension.
+    """
+    try:
+        named = json.loads((scan_dir / "metadata.json").read_text()).get("model_file")
+    except (OSError, ValueError, AttributeError):
+        named = None
+    if named and (scan_dir / named).is_file():
+        return scan_dir / named
+
+    candidates = sorted(
+        path
+        for path in scan_dir.iterdir()
+        if path.suffix.lower() in _USD_SUFFIXES | _TRIMESH_SUFFIXES
+    )
+    if len(candidates) != 1:
+        found = ", ".join(path.name for path in candidates) or "none"
+        raise UnsupportedFormat(f"Expected one model file in {scan_dir}, found {found}.")
+    return candidates[0]
+
+
+def load_mesh(path: str | Path, require_density: bool = True) -> trimesh.Trimesh:
+    """Read an OBJ, PLY, GLB, or USD(Z) file as one mesh in meters, +Y up.
+
+    Every geometry in the file is merged into the one mesh. OBJ, PLY, and GLB
+    are taken to be meters already. With `require_density`, a mesh too sparse
+    to compare raises ScanTooSparse; pass False to load it just for display.
+    """
+    path = Path(path)
+    suffix = path.suffix.lower()
+    if suffix in _USD_SUFFIXES:
+        mesh = read_usd_mesh(path)
+    elif suffix in _TRIMESH_SUFFIXES:
+        try:
+            mesh = trimesh.load(path, force="mesh")
+        except Exception as exc:
+            raise UnsupportedFormat(f"Cannot read {path.name}.") from exc
+    else:
+        raise UnsupportedFormat(
+            f"Cannot read {path.name}: supported formats are OBJ, PLY, GLB, and USDZ."
+        )
+    if require_density:
+        _check_density(mesh, path)
+    return mesh
+
+
+def _check_density(mesh: trimesh.Trimesh, path: Path) -> None:
+    if len(mesh.vertices) < config.MIN_MESH_VERTICES:
+        raise ScanTooSparse(
+            f"{path.name} has {len(mesh.vertices)} vertices; "
+            f"at least {config.MIN_MESH_VERTICES} are needed."
+        )
+    if mesh.area < config.MIN_SURFACE_AREA_M2:
+        raise ScanTooSparse(
+            f"{path.name} has {mesh.area * 1e4:.2f} cm² of surface; "
+            f"at least {config.MIN_SURFACE_AREA_M2 * 1e4:.2f} cm² is needed."
+        )
+
+
+def read_usd_mesh(path: Path) -> trimesh.Trimesh:
+    """Read every mesh prim in a USD(Z) file into one triangle mesh in meters, +Y up."""
     try:
         from pxr import Gf, Usd, UsdGeom
     except ImportError as exc:
@@ -107,7 +168,7 @@ def load_mesh(path: Path) -> LoadedMesh:
         raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}") from exc
 
 
-def _read_usd_mesh(path: Path, Usd, UsdGeom, Gf) -> LoadedMesh:
+def _read_usd_mesh(path: Path, Usd, UsdGeom, Gf) -> trimesh.Trimesh:
     stage = Usd.Stage.Open(str(path))
     if not stage:
         raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}")
@@ -143,8 +204,20 @@ def _read_usd_mesh(path: Path, Usd, UsdGeom, Gf) -> LoadedMesh:
     if not point_blocks:
         raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}")
 
-    return LoadedMesh(
-        points=np.vstack(point_blocks),
-        face_indices=np.array(indices, dtype=np.int64),
-        face_counts=np.array(counts, dtype=np.int64),
+    points = np.vstack(point_blocks)
+    if UsdGeom.GetStageUpAxis(stage) == UsdGeom.Tokens.z:
+        # Rotate -90 degrees about X so +Z up becomes +Y up, like ARKit and glTF.
+        points = np.column_stack([points[:, 0], points[:, 2], -points[:, 1]])
+    faces = _triangulate(np.array(counts, dtype=np.int64), np.array(indices, dtype=np.int64))
+    return trimesh.Trimesh(vertices=points, faces=faces, process=False)
+
+
+def _triangulate(counts: np.ndarray, indices: np.ndarray) -> np.ndarray:
+    """Fan-triangulate USD faces. Faces with fewer than 3 corners are dropped."""
+    starts = np.cumsum(counts) - counts
+    per_face = np.clip(counts - 2, 0, None)
+    first = np.repeat(starts, per_face)
+    step = np.arange(per_face.sum()) - np.repeat(np.cumsum(per_face) - per_face, per_face)
+    return np.stack(
+        [indices[first], indices[first + step + 1], indices[first + step + 2]], axis=1
     )
