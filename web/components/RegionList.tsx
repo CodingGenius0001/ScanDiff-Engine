@@ -42,6 +42,11 @@ export default function RegionList({ diff, selectedId, onSelect }: Props) {
                 >
                   {LABEL_TEXT[r.label]}
                 </span>
+                {r.kind === "missing" && (
+                  <span className="rounded-full border border-rose-400/40 bg-rose-500/10 px-2 py-0.5 font-semibold text-rose-300">
+                    × Missing part
+                  </span>
+                )}
                 <span>Confidence {Math.round(r.confidence * 100)}%</span>
                 <span>Up to {formatDistance(r.maxDistance, diff.units)}</span>
                 <span>Seen on {r.seenOn === "new" ? "new scan" : "baseline scan"}</span>

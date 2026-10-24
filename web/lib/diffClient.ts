@@ -112,7 +112,8 @@ function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): Diff
       radius: g.radius_m * M_TO_MM,
       maxDistance: g.max_depth_mm,
       // A missing part is material only the baseline has; anything else shows on the new scan.
-      seenOn: g.damage_type === "missing_part" ? "baseline" : "new",
+      seenOn: g.kind === "missing" || g.damage_type === "missing_part" ? "baseline" : "new",
+      kind: g.kind,
       description: g.reason,
       beforeCropUrl: g.before_crop_url,
       afterCropUrl: g.after_crop_url,

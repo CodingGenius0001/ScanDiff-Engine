@@ -14,7 +14,8 @@ export interface Marker {
   number: number;
   center: Vec3;
   radius: number;
-  kind: "change" | "nodata";
+  /** "missing": a part that is gone, so it has no surface on the new scan's heat map. */
+  kind: "change" | "missing" | "nodata";
 }
 
 interface Props {
@@ -69,12 +70,14 @@ export default function ScanViewer(props: Props) {
                 }}
                 type="button"
                 onClick={() => props.onSelect(m.id)}
-                aria-label={m.kind === "nodata" ? "No data region" : `Region ${m.number}`}
+                aria-label={m.kind === "nodata" ? "No data region" : m.kind === "missing" ? `Region ${m.number}, missing part` : `Region ${m.number}`}
                 style={{ visibility: "hidden" }}
                 className={`pointer-events-auto absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full border font-mono text-[11px] font-bold backdrop-blur ${
                   selected
                     ? "border-accent bg-accent text-zinc-950 shadow-[0_0_14px_var(--color-accent)]"
-                    : "border-white/50 bg-zinc-950/80 text-white"
+                    : m.kind === "missing"
+                      ? "border-2 border-rose-400 bg-rose-500/15 text-rose-200 shadow-[0_0_12px_rgb(251_113_133/0.5)]"
+                      : "border-white/50 bg-zinc-950/80 text-white"
                 } ${m.kind === "nodata" ? "border-dashed" : ""}`}
               >
                 {m.kind === "nodata" ? "–" : m.number}
@@ -148,7 +151,7 @@ function LinkedControls({ link }: { link: CameraLink }) {
 
 function MarkerSphere({ marker, selected }: { marker: Marker; selected: boolean }) {
   if (!selected) return null;
-  const color = marker.kind === "nodata" ? COLORS.noData : "#a78bfa";
+  const color = marker.kind === "nodata" ? COLORS.noData : marker.kind === "missing" ? "#fb7185" : "#a78bfa";
   return (
     <mesh position={marker.center}>
       <sphereGeometry args={[marker.radius, 24, 16]} />

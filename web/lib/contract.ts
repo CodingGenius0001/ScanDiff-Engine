@@ -75,7 +75,7 @@ export type DiffTimeS = number;
 export type Id = string;
 export type Label = "normal_wear" | "needs_review";
 export type DamageType = "normal_wear" | "scratch_scuff" | "dent_damage" | "missing_part";
-export type Kind = "dent" | "added";
+export type Kind = "dent" | "added" | "missing";
 /**
  * Region area on the base surface, square centimeters.
  */

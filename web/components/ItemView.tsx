@@ -100,7 +100,7 @@ function ComparisonView({ data }: { data: Comparison }) {
         number: i + 1,
         center: toDisplay(r.center, diff.upAxis),
         radius: r.radius,
-        kind: "change" as const,
+        kind: r.kind === "missing" ? ("missing" as const) : ("change" as const),
       })),
       ...diff.uncoveredRegions.map((u, i) => ({
         id: u.id,
@@ -290,6 +290,12 @@ function SignedLegend({ heatmap, units }: { heatmap: BakedHeatmap; units: Length
           –
         </span>
         No data (dashed marker), not counted as damage
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-rose-400 text-[9px] font-bold text-rose-300">
+          ×
+        </span>
+        Missing part (no surface on the new scan)
       </span>
     </div>
   );
