@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000012 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000011 /* Supabase */; };
+		A1000000000000000000001A /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000018 /* GoogleSignIn */; };
+		A1000000000000000000001B /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000019 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +33,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000012 /* Supabase in Frameworks */,
+				A1000000000000000000001A /* GoogleSignIn in Frameworks */,
+				A1000000000000000000001B /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,6 +89,8 @@
 			name = ScanDiff;
 			packageProductDependencies = (
 				A10000000000000000000011 /* Supabase */,
+				A10000000000000000000018 /* GoogleSignIn */,
+				A10000000000000000000019 /* GoogleSignInSwift */,
 			);
 			productName = ScanDiff;
 			productReference = A10000000000000000000004 /* ScanDiff.app */;
@@ -116,6 +122,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A10000000000000000000010 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				A10000000000000000000017 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A10000000000000000000006 /* Products */;
@@ -363,6 +370,14 @@
 				minimumVersion = 2.55.4;
 			};
 		};
+		A10000000000000000000017 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -370,6 +385,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000000000000000000010 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		A10000000000000000000018 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000017 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		A10000000000000000000019 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000017 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

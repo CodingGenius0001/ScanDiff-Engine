@@ -13,6 +13,14 @@ enum AppSecrets {
         url(forInfoKey: "EngineURL")
     }
 
+    static var googleIOSClientID: String? {
+        nonempty(string(forInfoKey: "GoogleIOSClientID"))
+    }
+
+    static var googleWebClientID: String? {
+        nonempty(string(forInfoKey: "GoogleWebClientID"))
+    }
+
     static var hasSupabase: Bool {
         supabaseURL != nil && supabaseAnonKey != nil
     }

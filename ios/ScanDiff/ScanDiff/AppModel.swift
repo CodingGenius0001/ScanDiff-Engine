@@ -8,37 +8,81 @@ final class AppModel {
     var kind: ScanKind = .baseline
     var homeMessage: String?
     var activeScan: ScanSessionModel?
+    var recentItemIDs: [String] = []
+    var isStarting = false
+    private(set) var pendingLink: URL?
 
-    func start() {
+    func loadRecentItems() async {
+        recentItemIDs = (try? await ItemsService().recentItemIDs()) ?? recentItemIDs
+    }
+
+    func start() async {
         let trimmed = itemID.trimmingCharacters(in: .whitespacesAndNewlines)
         guard ItemID.isValid(trimmed) else {
             homeMessage = ScanError.invalidItemID.errorDescription
             return
         }
-        begin(ScanRequest(itemID: trimmed, kind: kind))
+        await begin(ScanRequest(itemID: trimmed, kind: kind))
     }
 
-    func open(_ url: URL) {
+    /// Links that arrive before sign-in are held and replayed once signed in.
+    func open(_ url: URL, isSignedIn: Bool) {
+        guard isSignedIn else {
+            pendingLink = url
+            return
+        }
         switch DeepLink.parse(url) {
         case .success(let request):
             itemID = request.itemID
             kind = request.kind
-            begin(request)
+            Task { await begin(request) }
         case .failure(let error):
             homeMessage = error.errorDescription
         }
     }
 
-    func leaveScan() {
-        activeScan = nil
+    func resumePendingLink() {
+        guard let link = pendingLink else { return }
+        pendingLink = nil
+        open(link, isSignedIn: true)
     }
 
-    private func begin(_ request: ScanRequest) {
+    func leaveScan() {
+        activeScan = nil
+        Task { await loadRecentItems() }
+    }
+
+    /// A check scan only makes sense against an existing baseline, so verify
+    /// that before opening the camera rather than after a full scan.
+    private func begin(_ request: ScanRequest) async {
         homeMessage = nil
+        if request.kind == .check {
+            isStarting = true
+            defer { isStarting = false }
+            do {
+                guard try await ItemsService().hasBaseline(itemID: request.itemID) else {
+                    homeMessage = noBaselineMessage(for: request.itemID)
+                    return
+                }
+            } catch {
+                homeMessage = "Couldn't check for a baseline: \(error.localizedDescription)"
+                return
+            }
+        }
         do {
             activeScan = try ScanSessionModel(request: request)
         } catch {
             homeMessage = error.localizedDescription
         }
+    }
+
+    private func noBaselineMessage(for itemID: String) -> String {
+        var message = "\"\(itemID)\" has no baseline yet, so there's nothing to compare against."
+        if let suggestion = ItemsService.closest(to: itemID, in: recentItemIDs) {
+            message += " Did you mean \"\(suggestion)\"?"
+        } else {
+            message += " Scan a baseline first, using the exact same item id."
+        }
+        return message
     }
 }

@@ -63,6 +63,13 @@ struct PhotoRecord: Codable, Equatable {
     var file: String
     var camera_transform: [Float]
     var intrinsics: [Float]
+    var image_width: Int
+    var image_height: Int
+}
+
+struct FileRecord: Codable, Equatable {
+    var name: String
+    var sha256: String
 }
 
 struct ScanMetadata: Codable, Equatable {
@@ -74,6 +81,11 @@ struct ScanMetadata: Codable, Equatable {
     var device: String
     var model_file: String
     var model_sha256: String
+    var obj_file: String
+    var material_file: String
+    var textures: [String]
+    var mesh_cleanup: MeshCleanupSummary
+    var files: [FileRecord]
     var photos: [PhotoRecord]
 }
 
@@ -130,6 +142,7 @@ struct UploadReceipt: Equatable {
 }
 
 enum ScanStage {
+    case preflight
     case capture
     case processing
     case review

@@ -13,11 +13,15 @@ final class ScanSessionModel {
 
     private let processingService = ProcessingService()
     private var didStartProcessing = false
+    private var observationTasks: [Task<Void, Never>] = []
 
-    var stage: ScanStage = .capture
+    var stage: ScanStage = .preflight
     var session: ObjectCaptureSession?
     var shotCount = 0
     var completedOrbit = false
+    var completedPasses = 0
+    var isPassPromptShown = false
+    var detectionFailed = false
     var progress = 0.0
     var statusMessage = "Reconstructing the model…"
     var prepared: PreparedScan?
@@ -27,6 +31,18 @@ final class ScanSessionModel {
     var errorMessage: String?
     var decisionMessage: String?
     var isDeciding = false
+
+    /// Why Finish is unavailable right now, or nil when the scan can finish.
+    var finishBlocker: String? {
+        let missing = ScanQuality.minimumShots - shotCount
+        if missing > 0 {
+            return "Keep going: \(missing) more photo\(missing == 1 ? "" : "s") needed."
+        }
+        if !completedOrbit {
+            return "Finish one full loop around the object first."
+        }
+        return nil
+    }
 
     var coverage: Double {
         let shots = min(Double(shotCount) / Double(ScanQuality.minimumShots), 1)
@@ -38,11 +54,22 @@ final class ScanSessionModel {
         self.request = request
         self.scanID = UUID()
         self.folders = try CaptureFolders.make(scanID: scanID)
+        Diagnostics.log("scan created \(scanID.uuidString) item=\(request.itemID) kind=\(request.kind.rawValue)")
     }
 
-    func prepareCapture() {
-        guard session == nil else { return }
-        guard case .capture = stage else { return }
+    // MARK: - Capture
+
+    func confirmPreflight() {
+        guard case .preflight = stage else { return }
+        Diagnostics.log("preflight confirmed")
+        stage = .capture
+    }
+
+    /// Creates the capture session and subscribes to its updates. The
+    /// subscriptions are owned here and cancelled before reconstruction so the
+    /// camera session is released, as Apple's sample does.
+    func startCaptureIfNeeded() {
+        guard session == nil, case .capture = stage else { return }
         guard ObjectCaptureSession.isSupported else {
             stage = .failed(ScanError.unsupportedDevice.errorDescription ?? "Unsupported device.")
             return
@@ -54,54 +81,163 @@ final class ScanSessionModel {
         objectSession.start(imagesDirectory: folders.images, configuration: configuration)
         session = objectSession
         UIApplication.shared.isIdleTimerDisabled = true
+        Diagnostics.log("capture session started")
+        observe(objectSession)
     }
 
-    func noteShot(_ count: Int) {
-        guard count != shotCount else { return }
-        shotCount = count
+    private func observe(_ session: ObjectCaptureSession) {
+        let shots = session.numberOfShotsTakenUpdates
+        let passes = session.userCompletedScanPassUpdates
+        let states = session.stateUpdates
+        observationTasks = [
+            Task { [weak self] in
+                for await count in shots {
+                    guard let self else { return }
+                    self.shotCount = count
+                    if count % 10 == 0 { Diagnostics.log("shots=\(count)") }
+                }
+            },
+            Task { [weak self] in
+                for await passDone in passes where passDone {
+                    self?.passCompleted()
+                }
+            },
+            Task { [weak self] in
+                for await state in states {
+                    Diagnostics.log("capture state -> \(Self.describe(state))")
+                    self?.handle(state)
+                }
+            }
+        ]
     }
 
-    func markOrbitComplete() {
-        completedOrbit = true
-    }
-
-    func syncCaptureSession() {
-        guard let session else { return }
-        noteShot(session.numberOfShotsTaken)
-        if session.userCompletedScanPass {
-            markOrbitComplete()
-        }
-        if case .completed = session.state {
-            finishCaptureIfNeeded()
-        } else if case .failed(let error) = session.state {
-            fail(error.localizedDescription)
-        }
-    }
-
-    func finishCaptureIfNeeded() {
-        guard case .capture = stage else { return }
+    private func releaseCaptureSession() {
+        observationTasks.forEach { $0.cancel() }
+        observationTasks.removeAll()
         session = nil
+        isPassPromptShown = false
         UIApplication.shared.isIdleTimerDisabled = false
+        Diagnostics.log("capture session released")
+    }
+
+    func startDetecting() {
+        guard let session else { return }
+        detectionFailed = !session.startDetecting()
+        Diagnostics.log("startDetecting ok=\(!detectionFailed)")
+    }
+
+    func redetect() {
+        guard let session else { return }
+        detectionFailed = !session.resetDetection()
+        Diagnostics.log("resetDetection ok=\(!detectionFailed)")
+    }
+
+    func startCapturing() {
+        Diagnostics.log("startCapturing")
+        session?.startCapturing()
+    }
+
+    func finishCapture() {
+        guard finishBlocker == nil else { return }
+        Diagnostics.log("finish tapped shots=\(shotCount)")
+        session?.finish()
+    }
+
+    var canFlipObject: Bool {
+        guard let session else { return false }
+        return !session.feedback.contains(.objectNotFlippable)
+    }
+
+    /// Starts the next orbit. Object Capture requires the pass to be complete
+    /// before a flip; the prompt keeps the session paused until the choice.
+    func beginNextPass(flip: Bool, overrideNotFlippable: Bool = false) {
+        guard let session, session.userCompletedScanPass else {
+            Diagnostics.log("beginNextPass ignored: pass not complete")
+            dismissPassPrompt()
+            return
+        }
+        if flip && (canFlipObject || overrideNotFlippable) {
+            Diagnostics.log("beginNewScanPassAfterFlip")
+            session.beginNewScanPassAfterFlip()
+        } else {
+            Diagnostics.log("beginNewScanPass")
+            session.beginNewScanPass()
+        }
+        dismissPassPrompt()
+    }
+
+    func finishFromPrompt() {
+        Diagnostics.log("finish from prompt shots=\(shotCount)")
+        isPassPromptShown = false
+        session?.finish()
+    }
+
+    private func dismissPassPrompt() {
+        isPassPromptShown = false
+        session?.resume()
+        Diagnostics.log("session resumed")
+    }
+
+    private func passCompleted() {
+        guard case .capture = stage, let session, !isPassPromptShown else { return }
+        completedOrbit = true
+        completedPasses += 1
+        session.pause()
+        isPassPromptShown = true
+        Diagnostics.log("pass \(completedPasses) complete, paused, flippable=\(canFlipObject)")
+    }
+
+    private func handle(_ state: ObjectCaptureSession.CaptureState) {
+        switch state {
+        case .completed:
+            finishCaptureIfNeeded()
+        case .failed(let error):
+            if case ObjectCaptureSession.Error.cancelled = error { return }
+            fail(error.localizedDescription)
+        default:
+            break
+        }
+    }
+
+    private func finishCaptureIfNeeded() {
+        guard case .capture = stage else { return }
+        releaseCaptureSession()
         let quality = ScanQuality(shotCount: shotCount, completedOrbit: completedOrbit, savedPhotoCount: 0)
         if let rejection = quality.rejection {
+            Diagnostics.log("capture rejected: \(rejection)")
             stage = .rejected(rejection)
         } else {
             stage = .processing
         }
     }
 
-    func fail(_ message: String) {
+    private func fail(_ message: String) {
         guard case .capture = stage else { return }
-        session = nil
-        UIApplication.shared.isIdleTimerDisabled = false
+        Diagnostics.log("capture failed: \(message)")
+        releaseCaptureSession()
         stage = .failed(message)
     }
 
     func cancelCapture() {
+        Diagnostics.log("capture cancelled by user")
         session?.cancel()
-        session = nil
-        UIApplication.shared.isIdleTimerDisabled = false
+        releaseCaptureSession()
     }
+
+    private static func describe(_ state: ObjectCaptureSession.CaptureState) -> String {
+        switch state {
+        case .initializing: "initializing"
+        case .ready: "ready"
+        case .detecting: "detecting"
+        case .capturing: "capturing"
+        case .finishing: "finishing"
+        case .completed: "completed"
+        case .failed(let error): "failed(\(error.localizedDescription))"
+        @unknown default: "unknown"
+        }
+    }
+
+    // MARK: - Processing
 
     func runProcessing() async {
         guard !didStartProcessing else { return }
@@ -109,7 +245,9 @@ final class ScanSessionModel {
         UIApplication.shared.isIdleTimerDisabled = true
         defer { UIApplication.shared.isIdleTimerDisabled = false }
         let output = folders.bundle.appendingPathComponent(ScanBundle.modelFileName)
+        Diagnostics.log("reconstruction start")
         do {
+            var lastLoggedDecile = -1
             let poses = try await processingService.process(
                 imagesDirectory: folders.images,
                 checkpointDirectory: folders.checkpoint,
@@ -118,16 +256,27 @@ final class ScanSessionModel {
                     self?.progress = fraction
                     let percent = Int((fraction * 100).rounded())
                     self?.statusMessage = "Reconstructing the model… \(percent)%"
+                    if percent / 10 != lastLoggedDecile {
+                        lastLoggedDecile = percent / 10
+                        Diagnostics.log("reconstruction \(percent)%")
+                    }
                 }
             )
-            let prepared = try ScanBundle.make(
+            Diagnostics.log("reconstruction done, poses=\(poses?.posesBySample.count ?? 0)")
+            statusMessage = "Cleaning the mesh and packaging the scan…"
+            let input = ScanBundle.Input(
                 scanID: scanID,
                 request: request,
                 imagesDirectory: folders.images,
                 modelUSDZ: output,
                 bundleDirectory: folders.bundle,
-                poses: poses
+                createdBy: DeviceInfo.createdBy,
+                device: DeviceInfo.description
             )
+            let prepared = try await Task.detached(priority: .userInitiated) {
+                try ScanBundle.make(input, poses: poses)
+            }.value
+            Diagnostics.log("bundle written photos=\(prepared.metadata.photos.count) cleanup=\(prepared.metadata.mesh_cleanup)")
             self.prepared = prepared
             let quality = ScanQuality(
                 shotCount: shotCount,
@@ -145,21 +294,27 @@ final class ScanSessionModel {
             try? FileManager.default.removeItem(at: folders.checkpoint)
             stage = .review
         } catch {
+            Diagnostics.log("processing failed: \(error.localizedDescription)")
             stage = .failed(error.localizedDescription)
         }
     }
 
     func cancelProcessing() {
+        Diagnostics.log("processing cancel tapped")
         processingService.cancel()
     }
+
+    // MARK: - Upload
 
     func upload() async {
         guard let prepared else { return }
         stage = .uploading
         errorMessage = nil
+        Diagnostics.log("upload start")
         do {
             let receipt = try await UploadService().upload(prepared)
             self.receipt = receipt
+            Diagnostics.log("upload done version=\(receipt.version)")
             if request.kind == .check {
                 if let baselineID = receipt.baselineID {
                     diff = try await EngineClients.make().diff(baseID: baselineID, newID: receipt.scanID)
@@ -171,6 +326,7 @@ final class ScanSessionModel {
                 stage = .saved
             }
         } catch {
+            Diagnostics.log("upload failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             stage = .review
         }

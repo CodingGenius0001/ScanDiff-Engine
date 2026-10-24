@@ -1,3 +1,4 @@
+import Accelerate
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -37,25 +38,31 @@ enum KeyPhotoSelector {
     /// then tops up with the sharpest leftovers until there are enough photos.
     static func select(from candidates: [KeyPhotoCandidate]) -> [KeyPhotoCandidate] {
         guard !candidates.isEmpty else { return [] }
-        let buckets = bucketByAngle(candidates)
+        let samples = bucketByAngle(candidates)
+            .filter { !$0.isEmpty }
+            .map { ScanBundle.evenlySpaced($0, count: candidatesPerSector) }
+        let sampleScores = scores(for: samples.flatMap { $0 }.map(\.url))
         var chosen: [KeyPhotoCandidate] = []
         var used = Set<URL>()
-        for bucket in buckets where !bucket.isEmpty {
-            let scored = ScanBundle.evenlySpaced(bucket, count: candidatesPerSector)
-                .map { ($0, sharpness($0.url)) }
-            if let best = scored.max(by: { $0.1 < $1.1 })?.0 {
-                chosen.append(best)
-                used.insert(best.url)
+        var offset = 0
+        for sample in samples {
+            let range = offset..<(offset + sample.count)
+            offset += sample.count
+            if let best = range.max(by: { sampleScores[$0] < sampleScores[$1] }) {
+                let candidate = sample[best - range.lowerBound]
+                chosen.append(candidate)
+                used.insert(candidate.url)
             }
         }
         if chosen.count < ScanQuality.minimumKeyPhotos {
-            let leftovers = ScanBundle.evenlySpaced(
+            let pool = ScanBundle.evenlySpaced(
                 candidates.filter { !used.contains($0.url) },
                 count: (ScanQuality.minimumKeyPhotos - chosen.count) * 2
             )
-            .map { ($0, sharpness($0.url)) }
-            .sorted { $0.1 > $1.1 }
-            .map(\.0)
+            let poolScores = scores(for: pool.map(\.url))
+            let leftovers = pool.indices
+                .sorted { poolScores[$0] > poolScores[$1] }
+                .map { pool[$0] }
             for candidate in leftovers where chosen.count < ScanQuality.minimumKeyPhotos {
                 chosen.append(candidate)
                 used.insert(candidate.url)
@@ -138,24 +145,44 @@ enum KeyPhotoSelector {
             return true
         }
         guard drawn else { return 0 }
-        var sum = 0.0
-        var sumSquares = 0.0
-        var count = 0.0
-        for y in 1..<(height - 1) {
-            for x in 1..<(width - 1) {
-                let center = Double(pixels[y * width + x]) * 4
-                let neighbors = Double(pixels[y * width + x - 1])
-                    + Double(pixels[y * width + x + 1])
-                    + Double(pixels[(y - 1) * width + x])
-                    + Double(pixels[(y + 1) * width + x])
-                let laplacian = neighbors - center
-                sum += laplacian
-                sumSquares += laplacian * laplacian
-                count += 1
+
+        var luminance = [Float](repeating: 0, count: pixels.count)
+        vDSP.convertElements(of: pixels, to: &luminance)
+        var laplacian = [Float](repeating: 0, count: pixels.count)
+        let kernel: [Float] = [0, 1, 0, 1, -4, 1, 0, 1, 0]
+        let rowBytes = width * MemoryLayout<Float>.stride
+        let status = luminance.withUnsafeMutableBufferPointer { input in
+            laplacian.withUnsafeMutableBufferPointer { output in
+                var source = vImage_Buffer(
+                    data: input.baseAddress,
+                    height: vImagePixelCount(height),
+                    width: vImagePixelCount(width),
+                    rowBytes: rowBytes
+                )
+                var destination = vImage_Buffer(
+                    data: output.baseAddress,
+                    height: vImagePixelCount(height),
+                    width: vImagePixelCount(width),
+                    rowBytes: rowBytes
+                )
+                return vImageConvolve_PlanarF(&source, &destination, nil, 0, 0, kernel, 3, 3, 0, vImage_Flags(kvImageEdgeExtend))
             }
         }
-        guard count > 0 else { return 0 }
-        let mean = sum / count
-        return sumSquares / count - mean * mean
+        guard status == kvImageNoError else { return 0 }
+        let mean = vDSP.mean(laplacian)
+        let meanSquare = vDSP.meanSquare(laplacian)
+        return Double(meanSquare - mean * mean)
+    }
+
+    /// Scores every URL concurrently. Each score is independent.
+    static func scores(for urls: [URL]) -> [Double] {
+        var result = [Double](repeating: 0, count: urls.count)
+        result.withUnsafeMutableBufferPointer { buffer in
+            guard let base = buffer.baseAddress else { return }
+            DispatchQueue.concurrentPerform(iterations: urls.count) { index in
+                base[index] = sharpness(urls[index])
+            }
+        }
+        return result
     }
 }

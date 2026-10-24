@@ -7,8 +7,10 @@ struct ScanFlowView: View {
     var body: some View {
         Group {
             switch model.stage {
+            case .preflight:
+                PreflightView(request: model.request, onReady: model.confirmPreflight, onCancel: onClose)
             case .capture:
-                CaptureView(model: model, onClose: onClose)
+                GuidedCaptureView(model: model, onClose: onClose)
             case .processing:
                 ProcessingView(model: model)
             case .review, .uploading:
@@ -35,5 +37,13 @@ struct ScanFlowView: View {
         }
         .navigationTitle(model.request.itemID)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(isImmersive ? .hidden : .visible, for: .navigationBar)
+    }
+
+    private var isImmersive: Bool {
+        switch model.stage {
+        case .preflight, .capture: true
+        default: false
+        }
     }
 }

@@ -34,6 +34,22 @@ ENGINE_URL = http:$(SLASH)$(SLASH)127.0.0.1:8000
 
 Leave `ENGINE_URL` empty to use the mock diff client. Leave the Supabase values empty and the app still scans and saves a bundle on the phone; Upload then asks you to add the keys. Rebuild after changing this file. The values are copied into Info.plist at build time as `SupabaseURL`, `SupabaseAnonKey`, and `EngineURL`.
 
+## Sign-in setup
+
+The app requires a signed-in user. It supports Google (native, with a web fallback) and email/password through Supabase Auth.
+
+**Google Cloud** (APIs & Services → Credentials), same project for both clients:
+- iOS OAuth client, bundle id `com.scandiff.app`. Its ID goes in `GOOGLE_IOS_CLIENT_ID`, and its reversed form (`com.googleusercontent.apps.<id>`) in `GOOGLE_IOS_URL_SCHEME`.
+- Web OAuth client. Its ID goes in `GOOGLE_WEB_CLIENT_ID`. Add `https://<project-ref>.supabase.co/auth/v1/callback` under Authorized redirect URIs.
+
+**Supabase** (Authentication → Sign In / Providers → Google):
+- Enable Google. Client ID: the web client ID, then a comma, then the iOS client ID. Client secret: the web client's secret. The secret is only ever entered here, never in the app or repo.
+- Leave "Skip nonce check" off. The app sends a nonce.
+- Authentication → URL Configuration → Redirect URLs: add `scandiff://login-callback` (used by the web fallback).
+- Email sign-ups need the confirmation email unless you turn off "Confirm email".
+
+Native sign-in signs in with Google's ID token. If it fails for any reason other than the user cancelling, the app opens Supabase's Google web flow and returns through `scandiff://login-callback`. Sessions are stored in the keychain and restored on launch. A `scandiff://scan` link that arrives while signed out is held and opened right after sign-in.
+
 ## Supabase
 
 In the SQL editor:
@@ -82,11 +98,22 @@ Files land at `scans/<item_id>/<scan_id>/`. The table row’s `model_url` is the
   "device": "",
   "model_file": "model.usdz",
   "model_sha256": "",
+  "obj_file": "model.obj",
+  "material_file": "model.mtl",
+  "textures": ["texture_0.png", "texture_2.png", "texture_1.png"],
+  "mesh_cleanup": { "removed_components": 0, "removed_triangles": 0, "smoothed_boundary_vertices": 0 },
+  "files": [{ "name": "model.obj", "sha256": "" }],
   "photos": [
-    { "file": "photo_01.jpg", "camera_transform": [], "intrinsics": [] }
+    { "file": "photo_01.jpg", "camera_transform": [], "intrinsics": [], "image_width": 4032, "image_height": 3024 }
   ]
 }
 ```
+
+`image_width` and `image_height` are the stored JPEG's pixel size, which is the grid the intrinsics refer to. `textures` lists what `model.mtl` references, in order: diffuse (`map_Kd`), ambient occlusion (`map_ao`), normal (`norm`). `files` has a SHA-256 for every file in the bundle except `metadata.json`.
+
+`model.mtl` is rewritten after ModelIO's export so viewers show color: texture paths are relative (ModelIO writes `/texture_0.png`), `Kd` is `1 1 1` under a diffuse map (viewers multiply it into the texture, and ModelIO writes 0.18 grey), and the normal map uses `norm` instead of `map_tangentSpaceNormal`.
+
+`model.obj` is cleaned before export; `model.usdz` is kept exactly as reconstruction produced it. The cleanup drops zero-area triangles and floating fragments under 5% of the main object's triangle count, and Taubin-smooths only open boundary loops. It never smooths the surface, so dents and chips are preserved. Topology is computed on position-welded vertices, so UV seams are not treated as holes. `mesh_cleanup` records what was changed.
 
 `camera_transform` is 16 floats, column-major, camera-to-world. It comes from the camera poses that `PhotogrammetrySession` solves during reconstruction, so it is in the same coordinate frame as `model.usdz`. `intrinsics` is 9 floats, column-major, in pixels. On iOS 26 they come from the solved pose; on iOS 17–18 they are estimated from the photo's 35mm-equivalent focal length. Photos are stored in raw sensor orientation with no EXIF rotation, so the pixel grid matches the intrinsics. Key photos are the sharpest frame in each of 10 slices of a circle around the object, with at least 8. `created_at` is ISO8601 UTC.
 

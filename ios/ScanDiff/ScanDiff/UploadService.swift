@@ -29,23 +29,13 @@ struct UploadService {
         let client = try makeClient()
         let itemID = scan.metadata.item_id
         let scanID = scan.metadata.scan_id
-        let version = try await nextVersion(client: client, itemID: itemID)
-        let baselineID = scan.metadata.kind == ScanKind.check.rawValue
-            ? try await latestBaselineID(client: client, itemID: itemID)
-            : nil
+        let isCheck = scan.metadata.kind == ScanKind.check.rawValue
+        async let nextVersionNumber = nextVersion(client: client, itemID: itemID)
+        async let baseline = isCheck ? latestBaselineID(client: client, itemID: itemID) : nil
 
         let folder = "\(itemID)/\(scanID)"
-        let files = try regularFiles(in: scan.directory)
-        for file in files {
-            let relative = file.lastPathComponent
-            try await client.storage
-                .from("scans")
-                .upload(
-                    "\(folder)/\(relative)",
-                    fileURL: file,
-                    options: FileOptions(contentType: mimeType(for: file), upsert: true)
-                )
-        }
+        try await uploadFiles(try regularFiles(in: scan.directory), to: folder, client: client)
+        let (version, baselineID) = try await (nextVersionNumber, baseline)
 
         let modelPath = "\(folder)/\(ScanBundle.modelFileName)"
         let publicURL = try client.storage.from("scans").getPublicURL(path: modelPath)
@@ -89,11 +79,45 @@ struct UploadService {
         }
     }
 
+    private static let maxConcurrentUploads = 4
+
+    /// Keeps a fixed number of uploads in flight instead of sending files one by one.
+    private func uploadFiles(_ files: [URL], to folder: String, client: SupabaseClient) async throws {
+        let jobs = files.map { file in
+            (path: "\(folder)/\(file.lastPathComponent)", file: file, contentType: mimeType(for: file))
+        }
+        var pending = jobs[...]
+        do {
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                func enqueueNext() {
+                    guard let job = pending.popFirst() else { return }
+                    group.addTask {
+                        try await client.storage
+                            .from("scans")
+                            .upload(
+                                job.path,
+                                fileURL: job.file,
+                                options: FileOptions(contentType: job.contentType, upsert: true)
+                            )
+                    }
+                }
+                for _ in 0..<Self.maxConcurrentUploads {
+                    enqueueNext()
+                }
+                while try await group.next() != nil {
+                    enqueueNext()
+                }
+            }
+        } catch {
+            throw ScanError.uploadFailed(error.localizedDescription)
+        }
+    }
+
     private func makeClient() throws -> SupabaseClient {
-        guard let url = AppSecrets.supabaseURL, let key = AppSecrets.supabaseAnonKey else {
+        guard let client = SupabaseProvider.client else {
             throw ScanError.missingSecrets
         }
-        return SupabaseClient(supabaseURL: url, supabaseKey: key)
+        return client
     }
 
     private func nextVersion(client: SupabaseClient, itemID: String) async throws -> Int {
