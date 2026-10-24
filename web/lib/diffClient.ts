@@ -17,6 +17,14 @@ const API_MOCK = process.env.NEXT_PUBLIC_DIFF_API_MOCK === "true";
 
 const cache = new Map<string, Promise<DiffResult>>();
 
+/**
+ * One scan's model from the engine (`GET /scans/{id}/model.glb`): meters,
+ * +Y up, in the scan's own frame. Null without an engine.
+ */
+export function scanModelUrl(scanId: string): string | null {
+  return API_BASE ? `${API_BASE}/scans/${encodeURIComponent(scanId)}/model.glb` : null;
+}
+
 export function getDiff(baseId: string, newId: string): Promise<DiffResult> {
   const key = `${baseId}|${newId}`;
   let p = cache.get(key);
@@ -69,7 +77,7 @@ const REQUIRED: (keyof DiffResponse)[] = [
 ];
 
 /** Engine positions are meters; the web app works in millimeters. */
-const M_TO_MM = 1000;
+export const M_TO_MM = 1000;
 
 function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): DiffResult {
   if (!raw || typeof raw !== "object") throw new Error("Diff response is not a JSON object");

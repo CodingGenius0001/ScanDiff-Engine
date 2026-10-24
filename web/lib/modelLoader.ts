@@ -45,12 +45,25 @@ async function load(url: string, format: ModelFormat): Promise<THREE.BufferGeome
     }
     case "glb": {
       const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
-      const gltf = await new GLTFLoader().loadAsync(url);
+      // Fetched here rather than by the loader so engine errors ({"detail": ...}) reach the page.
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(await errorDetail(res));
+      const gltf = await new GLTFLoader().parseAsync(await res.arrayBuffer(), "");
       return mergeScene(gltf.scene);
     }
     default:
       throw new Error(`Unsupported model format "${format}"`);
   }
+}
+
+async function errorDetail(res: Response): Promise<string> {
+  try {
+    const body: unknown = await res.json();
+    if (body && typeof body === "object" && "detail" in body) return `Could not load the 3D model: ${String(body.detail)}`;
+  } catch {
+    // Not JSON; fall through to the status code.
+  }
+  return `Could not load the 3D model (${res.status})`;
 }
 
 /**

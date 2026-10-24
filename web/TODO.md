@@ -10,6 +10,7 @@
 - `lib/scanMetadata.ts` maps the iOS `metadata.json` onto `ScanMeta`; real example in `lib/fixtures/metadata.example.json`.
 - Real scans from Supabase (`lib/scans.ts`): `/item/<item_id>` builds the timeline from the newest baseline plus later check scans; the home page lists scanned items; a baseline-only item shows "waiting for a check scan". Uses the engine's `is_mock` to label example responses.
 - Accept and Dispute for real scans write `decision` on the newest check scan's row (the same field the iOS app writes), read it back on load, and show it on the evidence page. Dispute opens the evidence page. A write that matches no row shows an error. Tested against a local stand-in for Supabase, not the shared table.
+- A baseline-only item shows its own 3D model from the engine (`GET /scans/{id}/model.glb`, about 6 s on first load). Engine errors (`{"detail": ...}`) are shown on the page. Verified with the real `coffee-maker-1` scan.
 - Tested 2026-10-24 at 412 px and 1366 px: browser mock (37 checks: checkout, dispute, reload persistence, blocked storage, no horizontal scroll, no console errors) and engine mode against the engine's `/diff` (no console errors, no horizontal scroll).
 
 ## In progress

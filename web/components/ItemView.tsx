@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { CameraLink, viewFrom } from "@/lib/cameraSync";
+import { M_TO_MM, scanModelUrl } from "@/lib/diffClient";
+import { loadModel, type LoadedModel } from "@/lib/modelLoader";
 import { toDisplay } from "@/lib/format";
 import { COLORS, RAMP_CSS } from "@/lib/heatmap";
 import type { BakedHeatmap, Item, LengthUnit } from "@/lib/types";
@@ -51,9 +53,12 @@ export default function ItemView({ item }: { item: Item }) {
         </div>
       )}
       {state.status === "waiting" && (
-        <div className="rounded-xl border border-zinc-200 p-6 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400" role="status">
-          Baseline scan received. Waiting for a check scan to compare it with.
-        </div>
+        <>
+          <div className="rounded-xl border border-zinc-200 p-4 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400" role="status">
+            Baseline scan received. Waiting for a check scan to compare it with.
+          </div>
+          <BaselinePreview item={item} />
+        </>
       )}
       {state.status === "ready" && <ComparisonView data={state.data} />}
       {item.source === "supabase" ? <ScanDecisionPanel item={item} /> : <DecisionPanel item={item} />}
@@ -278,3 +283,57 @@ function SignedLegend({ heatmap, units }: { heatmap: BakedHeatmap; units: Length
 
 /** Ends of the engine's diverging scale (engine/app/mock.py). */
 const SIGNED = { dent: "#2563eb", neutral: "#a8a8a8", added: "#dc2626" };
+
+/** The baseline scan on its own, from the engine, before there is anything to compare it with. */
+function BaselinePreview({ item }: { item: Item }) {
+  const scan = item.versions[0];
+  const url = item.source === "supabase" ? scanModelUrl(scan.scanId) : null;
+  const [model, setModel] = useState<LoadedModel | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [link] = useState(() => new CameraLink());
+
+  useEffect(() => {
+    if (!url) return;
+    let cancelled = false;
+    loadModel(url, "glb", "Y", M_TO_MM).then(
+      (m) => {
+        if (cancelled) return;
+        const dir = new THREE.Vector3(0.55, 0.4, 1).normalize();
+        link.set(m.center.clone().addScaledVector(dir, m.radius * 3), m.center.clone());
+        setModel(m);
+      },
+      (e: Error) => !cancelled && setError(e.message),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [url, link]);
+
+  if (!url) return null;
+  if (error)
+    return (
+      <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-900" role="alert">
+        {error}
+      </div>
+    );
+  if (!model)
+    return (
+      <div className="rounded-xl border border-zinc-200 p-8 text-center text-sm text-zinc-500" role="status">
+        Preparing the 3D model. The first load of a scan takes a few seconds.
+      </div>
+    );
+  return (
+    <ScanViewer
+      title={`${scan.label}: ${item.title}`}
+      subtitle="Shape only. LiDAR does not capture color."
+      model={model}
+      threshold={0}
+      colorMax={0}
+      heat={false}
+      link={link}
+      markers={[]}
+      selectedId={null}
+      onSelect={() => {}}
+    />
+  );
+}
