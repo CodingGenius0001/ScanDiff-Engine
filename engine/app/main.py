@@ -27,6 +27,12 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/schema/example", response_model=DiffResponse)
+def schema_example(request: Request) -> DiffResponse:
+    """Mock DiffResponse, one example of every contract field."""
+    return mock_diff_response(str(request.url_for("static", path=SAMPLE_GLB_NAME)))
+
+
 @app.post("/diff", response_model=DiffResponse)
 def diff(body: DiffRequest, request: Request, mock: bool = False) -> DiffResponse:
     """Compare two scans. Returns a fake response until the pipeline is wired, or with ?mock=true."""

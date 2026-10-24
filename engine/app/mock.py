@@ -5,28 +5,21 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-from app.schemas import DiffResponse, Histogram, Region, Stats, UncoveredRegion
+from app.schemas import COLORMAP, DiffResponse, HeatmapLegend, Histogram, Region, Stats, UncoveredRegion
+from scandiff.regions import measure_region
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 SAMPLE_GLB_NAME = "sample_heatmap.glb"
 
-
-def ensure_sample_glb() -> Path:
-    """Write the sample heatmap GLB into `static/` if it is not there yet."""
-    path = STATIC_DIR / SAMPLE_GLB_NAME
-    if path.exists():
-        return path
-
-    STATIC_DIR.mkdir(parents=True, exist_ok=True)
-    # Mug-sized sphere in meters, matching the units of real scans.
-    mesh = trimesh.creation.icosphere(subdivisions=4, radius=0.05)
-    rng = np.random.default_rng(0)
-    colors = rng.integers(0, 256, size=(len(mesh.vertices), 4), dtype=np.uint8)
-    colors[:, 3] = 255
-    mesh.visual = trimesh.visual.ColorVisuals(mesh, vertex_colors=colors)
-    mesh.export(path, file_type="glb")
-    return path
-
+_THRESHOLD_MM = 1.25
+_MAX_CHANGE_MM = 4.87
+_LEGEND = HeatmapLegend(
+    min_mm=-_MAX_CHANGE_MM,
+    max_mm=_MAX_CHANGE_MM,
+    threshold_mm=_THRESHOLD_MM,
+    colormap=COLORMAP,
+    neutral_band_mm=_THRESHOLD_MM,
+)
 
 # Mostly unchanged surface with a long tail, like a real scan pair.
 _BIN_EDGES_MM = [round(0.25 * i, 2) for i in range(21)]
@@ -38,40 +31,130 @@ _COUNTS = [
 _BASE_FINGERPRINT = "3f9a1c7e5b2d4f6a8c0e1b3d5f7a9c2e4b6d8f0a1c3e5b7d9f2a4c6e8b0d1f3a"
 _NEW_FINGERPRINT = "a7c2e9f4b1d6083e5a2c7f9b4d1e6a3c8f5b2d7e0a9c4f1b6d3e8a5c2f7b0d9e"
 
+# Seeds sit on a 5 cm mug. Patches stay inside a 3 cm radius.
+_RIM = np.array([0.0, 0.0481, 0.0137])
+_WALL = np.array([0.0354, -0.0122, 0.0333])
+_RIM_RADIUS = 0.016
+_WALL_RADIUS = 0.009
+
+
+def _diverging_colors(signed_mm: np.ndarray) -> np.ndarray:
+    """Blue for dents, gray inside the neutral band, red for added material."""
+    gray = np.array([168.0, 168.0, 168.0])
+    blue = np.array([37.0, 99.0, 235.0])
+    red = np.array([220.0, 38.0, 38.0])
+    rgb = np.tile(gray, (len(signed_mm), 1))
+    neutral = _LEGEND.neutral_band_mm
+    neg = signed_mm < -neutral
+    pos = signed_mm > neutral
+    t_neg = np.clip((np.abs(signed_mm) - neutral) / (abs(_LEGEND.min_mm) - neutral), 0.0, 1.0)
+    t_pos = np.clip((signed_mm - neutral) / (_LEGEND.max_mm - neutral), 0.0, 1.0)
+    rgb[neg] = gray + (blue - gray) * t_neg[neg, None]
+    rgb[pos] = gray + (red - gray) * t_pos[pos, None]
+    colors = np.empty((len(signed_mm), 4), dtype=np.uint8)
+    colors[:, :3] = np.clip(rgb, 0, 255).astype(np.uint8)
+    colors[:, 3] = 255
+    return colors
+
+
+def _signed_change_mm(vertices: np.ndarray) -> np.ndarray:
+    rng = np.random.default_rng(0)
+    signed = rng.normal(0.0, 0.25, len(vertices))
+    rim = np.linalg.norm(vertices - _RIM, axis=1)
+    wall = np.linalg.norm(vertices - _WALL, axis=1)
+    rim_hit = rim < _RIM_RADIUS
+    wall_hit = wall < _WALL_RADIUS
+    signed[rim_hit] = -1.4 * (1.0 - rim[rim_hit] / _RIM_RADIUS)
+    signed[wall_hit] = -_MAX_CHANGE_MM * (1.0 - wall[wall_hit] / _WALL_RADIUS)
+    return signed
+
+
+def build_sample_mesh() -> trimesh.Trimesh:
+    """Mug-sized sphere in the base frame, meters, with the legend's colors applied."""
+    mesh = trimesh.creation.icosphere(subdivisions=4, radius=0.05)
+    mesh.visual = trimesh.visual.ColorVisuals(mesh, vertex_colors=_diverging_colors(_signed_change_mm(mesh.vertices)))
+    return mesh
+
+
+def ensure_sample_glb() -> Path:
+    """Write the sample heatmap GLB into `static/`."""
+    path = STATIC_DIR / SAMPLE_GLB_NAME
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    build_sample_mesh().export(path, file_type="glb")
+    return path
+
+
+def _region(
+    region_id: str,
+    points: np.ndarray,
+    signed_mm: np.ndarray,
+    *,
+    label: str,
+    damage_type: str,
+    area_cm2: float,
+    reason: str,
+    confidence: float,
+) -> Region:
+    extent = measure_region(points)
+    if not 0.005 <= extent.radius_m <= 0.03:
+        raise RuntimeError(f"{region_id} radius {extent.radius_m} is outside 0.005-0.03 m")
+    if np.linalg.norm(extent.centroid_m) > 0.3:
+        raise RuntimeError(f"{region_id} centroid is more than 0.3 m from the origin")
+    depth = np.abs(signed_mm)
+    return Region(
+        id=region_id,
+        label=label,
+        damage_type=damage_type,
+        kind="dent",
+        area_cm2=area_cm2,
+        max_depth_mm=round(float(depth.max()), 3),
+        mean_depth_mm=round(float(depth.mean()), 3),
+        centroid_m=extent.centroid_m.round(6).tolist(),
+        radius_m=round(extent.radius_m, 6),
+        bbox_min_m=extent.bbox_min_m.round(6).tolist(),
+        bbox_max_m=extent.bbox_max_m.round(6).tolist(),
+        confidence=confidence,
+        reason=reason,
+    )
+
 
 def mock_diff_response(heatmap_url: str) -> DiffResponse:
+    mesh = build_sample_mesh()
+    vertices = mesh.vertices
+    signed = _signed_change_mm(vertices)
+    rim = np.linalg.norm(vertices - _RIM, axis=1) < _RIM_RADIUS
+    wall = np.linalg.norm(vertices - _WALL, axis=1) < _WALL_RADIUS
     return DiffResponse(
         heatmap_url=heatmap_url,
+        heatmap_legend=_LEGEND,
         histogram=Histogram(bin_edges_mm=_BIN_EDGES_MM, counts=_COUNTS),
         stats=Stats(
             changed_fraction=0.031,
-            max_change_mm=4.87,
+            max_change_mm=_MAX_CHANGE_MM,
             noise_floor_mm=0.42,
-            threshold_mm=1.25,
+            threshold_mm=_THRESHOLD_MM,
             icp_fitness=0.962,
             icp_rmse_mm=0.81,
             diff_time_s=3.4,
         ),
         regions=[
-            Region(
-                id="r1",
+            _region(
+                "r1",
+                vertices[rim],
+                signed[rim],
                 label="normal_wear",
                 damage_type="normal_wear",
-                kind="dent",
                 area_cm2=2.6,
-                max_depth_mm=1.4,
-                centroid=[0.0, 0.0481, 0.0137],
                 confidence=0.78,
                 reason="Shallow, spread-out change near the rim consistent with handling wear.",
             ),
-            Region(
-                id="r2",
+            _region(
+                "r2",
+                vertices[wall],
+                signed[wall],
                 label="needs_review",
                 damage_type="dent_damage",
-                kind="dent",
                 area_cm2=0.9,
-                max_depth_mm=4.87,
-                centroid=[0.0354, -0.0122, 0.0333],
                 confidence=0.71,
                 reason="Localized 4.9 mm depression with a sharp edge on the side wall.",
             ),
