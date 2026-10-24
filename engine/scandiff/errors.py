@@ -23,3 +23,15 @@ class ScaleMismatch(ScanDiffError):
 
 class AlignmentFailed(ScanDiffError):
     """The new scan could not be aligned to the base scan."""
+
+
+class StorageNotConfigured(ScanDiffError):
+    """Supabase settings are missing from engine/.env or the environment."""
+
+
+class ScanNotFound(ScanDiffError):
+    """No scan folder or file for that id in the scans bucket."""
+
+
+class InvalidMetadata(ScanDiffError):
+    """A scan's metadata.json does not match ScanMetadata."""

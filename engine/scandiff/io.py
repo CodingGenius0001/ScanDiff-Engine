@@ -116,11 +116,12 @@ def find_model_file(scan_dir: Path) -> Path:
     return candidates[0]
 
 
-def load_mesh(path: str | Path) -> trimesh.Trimesh:
-    """Read an OBJ, PLY, GLB, or USD(Z) file as one mesh in meters.
+def load_mesh(path: str | Path, require_density: bool = True) -> trimesh.Trimesh:
+    """Read an OBJ, PLY, GLB, or USD(Z) file as one mesh in meters, +Y up.
 
     Every geometry in the file is merged into the one mesh. OBJ, PLY, and GLB
-    are taken to be meters already.
+    are taken to be meters already. With `require_density`, a mesh too sparse
+    to compare raises ScanTooSparse; pass False to load it just for display.
     """
     path = Path(path)
     suffix = path.suffix.lower()
@@ -135,7 +136,8 @@ def load_mesh(path: str | Path) -> trimesh.Trimesh:
         raise UnsupportedFormat(
             f"Cannot read {path.name}: supported formats are OBJ, PLY, GLB, and USDZ."
         )
-    _check_density(mesh, path)
+    if require_density:
+        _check_density(mesh, path)
     return mesh
 
 
