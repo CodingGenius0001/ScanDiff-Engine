@@ -20,6 +20,13 @@ def test_diff_returns_mock_response():
     assert sorted(r.label for r in result.regions) == ["needs_review", "normal_wear"]
     assert sorted(r.damage_type for r in result.regions) == ["dent_damage", "normal_wear"]
     assert [u.only_in for u in result.uncovered_regions] == ["base"]
+    assert result.heatmap_legend.colormap == "diverging_blue_gray_red"
+    assert result.heatmap_legend.neutral_band_mm == result.stats.threshold_mm
+    for region in result.regions:
+        assert "centroid_m" in region.model_dump()
+        assert "centroid" not in region.model_dump()
+        assert 0.005 <= region.radius_m <= 0.03
+        assert max(abs(value) for value in region.centroid_m) < 0.3
     for fingerprint in (result.base_fingerprint, result.new_fingerprint):
         assert re.fullmatch(r"[0-9a-f]{64}", fingerprint)
 

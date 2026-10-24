@@ -2,28 +2,21 @@
 
 import hashlib
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+import trimesh
 from PIL import Image
 
 from app.schemas import PhotoMeta, ScanMetadata
-from scandiff.errors import ChecksumMismatch, UnsupportedFormat
+from scandiff import config
+from scandiff.errors import ChecksumMismatch, ScanTooSparse, UnsupportedFormat
 
 logger = logging.getLogger(__name__)
 
 _USD_SUFFIXES = {".usdz", ".usd", ".usda", ".usdc"}
+_TRIMESH_SUFFIXES = {".obj", ".ply", ".glb"}
 _OBJ_HINT = "Ask the app to also send an OBJ."
-
-
-@dataclass(frozen=True)
-class LoadedMesh:
-    """Triangle-or-ngon mesh in meters."""
-
-    points: np.ndarray
-    face_indices: np.ndarray
-    face_counts: np.ndarray
 
 
 def file_sha256(path: Path) -> str:
@@ -86,15 +79,50 @@ def load_jpeg_intrinsics(photo: PhotoMeta, path: Path) -> np.ndarray:
         return intrinsics_for_image(photo, image)
 
 
-def load_model(path: Path, metadata: ScanMetadata) -> LoadedMesh:
-    """Check `model_sha256`, then read the USDZ into a mesh in meters."""
+def load_model(path: Path, metadata: ScanMetadata) -> trimesh.Trimesh:
+    """Check `model_sha256`, then read the model into one mesh in meters."""
     verify_model_sha256(path, metadata.model_sha256)
     return load_mesh(path)
 
 
-def load_mesh(path: Path) -> LoadedMesh:
-    if path.suffix.lower() not in _USD_SUFFIXES:
-        raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}")
+def load_mesh(path: str | Path) -> trimesh.Trimesh:
+    """Read an OBJ, PLY, GLB, or USD(Z) file as one mesh in meters.
+
+    Every geometry in the file is merged into the one mesh. OBJ, PLY, and GLB
+    are taken to be meters already.
+    """
+    path = Path(path)
+    suffix = path.suffix.lower()
+    if suffix in _USD_SUFFIXES:
+        mesh = read_usd_mesh(path)
+    elif suffix in _TRIMESH_SUFFIXES:
+        try:
+            mesh = trimesh.load(path, force="mesh")
+        except Exception as exc:
+            raise UnsupportedFormat(f"Cannot read {path.name}.") from exc
+    else:
+        raise UnsupportedFormat(
+            f"Cannot read {path.name}: supported formats are OBJ, PLY, GLB, and USDZ."
+        )
+    _check_density(mesh, path)
+    return mesh
+
+
+def _check_density(mesh: trimesh.Trimesh, path: Path) -> None:
+    if len(mesh.vertices) < config.MIN_MESH_VERTICES:
+        raise ScanTooSparse(
+            f"{path.name} has {len(mesh.vertices)} vertices; "
+            f"at least {config.MIN_MESH_VERTICES} are needed."
+        )
+    if mesh.area < config.MIN_SURFACE_AREA_M2:
+        raise ScanTooSparse(
+            f"{path.name} has {mesh.area * 1e4:.2f} cm² of surface; "
+            f"at least {config.MIN_SURFACE_AREA_M2 * 1e4:.2f} cm² is needed."
+        )
+
+
+def read_usd_mesh(path: Path) -> trimesh.Trimesh:
+    """Read every mesh prim in a USD(Z) file into one triangle mesh in meters."""
     try:
         from pxr import Gf, Usd, UsdGeom
     except ImportError as exc:
@@ -107,7 +135,7 @@ def load_mesh(path: Path) -> LoadedMesh:
         raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}") from exc
 
 
-def _read_usd_mesh(path: Path, Usd, UsdGeom, Gf) -> LoadedMesh:
+def _read_usd_mesh(path: Path, Usd, UsdGeom, Gf) -> trimesh.Trimesh:
     stage = Usd.Stage.Open(str(path))
     if not stage:
         raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}")
@@ -143,8 +171,16 @@ def _read_usd_mesh(path: Path, Usd, UsdGeom, Gf) -> LoadedMesh:
     if not point_blocks:
         raise UnsupportedFormat(f"Cannot read {path.name}. {_OBJ_HINT}")
 
-    return LoadedMesh(
-        points=np.vstack(point_blocks),
-        face_indices=np.array(indices, dtype=np.int64),
-        face_counts=np.array(counts, dtype=np.int64),
+    faces = _triangulate(np.array(counts, dtype=np.int64), np.array(indices, dtype=np.int64))
+    return trimesh.Trimesh(vertices=np.vstack(point_blocks), faces=faces, process=False)
+
+
+def _triangulate(counts: np.ndarray, indices: np.ndarray) -> np.ndarray:
+    """Fan-triangulate USD faces. Faces with fewer than 3 corners are dropped."""
+    starts = np.cumsum(counts) - counts
+    per_face = np.clip(counts - 2, 0, None)
+    first = np.repeat(starts, per_face)
+    step = np.arange(per_face.sum()) - np.repeat(np.cumsum(per_face) - per_face, per_face)
+    return np.stack(
+        [indices[first], indices[first + step + 1], indices[first + step + 2]], axis=1
     )

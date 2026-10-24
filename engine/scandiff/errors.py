@@ -11,3 +11,11 @@ class UnsupportedFormat(ScanDiffError):
 
 class ChecksumMismatch(ScanDiffError):
     """The model file bytes do not match model_sha256."""
+
+
+class ScanTooSparse(ScanDiffError):
+    """The scan has too few vertices, points, or too little surface to compare."""
+
+
+class ScaleMismatch(ScanDiffError):
+    """The two scans differ in size by more than a rescan could explain."""
