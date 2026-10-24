@@ -7,8 +7,9 @@
  * see `DiffResult`.
  */
 import type { DiffResponse } from "./contract";
-import { getScan } from "./items";
 import { MOCK_SCANS } from "./mock/catalog";
+import { fetchScan } from "./scans";
+import { browserSupabase } from "./supabase";
 import type { DiffResult, ScanMeta } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_DIFF_API_URL?.replace(/\/+$/, "") || null;
@@ -57,8 +58,10 @@ async function fetchDiff(base: string, baseId: string, newId: string): Promise<D
   return toDiffResult(raw, baseScan, newScan);
 }
 
+/** Scan names, times and capturers. The engine response does not include them. */
 async function scanMeta(id: string): Promise<ScanMeta> {
-  const scan = await getScan(id);
+  const db = browserSupabase();
+  const scan = MOCK_SCANS[id] ?? (db ? await fetchScan(db, id) : undefined);
   if (!scan) throw new Error(`Unknown scan "${id}"`);
   return scan;
 }

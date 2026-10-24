@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import CheckoutView from "@/components/CheckoutView";
+import RealCheckoutView from "@/components/RealCheckoutView";
+import SignInPrompt from "@/components/SignInPrompt";
 import { getItem, listItems } from "@/lib/items";
 
 export function generateStaticParams() {
@@ -14,8 +16,11 @@ export default function CheckoutPage({ params }: PageProps<"/checkout/[id]">) {
     <Suspense fallback={null}>
       {params.then(async ({ id }) => {
         const item = await getItem(id);
-        // Real Supabase items have no price yet, so they have no demo checkout.
-        if (!item || item.kind !== "shipping" || item.priceCents === undefined) notFound();
+        if (item === "sign_in") return <SignInPrompt next={`/checkout/${encodeURIComponent(id)}`} />;
+        if (!item || item.kind !== "shipping") notFound();
+        // Items scanned with the iPhone app: held until their real check scan is accepted.
+        if (item.source === "supabase") return <RealCheckoutView item={item} />;
+        if (item.priceCents === undefined) notFound();
         return <CheckoutView item={item} />;
       })}
     </Suspense>

@@ -5,6 +5,7 @@ import { formatDistance, formatPercent, LABEL_TEXT, SOURCE_TEXT, VERDICT_TEXT } 
 import { statusAt, useOrder } from "@/lib/orderStatus";
 import type { DiffResult, Item, ScanMeta } from "@/lib/types";
 import { fetchDecision, type Decision } from "@/lib/scans";
+import { browserSupabase } from "@/lib/supabase";
 import { useComparison } from "@/lib/useComparison";
 import { useEffect, useState } from "react";
 import Fingerprint from "./Fingerprint";
@@ -199,8 +200,9 @@ function ScanDecision({ item }: { item: Item }) {
   const checkScanId = item.versions.length > 1 ? item.versions[item.versions.length - 1].scanId : null;
   const [decision, setDecision] = useState<Decision | null>(null);
   useEffect(() => {
-    if (!checkScanId) return;
-    fetchDecision(checkScanId).then(setDecision, () => setDecision(null));
+    const db = browserSupabase();
+    if (!checkScanId || !db) return;
+    fetchDecision(db, checkScanId).then(setDecision, () => setDecision(null));
   }, [checkScanId]);
   if (!decision) return null;
   return (

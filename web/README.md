@@ -26,6 +26,20 @@ Set these in `web/.env.local` (copy `.env.example`). They are read at build time
 
 The page always shows where its data came from (browser mock, engine example, or engine).
 
+## Real scans, sign-in and the live checkout
+
+| Variable | Effect |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Read real scans from the `scans` table. Publishable key only: the app refuses to start with a secret or service-role key. |
+| `NEXT_PUBLIC_DEMO_EMAIL`, `NEXT_PUBLIC_DEMO_PASSWORD` | Optional "Use the demo account" button on `/login`. Ends up in the browser, so only a throwaway account. |
+
+- Real scans are read **as the signed-in user** (Google or email/password through Supabase Auth), on the server and in the browser, so row-level security applies. Signed out, real items show a sign-in prompt; the mock demos stay public. The session lives in cookies (`@supabase/ssr`), refreshed by `proxy.ts`.
+- Google sign-in on the web returns to `/auth/callback`. In Supabase → Authentication → URL Configuration, add every site origin's `/auth/callback` under Redirect URLs (for example `http://localhost:3000/auth/callback` and `https://scandiff.us/auth/callback`).
+- `/sell` lists an item: the ID is lowercased and checked (letters, numbers, `-`, `_`), and a near miss of an existing ID (such as `coffe-maker-3`) asks "Did you mean …?". A QR code for `scandiff://scan?item=<id>&kind=baseline` opens the iPhone app on that item.
+- `/checkout/<item id>` for a real item holds the demo payment until a check scan uploaded after the hold is accepted, then shows the receipt; a dispute keeps it held and links the evidence page. It shows the buyer's QR (`kind=check`). The listing and hold are kept in the browser; scans and decisions come from the table, live.
+- Live updates poll every 4 s and listen on Supabase realtime. For instant updates, run once in the Supabase SQL editor: `alter publication supabase_realtime add table public.scans;`
+- `PITCH.md` is the scripted demo path, including the dispute branch.
+
 To run the engine for testing: `cd engine`, install `requirements.txt`, then `uvicorn app.main:app --port 8000`. Note that the engine rewrites the sample GLBs in `engine/static/` on startup.
 
 ## Where the teammate integrations plug in
@@ -37,15 +51,18 @@ To run the engine for testing: `cd engine`, install `requirements.txt`, then `uv
 | `lib/diffClient.ts` | `getDiff(baseId, newId)` | Browser mock, or `POST /diff` mapped onto `DiffResult` | Unchanged |
 | `lib/modelLoader.ts` | `loadModel(url)` | GLB (keeps vertex colors) and PLY | Unchanged: the engine converts USDZ to GLB |
 | `lib/scanMetadata.ts` | iOS `metadata.json` to `ScanMeta` | Not wired; fixture in `lib/fixtures/` | Use when scans come from Supabase |
-| `lib/items.ts` | Item title, price, scan history | Mock catalog | Backend item source |
-| `lib/orderStatus.ts` | Checkout status flow | `localStorage` | Driven by real database updates |
+| `lib/items.ts` | Item for server pages | Mock catalog, then Supabase as the signed-in user | Backend item source |
+| `lib/orderStatus.ts` | Mock checkout status flow | `localStorage` | Unchanged |
+| `lib/realOrder.ts` | Live checkout for real items | Hold in the browser, release and dispute from `scans.decision` | An orders table |
 
 The open assumptions are listed in `TODO.md`. Mock data lives only in `lib/mock/`.
 
 ## Pages
 
 - `/` home
-- `/checkout/mug-001` demo checkout (shipping and returns)
+- `/checkout/mug-001` demo checkout (shipping and returns), on mock data
+- `/sell` list a real item (seller QR), then `/checkout/<item id>` live checkout
+- `/login` sign-in (Google, demo account, email and password)
 - `/item/mug-001`, `/item/car-001` comparison viewer
 - `/item/<id>/evidence` printable dispute evidence
 
@@ -53,5 +70,5 @@ The open assumptions are listed in `TODO.md`. Mock data lives only in `lib/mock/
 
 1. In Vercel, choose **Add New → Project** and import this GitHub repository.
 2. Set **Root Directory** to `web`.
-3. Keep the detected Next.js framework and its default build settings. For the browser mock, no environment variables are needed. To use the engine, add `NEXT_PUBLIC_DIFF_API_URL` with a public HTTPS engine URL (a deployed page cannot call `localhost`).
+3. Keep the detected Next.js framework and its default build settings. For the browser mock, no environment variables are needed. For real scans add the Supabase variables above. To use the engine, add `NEXT_PUBLIC_DIFF_API_URL` with a public HTTPS engine URL (a deployed page cannot call `localhost`).
 4. Click **Deploy**. Each push to the connected branch creates a new deployment.

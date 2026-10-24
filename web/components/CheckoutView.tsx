@@ -22,7 +22,6 @@ export default function CheckoutView({ item }: { item: Item }) {
   const order = useOrder(item.id, item.kind);
   const router = useRouter();
   const price = item.priceCents ?? 0;
-  const stepIndex = order.status === "disputed" ? 2 : STEPS.findIndex((s) => s.status === order.status);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-12 pt-6 sm:pt-10">
@@ -48,16 +47,7 @@ export default function CheckoutView({ item }: { item: Item }) {
           <h2 className="display text-3xl">Order status</h2>
           <StatusPill status={order.status} kind={item.kind} />
         </div>
-        <ol className="mt-3 grid grid-cols-4 gap-1 text-center text-[11px] sm:text-xs">
-          {STEPS.map((s, i) => (
-            <li key={s.status} className="flex flex-col items-center gap-1">
-              <span
-                className={`h-1 w-full ${i <= stepIndex ? "bg-ink" : "bg-rule"}`}
-              />
-              <span className={i === stepIndex ? "font-semibold text-ink" : "text-ink-soft"}>{s.label}</span>
-            </li>
-          ))}
-        </ol>
+        <OrderSteps status={order.status} />
 
         <div className="mt-4 flex flex-col gap-3">
           {order.status === "listed" && (
@@ -125,6 +115,21 @@ export default function CheckoutView({ item }: { item: Item }) {
   );
 }
 
+/** Progress through the order. A dispute stops at "Scan uploaded". */
+export function OrderSteps({ status }: { status: OrderStatus }) {
+  const stepIndex = status === "disputed" ? 2 : STEPS.findIndex((s) => s.status === status);
+  return (
+    <ol className="mt-3 grid grid-cols-4 gap-1 text-center text-[11px] sm:text-xs">
+      {STEPS.map((s, i) => (
+        <li key={s.status} className="flex flex-col items-center gap-1">
+          <span className={`h-1 w-full ${i <= stepIndex ? "bg-ink" : "bg-rule"}`} />
+          <span className={i === stepIndex ? "font-semibold text-ink" : "text-ink-soft"}>{s.label}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function Receipt({ item, releasedAt, heldAt }: { item: Item; releasedAt?: string; heldAt?: string }) {
   const comparison = useComparison(item, false);
   const scans = comparison.status === "ready" ? [comparison.data.diff.baseScan, comparison.data.diff.newScan] : [];
@@ -174,7 +179,7 @@ function Receipt({ item, releasedAt, heldAt }: { item: Item; releasedAt?: string
   );
 }
 
-function MugIcon() {
+export function MugIcon() {
   return (
     <svg viewBox="0 0 64 64" className="plate h-20 w-20 shrink-0 border border-rule p-2" aria-hidden>
       <path d="M12 14h32v30a10 10 0 0 1-10 10H22a10 10 0 0 1-10-10z" fill="#8d8a82" />
