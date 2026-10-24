@@ -1,4 +1,11 @@
-"""All tunable constants."""
+"""All tunable constants.
+
+The noise floor and change threshold come from calibration.json when
+scripts/calibrate.py has written it, and from the defaults below until then.
+"""
+
+import json
+from pathlib import Path
 
 # A parsed camera rotation must match the identity gram matrix within this tolerance.
 ROTATION_ATOL = 1e-3
@@ -53,3 +60,26 @@ ICP_MAX_ITERATIONS = 50
 # An alignment below MIN_FITNESS or above MAX_RMSE_MM (at the finest ICP distance) is rejected.
 MIN_FITNESS = 0.6
 MAX_RMSE_MM = 1.5
+
+# Signed-distance histogram: fixed bins across this range, plus one overflow bin on each side.
+HISTOGRAM_RANGE_MM = 15.0
+HISTOGRAM_BIN_MM = 1.0
+
+# Change threshold: 3 sigma of scan-to-scan noise, never below MIN_THRESHOLD_MM.
+MIN_THRESHOLD_MM = 2.0
+THRESHOLD_SIGMAS = 3.0
+CALIBRATION_PATH = Path(__file__).resolve().parents[1] / "calibration.json"
+
+
+def load_calibration(path: Path = CALIBRATION_PATH) -> dict | None:
+    """calibration.json as written by scripts/calibrate.py, or None if it doesn't exist yet."""
+    if not path.exists():
+        return None
+    return json.loads(path.read_text())
+
+
+_calibration = load_calibration()
+CALIBRATED = _calibration is not None
+# Placeholders until calibration: 1 mm of noise, a 3 mm threshold.
+NOISE_SIGMA_MM = _calibration["sigma_mm"] if CALIBRATED else 1.0
+THRESHOLD_MM = _calibration["threshold_mm"] if CALIBRATED else 3.0
