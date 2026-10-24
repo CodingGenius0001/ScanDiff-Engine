@@ -5,10 +5,13 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-Label = Literal["normal_wear", "scratch_scuff", "dent_damage", "missing_part"]
+Label = Literal["normal_wear", "needs_review"]
+DamageType = Literal["normal_wear", "scratch_scuff", "dent_damage", "missing_part"]
 Kind = Literal["dent", "added"]
-Verdict = Literal["accept", "needs_review", "damage_likely"]
+Verdict = Literal["match", "minor_wear", "needs_review"]
+ScanSide = Literal["base", "new"]
 
+# A point in the scan frame, in meters, the same frame as the heatmap mesh.
 Centroid = Annotated[list[float], Field(min_length=3, max_length=3)]
 UnitInterval = Annotated[float, Field(ge=0, le=1)]
 
@@ -21,6 +24,7 @@ class DiffRequest(BaseModel):
 class Region(BaseModel):
     id: str
     label: Label
+    damage_type: DamageType
     kind: Kind
     area_cm2: float
     max_depth_mm: float
@@ -36,6 +40,15 @@ class Region(BaseModel):
         if "\n" in value or "\r" in value:
             raise ValueError("reason must be a single line")
         return value
+
+
+class UncoveredRegion(BaseModel):
+    """Surface that only one of the two scans captured, so it cannot be compared."""
+
+    id: str
+    only_in: ScanSide
+    area_cm2: float
+    centroid: Centroid
 
 
 class Histogram(BaseModel):
@@ -58,6 +71,7 @@ class DiffResponse(BaseModel):
     histogram: Histogram
     stats: Stats
     regions: list[Region]
+    uncovered_regions: list[UncoveredRegion]
     verdict: Verdict
     verdict_confidence: UnitInterval
     verdict_reason: str
