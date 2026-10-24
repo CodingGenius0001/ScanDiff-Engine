@@ -7,7 +7,8 @@ import trimesh
 
 from scandiff import config
 from scandiff.errors import ScaleMismatch, ScanTooSparse
-from scandiff.preprocess import clean, scale_check, to_point_cloud
+from scandiff.align import align
+from scandiff.preprocess import check_gross_scale, clean, scale_check, to_point_cloud
 
 N_POINTS = 30_000
 
@@ -112,23 +113,44 @@ def test_clean_raises_when_too_sparse():
         clean(cloud)
 
 
-def test_scale_check_ignores_rotation():
-    base = _box_cloud([0.10, 0.06, 0.03])
-    new = _box_cloud([0.10, 0.06, 0.03], rotation_seed=1)
+def test_gross_scale_check_ignores_rotation():
+    check_gross_scale(_box_cloud([0.10, 0.06, 0.03]), _box_cloud([0.10, 0.06, 0.03], rotation_seed=1))
+    square = _box_cloud([0.06, 0.06, 0.03])
+    for seed in range(1, 4):
+        check_gross_scale(square, _box_cloud([0.06, 0.06, 0.03], rotation_seed=seed))
 
-    result = scale_check(base, new)
+
+def test_gross_scale_check_raises_on_mismatch():
+    base = _box_cloud([0.10, 0.06, 0.03])
+    new = _box_cloud([0.13, 0.078, 0.039], rotation_seed=1)
+
+    with pytest.raises(ScaleMismatch, match="different objects or units"):
+        check_gross_scale(base, new)
+
+
+def test_scale_check_after_alignment_matches_a_noisy_rescan():
+    # Proportions of the first real scan, a coffee maker, whose own boxes disagreed by up to 3.4%.
+    extents = [0.135, 0.200, 0.216]
+
+    def noisy_scan(seed):
+        cloud = to_point_cloud(trimesh.creation.box(extents=extents), N_POINTS)
+        rng = np.random.default_rng(seed)
+        cloud.points = o3d.utility.Vector3dVector(
+            np.asarray(cloud.points) + rng.normal(0, 0.0007, (len(cloud.points), 3))
+        )
+        return clean(cloud)
+
+    base = noisy_scan(0)
+    new = noisy_scan(1)
+    moved = trimesh.transformations.random_rotation_matrix(np.random.default_rng(1).random(3))
+    moved[:3, 3] = [0.1, -0.05, 0.2]
+    new.transform(moved)
+
+    result = scale_check(base, align(new, base).aligned)
 
     assert result["warning"] is None
-    assert result["ratios"] == pytest.approx([1.0, 1.0, 1.0], abs=0.02)
-    assert result["base_extents_mm"] == pytest.approx([30, 60, 100], abs=2)
-
-
-def test_scale_check_square_cross_section_ignores_rotation():
-    base = _box_cloud([0.06, 0.06, 0.03])
-
-    for seed in range(1, 4):
-        result = scale_check(base, _box_cloud([0.06, 0.06, 0.03], rotation_seed=seed))
-        assert result["warning"] is None
+    assert result["ratios"] == pytest.approx([1.0, 1.0, 1.0], abs=0.005)
+    assert result["base_extents_mm"] == pytest.approx([135, 200, 216], abs=3)
 
 
 def test_scale_check_handles_round_items():
@@ -142,7 +164,7 @@ def test_scale_check_handles_round_items():
 
 def test_scale_check_warns_past_tolerance():
     base = _box_cloud([0.10, 0.06, 0.03])
-    new = _box_cloud([0.10, 0.06, 0.03 * 1.08], rotation_seed=2)
+    new = _box_cloud([0.10, 0.06, 0.03 * 1.08])
 
     result = scale_check(base, new)
 

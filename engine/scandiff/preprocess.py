@@ -153,23 +153,34 @@ def _estimate_normals(pcd: o3d.geometry.PointCloud) -> None:
     pcd.normals = o3d.utility.Vector3dVector(normals)
 
 
-def scale_check(base: o3d.geometry.PointCloud, new: o3d.geometry.PointCloud) -> dict:
-    """Compare the two scans' oriented bounding box extents, sorted so rotation doesn't matter.
+def check_gross_scale(base: o3d.geometry.PointCloud, new: o3d.geometry.PointCloud) -> None:
+    """Before alignment: raise ScaleMismatch if the scans differ in size past config.SCALE_MISMATCH.
 
-    `ratios` is new / base per axis, smallest axis first. `warning` is set when
-    any axis differs by more than config.SCALE_TOLERANCE. Past
+    Each scan is measured in its own box, sorted so rotation doesn't matter.
+    On boxy items the two boxes can settle at different orientations, which
+    moves the extents by a few percent, so this only catches wrong objects or
+    units. scale_check does the precise comparison after alignment.
+    """
+    _raise_if_mismatched(sorted_extents(new) / sorted_extents(base))
+
+
+def scale_check(base: o3d.geometry.PointCloud, new_aligned: o3d.geometry.PointCloud) -> dict:
+    """After alignment: compare the scans' extents along the base's box axes.
+
+    `new_aligned` must already be in the base's frame. Both clouds are measured
+    along the same axes, so box orientation cannot differ between them.
+    `ratios` is new / base per axis, the base's smallest axis first. `warning`
+    is set when any axis differs by more than config.SCALE_TOLERANCE. Past
     config.SCALE_MISMATCH this raises ScaleMismatch instead.
     """
-    base_extents = sorted_extents(base)
-    new_extents = sorted_extents(new)
+    axes = _box_axes(base)
+    base_extents = _extents_along(base, axes)
+    order = np.argsort(base_extents)
+    base_extents = base_extents[order]
+    new_extents = _extents_along(new_aligned, axes)[order]
     ratios = new_extents / base_extents
-    worst = float(np.max(np.abs(ratios - 1.0)))
+    worst = _raise_if_mismatched(ratios)
 
-    if worst > config.SCALE_MISMATCH:
-        raise ScaleMismatch(
-            f"Bounding boxes differ by {worst:.0%} on one axis; "
-            "these look like different objects or units."
-        )
     warning = None
     if worst > config.SCALE_TOLERANCE:
         warning = (
@@ -184,18 +195,35 @@ def scale_check(base: o3d.geometry.PointCloud, new: o3d.geometry.PointCloud) -> 
     }
 
 
-def sorted_extents(pcd: o3d.geometry.PointCloud) -> np.ndarray:
-    """Oriented bounding box extents in meters, smallest first.
+def _raise_if_mismatched(ratios: np.ndarray) -> float:
+    """The largest relative difference, after raising ScaleMismatch if it is past config.SCALE_MISMATCH."""
+    worst = float(np.max(np.abs(ratios - 1.0)))
+    if worst > config.SCALE_MISMATCH:
+        raise ScaleMismatch(
+            f"Bounding boxes differ by {worst:.0%} on one axis; "
+            "these look like different objects or units."
+        )
+    return worst
 
-    Measured between percentiles so scan noise doesn't inflate them.
-    """
+
+def sorted_extents(pcd: o3d.geometry.PointCloud) -> np.ndarray:
+    """Oriented bounding box extents in meters, smallest first."""
+    return np.sort(_extents_along(pcd, _box_axes(pcd)))
+
+
+def _box_axes(pcd: o3d.geometry.PointCloud) -> np.ndarray:
+    """Axes of the cloud's minimal oriented bounding box, as the columns of a rotation."""
     # The minimal box is slow on round items, whose points are all on the hull,
     # so orient the box on an evenly spread subset. PCA is not used because its
     # axes are arbitrary for square or round cross-sections.
     subset = pcd.farthest_point_down_sample(min(config.OBB_SUBSET_POINTS, len(pcd.points)))
-    box = subset.get_minimal_oriented_bounding_box()
-    local = (np.asarray(pcd.points) - box.center) @ np.asarray(box.R)
+    return np.asarray(subset.get_minimal_oriented_bounding_box().R)
+
+
+def _extents_along(pcd: o3d.geometry.PointCloud, axes: np.ndarray) -> np.ndarray:
+    """Extent along each axis, measured between percentiles so scan noise doesn't inflate it."""
+    local = np.asarray(pcd.points) @ axes
     low, high = np.percentile(
         local, [config.EXTENT_PERCENTILE, 100 - config.EXTENT_PERCENTILE], axis=0
     )
-    return np.sort(high - low)
+    return high - low

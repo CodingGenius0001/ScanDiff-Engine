@@ -3,7 +3,7 @@
     python scripts/try_preprocess.py data/scans/<item_id>/<scan_id> [<scan_dir2>] [--show] [--save out/preview.ply]
 
 A scan dir is a folder from fetch_scans.py, or a model file path. With two
-scans, the scale check runs too.
+scans, the second is aligned onto the first and the scale check runs too.
 """
 
 import argparse
@@ -16,11 +16,13 @@ sys.path.insert(0, str(ENGINE_DIR))
 
 import open3d as o3d  # noqa: E402
 
+from scandiff.align import align  # noqa: E402
 from scandiff.errors import ScanDiffError  # noqa: E402
 from scandiff.io import find_model_file, load_mesh  # noqa: E402
 from scandiff.preprocess import (  # noqa: E402
     MM,
     CleanReport,
+    check_gross_scale,
     clean_with_report,
     scale_check,
     sorted_extents,
@@ -96,13 +98,21 @@ def main() -> None:
         print()
 
     if len(results) == 2:
+        base, new = results[0][0], results[1][0]
         try:
-            check = scale_check(results[0][0], results[1][0])
+            check_gross_scale(base, new)
+            start = time.perf_counter()
+            aligned = align(new, base)
+            print(
+                f"alignment: {aligned.method}, fitness {aligned.fitness:.3f}, "
+                f"RMSE {aligned.rmse_mm:.2f} mm{time.perf_counter() - start:9.2f} s"
+            )
+            check = scale_check(base, aligned.aligned)
         except ScanDiffError as exc:
-            print(f"scale check: {type(exc).__name__}: {exc}")
+            print(f"{type(exc).__name__}: {exc}")
         else:
             ratios = ", ".join(f"{ratio:.4f}" for ratio in check["ratios"])
-            print(f"scale check: new / base per axis, smallest first: {ratios}")
+            print(f"scale check: new / base along the base's box axes, smallest first: {ratios}")
             print(f"  warning: {check['warning'] or 'none'}")
 
     if args.save:
