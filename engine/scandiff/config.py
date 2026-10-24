@@ -17,6 +17,8 @@ RANDOM_SEED = 0
 VOXEL_MM = 2.0
 OUTLIER_NB_NEIGHBORS = 20
 OUTLIER_STD_RATIO = 2.0
+# An outlier must also sit this many voxels from its neighbors on average, so dents and edges stay.
+OUTLIER_MIN_SPACING_VOXELS = 3.0
 # Off by default: Object Capture leaves the table out and the app scans the item's bottom too,
 # so the largest plane is part of the item (a side, or the base), not the table.
 REMOVE_GROUND_PLANE = False

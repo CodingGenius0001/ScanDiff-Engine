@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import open3d as o3d
 import trimesh
+from scipy.spatial import cKDTree
 
 from scandiff import config
 from scandiff.errors import ScaleMismatch, ScanTooSparse
@@ -74,9 +75,7 @@ def clean_with_report(
     downsampled_points = len(pcd.points)
 
     start = time.perf_counter()
-    _, kept = pcd.remove_statistical_outlier(
-        nb_neighbors=config.OUTLIER_NB_NEIGHBORS, std_ratio=config.OUTLIER_STD_RATIO
-    )
+    kept = np.flatnonzero(~_isolated(np.asarray(pcd.points))).tolist()
     removed = pcd.select_by_index(kept, invert=True)
     pcd = pcd.select_by_index(kept)
     seconds["outliers"] = time.perf_counter() - start
@@ -113,6 +112,26 @@ def clean_with_report(
         seconds=seconds,
     )
     return pcd, report
+
+
+def _isolated(points: np.ndarray) -> np.ndarray:
+    """Mask of statistical outliers that are also far from their neighbors.
+
+    A point is an outlier when its mean distance to its nearest neighbors is
+    more than OUTLIER_STD_RATIO standard deviations above the cloud's mean, as
+    in Open3D's statistical removal. That test alone trims real surface: on a
+    clean sampled mesh the spread is tiny, so a dent floor or an edge, where
+    neighbors are only slightly farther, crosses it. So the mean distance must
+    also exceed OUTLIER_MIN_SPACING_VOXELS voxels.
+    """
+    k = min(config.OUTLIER_NB_NEIGHBORS, len(points) - 1)
+    if k < 1:
+        return np.zeros(len(points), dtype=bool)
+    distances, _ = cKDTree(points).query(points, k=k + 1)
+    mean_distance = distances[:, 1:].mean(axis=1)
+    cutoff = mean_distance.mean() + config.OUTLIER_STD_RATIO * mean_distance.std()
+    floor = config.OUTLIER_MIN_SPACING_VOXELS * config.VOXEL_MM * MM
+    return (mean_distance > cutoff) & (mean_distance > floor)
 
 
 def _estimate_normals(pcd: o3d.geometry.PointCloud) -> None:
