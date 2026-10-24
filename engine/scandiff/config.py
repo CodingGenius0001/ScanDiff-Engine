@@ -24,8 +24,11 @@ PLANE_RANSAC_ITERATIONS = 1000
 NORMAL_RADIUS_MM = 6.0
 NORMAL_MAX_NN = 30
 NORMAL_ORIENT_K = 15
-MIN_POINTS = 2_000
+MIN_POINTS = 1_000
 
 # Scale check, as a fraction of the base extent.
 SCALE_TOLERANCE = 0.03
 SCALE_MISMATCH = 0.20
+OBB_SUBSET_POINTS = 300
+# Extents run from this percentile to 100 minus it along each box axis.
+EXTENT_PERCENTILE = 0.5
