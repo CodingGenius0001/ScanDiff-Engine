@@ -11,7 +11,8 @@ import * as THREE from "three";
 export const COLORS = {
   noChange: "#3b82f6",
   noData: "#9ca3af",
-  neutral: "#d4d4d8",
+  // Plaster white: plain models read as casts on the gray exhibit plate.
+  neutral: "#f2f0ea",
   ramp: ["#fbbf24", "#f97316", "#dc2626", "#7f1d1d"],
 } as const;
 

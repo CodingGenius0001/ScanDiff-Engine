@@ -19,8 +19,10 @@ export interface Marker {
 }
 
 interface Props {
+  /** Exhibit letter, e.g. "A" for the baseline. */
+  exhibit?: string;
   title: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
   model: LoadedModel;
   distances?: (number | null)[];
   threshold: number;
@@ -36,20 +38,19 @@ export default function ScanViewer(props: Props) {
   // Marker badges are plain DOM buttons over the canvas, positioned each frame.
   const badges = useRef(new Map<string, HTMLButtonElement>());
   return (
-    <figure className="panel flex flex-col overflow-hidden p-1.5">
-      <figcaption className="px-2.5 pb-2 pt-1.5">
-        <div className="text-sm font-semibold tracking-tight">{props.title}</div>
-        <div className="font-mono text-[11px] text-zinc-500">{props.subtitle}</div>
-      </figcaption>
-      <div className="stage relative h-64 touch-none overflow-hidden rounded-xl sm:h-80 lg:h-[420px]">
+    <figure className="flex flex-col">
+      <div className="mb-2 flex items-baseline gap-2">
+        {props.exhibit && <span className="display text-2xl">Exhibit {props.exhibit}</span>}
+        <span className="truncate text-sm text-ink-soft">{props.title}</span>
+      </div>
+      <div className="plate relative h-64 touch-none overflow-hidden border border-rule sm:h-80 lg:h-[420px]">
         <Canvas
           dpr={[1, 2]}
           camera={{ fov: 40, near: props.model.radius / 100, far: props.model.radius * 50 }}
         >
-          {/* Transparent canvas: the dot-grid stage shows through. A violet rim light from behind. */}
-          <hemisphereLight args={["#ffffff", "#3f3f46", 0.9]} />
-          <directionalLight position={[1, 2, 1.5]} intensity={1.1} />
-          <directionalLight position={[-1, 0.6, -2]} intensity={0.9} color="#a78bfa" />
+          {/* Transparent canvas: the exhibit plate shows through. Soft studio light. */}
+          <hemisphereLight args={["#ffffff", "#8d8a82", 1.3]} />
+          <directionalLight position={[1, 2, 1.5]} intensity={1.3} />
           <directionalLight position={[-1.5, 0.5, -1]} intensity={0.6} />
           <Model {...props} />
           <LinkedControls link={props.link} />
@@ -72,12 +73,12 @@ export default function ScanViewer(props: Props) {
                 onClick={() => props.onSelect(m.id)}
                 aria-label={m.kind === "nodata" ? "No data region" : m.kind === "missing" ? `Region ${m.number}, missing part` : `Region ${m.number}`}
                 style={{ visibility: "hidden" }}
-                className={`pointer-events-auto absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full border font-mono text-[11px] font-bold backdrop-blur ${
+                className={`pointer-events-auto absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold ${
                   selected
-                    ? "border-accent bg-accent text-zinc-950 shadow-[0_0_14px_var(--color-accent)]"
+                    ? "border-ink bg-ink text-paper"
                     : m.kind === "missing"
-                      ? "border-2 border-rose-400 bg-rose-500/15 text-rose-200 shadow-[0_0_12px_rgb(251_113_133/0.5)]"
-                      : "border-white/50 bg-zinc-950/80 text-white"
+                      ? "border-2 border-stamp bg-paper text-stamp"
+                      : "border-ink bg-paper text-ink"
                 } ${m.kind === "nodata" ? "border-dashed" : ""}`}
               >
                 {m.kind === "nodata" ? "–" : m.number}
@@ -86,6 +87,7 @@ export default function ScanViewer(props: Props) {
           })}
         </div>
       </div>
+      <figcaption className="display mt-2 text-base italic text-ink-soft">{props.subtitle}</figcaption>
     </figure>
   );
 }
@@ -151,7 +153,7 @@ function LinkedControls({ link }: { link: CameraLink }) {
 
 function MarkerSphere({ marker, selected }: { marker: Marker; selected: boolean }) {
   if (!selected) return null;
-  const color = marker.kind === "nodata" ? COLORS.noData : marker.kind === "missing" ? "#fb7185" : "#a78bfa";
+  const color = marker.kind === "nodata" ? COLORS.noData : marker.kind === "missing" ? "#9b2c1c" : "#141413";
   return (
     <mesh position={marker.center}>
       <sphereGeometry args={[marker.radius, 24, 16]} />

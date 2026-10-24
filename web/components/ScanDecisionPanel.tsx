@@ -42,16 +42,16 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
   }
 
   return (
-    <section className="panel">
+    <section className="sheet">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold tracking-tight">Decision on the latest check scan</h2>
+        <h2 className="display text-3xl">Decision on the latest check scan</h2>
         {decision && (
-          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 font-mono text-[11px] font-semibold">
+          <span className="border border-ink px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
             {DECISION_TEXT[decision]}
           </span>
         )}
       </div>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-ink-soft">
         ScanDiff provides tamper-evident evidence of condition at handoff. It does not verify that the item is as
         advertised. The decision is saved on the scan, where the iPhone app sees it too. No payment is involved.
       </p>
@@ -63,7 +63,7 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
             type="button"
             disabled={!loaded || saving !== null || decision === "accept"}
             onClick={() => decide("accept")}
-            className="min-h-11 rounded-full bg-emerald-500 px-5 font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 bg-ink px-5 font-semibold text-paper transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-30"
           >
             {saving === "accept" ? "Saving…" : "Accept"}
           </button>
@@ -71,20 +71,20 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
             type="button"
             disabled={!loaded || saving !== null || decision === "dispute"}
             onClick={() => decide("dispute")}
-            className="min-h-11 rounded-full border border-red-500/60 px-5 font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-300 dark:hover:bg-red-500/10"
+            className="min-h-11 border-2 border-stamp px-5 font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
           >
             {saving === "dispute" ? "Saving…" : "Dispute"}
           </button>
           <Link
             href={`/item/${encodeURIComponent(item.id)}/evidence`}
-            className="col-span-2 flex min-h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold underline sm:col-span-1"
+            className="col-span-2 flex min-h-11 items-center justify-center px-4 text-sm font-semibold underline sm:col-span-1"
           >
             Evidence page
           </Link>
         </div>
       )}
       {error && (
-        <p className="mt-2 text-sm text-red-700 dark:text-red-400" role="alert">
+        <p className="mt-2 text-sm text-stamp" role="alert">
           {error}
         </p>
       )}
