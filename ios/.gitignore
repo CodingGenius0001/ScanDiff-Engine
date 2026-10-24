@@ -1,0 +1,5 @@
+ScanDiff/Configuration/Secrets.xcconfig
+**/xcuserdata/
+**/*.xcuserstate
+DerivedData/
+build/
