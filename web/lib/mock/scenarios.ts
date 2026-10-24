@@ -218,11 +218,14 @@ export function buildMockDiff(baseId: string, newId: string): DiffResult {
     };
   });
 
-  const verdict = flaggedRegions.some((r) => r.label === "needs_review")
-    ? "needs_review"
-    : flaggedRegions.length > 0
-      ? "minor_wear"
-      : "match";
+  // Mirrors engine/scandiff/verdict.py: a needs-review region over 70% confidence is likely
+  // damage, normal wear on under 2% of the surface is accepted, anything else needs review.
+  const review = flaggedRegions.filter((r) => r.label === "needs_review");
+  const verdict = review.some((r) => r.confidence > 0.7)
+    ? "damage_likely"
+    : review.length === 0 && above / covered.length < 0.02
+      ? "accept"
+      : "needs_review";
 
   return {
     source: "browser_mock",

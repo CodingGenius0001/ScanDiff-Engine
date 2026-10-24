@@ -14,13 +14,13 @@ export default function DecisionPanel({ item }: { item: Item }) {
   const shipping = item.kind === "shipping";
 
   return (
-    <section className="panel">
+    <section className="sheet">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold tracking-tight">{shipping ? "Buyer decision" : "Return decision"}</h2>
+        <h2 className="display text-3xl">{shipping ? "Buyer decision" : "Return decision"}</h2>
         <StatusPill status={order.status} kind={item.kind} />
       </div>
       {shipping && <DemoBadge className="mt-2 w-fit" />}
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-ink-soft">
         ScanDiff provides tamper-evident evidence of condition at handoff. It does not verify that the item is as
         advertised.
       </p>
@@ -39,7 +39,7 @@ export default function DecisionPanel({ item }: { item: Item }) {
           onClick={() => {
             if (approve(item.id, item.kind) && shipping) router.push(`/checkout/${item.id}`);
           }}
-          className="min-h-11 rounded-full bg-emerald-500 px-5 font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-11 bg-ink px-5 font-semibold text-paper transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-30"
         >
           Accept
         </button>
@@ -49,13 +49,13 @@ export default function DecisionPanel({ item }: { item: Item }) {
           onClick={() => {
             if (dispute(item.id, item.kind)) router.push(`/item/${item.id}/evidence`);
           }}
-          className="min-h-11 rounded-full border border-red-500/60 px-5 font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-300 dark:hover:bg-red-500/10"
+          className="min-h-11 border-2 border-stamp px-5 font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
         >
           Dispute
         </button>
         <Link
           href={`/item/${item.id}/evidence`}
-          className="col-span-2 flex min-h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold underline sm:col-span-1"
+          className="col-span-2 flex min-h-11 items-center justify-center px-4 text-sm font-semibold underline sm:col-span-1"
         >
           Evidence page
         </Link>

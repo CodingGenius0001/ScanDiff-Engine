@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatDate, formatDistance, formatPercent, LABEL_TEXT, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
+import { formatDistance, formatPercent, LABEL_TEXT, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
 import { statusAt, useOrder } from "@/lib/orderStatus";
 import type { DiffResult, Item, ScanMeta } from "@/lib/types";
 import { fetchDecision, type Decision } from "@/lib/scans";
@@ -9,6 +9,7 @@ import { useComparison } from "@/lib/useComparison";
 import { useEffect, useState } from "react";
 import Fingerprint from "./Fingerprint";
 import Histogram from "./Histogram";
+import LocalTime from "./LocalTime";
 import StatusPill from "./StatusPill";
 
 export default function EvidenceView({ item }: { item: Item }) {
@@ -25,35 +26,37 @@ export default function EvidenceView({ item }: { item: Item }) {
         <button
           type="button"
           onClick={() => window.print()}
-          className="min-h-11 rounded-full bg-zinc-900 px-5 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900"
+          className="min-h-11 bg-ink px-5 text-sm font-semibold text-paper"
         >
           Print or save as PDF
         </button>
       </div>
 
-      <header className="border-b border-zinc-300 pb-3 dark:border-white/10">
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">ScanDiff dispute evidence</p>
-        <h1 className="text-3xl font-bold tracking-tight">{item.title}</h1>
+      <header className="border-b border-ink pb-4">
+        <p className="caption">ScanDiff dispute evidence</p>
+        <h1 className="display text-5xl">{item.title}</h1>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
           <span>Item ID: {item.id}</span>
           {item.source === "supabase" ? <ScanDecision item={item} /> : <StatusPill status={order.status} kind={item.kind} />}
-          {disputedAt && <span>Disputed {formatDate(disputedAt)}</span>}
+          {disputedAt && <span>
+              Disputed <LocalTime iso={disputedAt} />
+            </span>}
         </div>
         <p className="mt-2 text-sm">
           This page is tamper-evident evidence of the item&apos;s shape at each handoff. It does not verify that the
           item is as advertised. LiDAR measures shape, not color, so marks and stains are not covered.
         </p>
         {state.status === "ready" && (
-          <p className="mt-1 text-xs text-zinc-500">{SOURCE_TEXT[state.data.diff.source].note}</p>
+          <p className="mt-1 text-xs text-ink-soft">{SOURCE_TEXT[state.data.diff.source].note}</p>
         )}
       </header>
 
-      {state.status === "loading" && <p className="text-sm text-zinc-500">Loading comparison…</p>}
+      {state.status === "loading" && <p className="text-sm text-ink-soft">Loading comparison…</p>}
       {state.status === "waiting" && (
-        <p className="text-sm text-zinc-500">Only a baseline scan exists, so there is no comparison yet.</p>
+        <p className="text-sm text-ink-soft">Only a baseline scan exists, so there is no comparison yet.</p>
       )}
       {state.status === "error" && (
-        <p className="text-sm text-red-700" role="alert">
+        <p className="text-sm text-stamp" role="alert">
           Could not load the comparison: {state.message}
         </p>
       )}
@@ -68,8 +71,8 @@ function Evidence({ diff }: { diff: DiffResult }) {
     <>
       <Section title="Scans compared">
         <div className="grid gap-3 sm:grid-cols-2 print:grid-cols-2">
-          <ScanCard role="Baseline" scan={diff.baseScan} />
-          <ScanCard role="New" scan={diff.newScan} />
+          <ScanCard exhibit="A" role="Baseline" scan={diff.baseScan} />
+          <ScanCard exhibit="B" role="New" scan={diff.newScan} />
         </div>
       </Section>
 
@@ -96,7 +99,7 @@ function Evidence({ diff }: { diff: DiffResult }) {
             </>
           )}
           <Field label="Units / up axis" value={`${diff.units} / ${diff.upAxis} up`} />
-          <Field label={diff.source === "browser_mock" ? "Computed" : "Received"} value={formatDate(diff.computedAt)} />
+          <Field label={diff.source === "browser_mock" ? "Computed" : "Received"} value={<LocalTime iso={diff.computedAt} />} />
           {diff.diffId && <Field label="Diff ID" value={diff.diffId} />}
         </dl>
       </Section>
@@ -105,7 +108,7 @@ function Evidence({ diff }: { diff: DiffResult }) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-zinc-300 text-xs text-zinc-500 dark:border-white/15">
+              <tr className="border-b border-ink text-xs text-ink-soft">
                 <th className="py-1 pr-2">#</th>
                 <th className="py-1 pr-2">Description</th>
                 <th className="py-1 pr-2">Label</th>
@@ -116,7 +119,7 @@ function Evidence({ diff }: { diff: DiffResult }) {
             </thead>
             <tbody>
               {diff.flaggedRegions.map((r, i) => (
-                <tr key={r.id} className="border-b border-zinc-200 align-top dark:border-white/[0.06]">
+                <tr key={r.id} className="border-b border-rule align-top">
                   <td className="py-1.5 pr-2">{i + 1}</td>
                   <td className="py-1.5 pr-2">{r.description}</td>
                   <td className="py-1.5 pr-2">{LABEL_TEXT[r.label]}</td>
@@ -152,34 +155,39 @@ function Evidence({ diff }: { diff: DiffResult }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="break-inside-avoid">
-      <h2 className="mb-2 text-base font-bold">{title}</h2>
+      <h2 className="display mb-3 border-b border-ink pb-1 text-2xl">{title}</h2>
       {children}
     </section>
   );
 }
 
-function Field({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
+function Field({ label, value, wide }: { label: string; value: React.ReactNode; wide?: boolean }) {
   return (
     <div className={wide ? "col-span-2 sm:col-span-3 print:col-span-3" : ""}>
-      <dt className="text-xs text-zinc-500">{label}</dt>
+      <dt className="text-xs text-ink-soft">{label}</dt>
       <dd className="font-semibold">{value}</dd>
     </div>
   );
 }
 
-function ScanCard({ role, scan }: { role: string; scan: ScanMeta }) {
+function ScanCard({ exhibit, role, scan }: { exhibit: string; role: string; scan: ScanMeta }) {
   return (
-    <div className="rounded-xl border border-zinc-300 p-3 text-sm dark:border-white/10 dark:bg-white/[0.02]">
-      <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{role}</div>
+    <div className="border border-rule p-3 text-sm">
+      <div className="flex items-baseline gap-2">
+        <span className="display text-xl">Exhibit {exhibit}</span>
+        <span className="caption">{role}</span>
+      </div>
       <div className="font-semibold">{scan.name}</div>
-      <div>Captured {formatDate(scan.capturedAt)}</div>
+      <div>
+        Captured <LocalTime iso={scan.capturedAt} />
+      </div>
       <div>
         By {scan.capturedBy}
         {scan.device && <> on {scan.device}</>}
       </div>
-      <div className="text-xs text-zinc-500">Scan ID: {scan.id}</div>
+      <div className="text-xs text-ink-soft">Scan ID: {scan.id}</div>
       <div className="mt-1">
-        <span className="text-xs text-zinc-500">SHA-256 fingerprint: </span>
+        <span className="text-xs text-ink-soft">SHA-256 fingerprint: </span>
         <Fingerprint sha256={scan.sha256} />
       </div>
     </div>
@@ -196,7 +204,7 @@ function ScanDecision({ item }: { item: Item }) {
   }, [checkScanId]);
   if (!decision) return null;
   return (
-    <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold dark:bg-zinc-800">
+    <span className="border border-ink px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
       {decision === "accept" ? "Accepted" : "Disputed"}
     </span>
   );

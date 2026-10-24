@@ -9,14 +9,17 @@ export function formatPercent(f: number): string {
   return `${(f * 100).toFixed(f < 0.1 ? 1 : 0)}%`;
 }
 
-export function formatDate(iso: string): string {
+/** Used for the server render and when the browser does not report a time zone. The event is in California. */
+export const DEFAULT_TIME_ZONE = "America/Los_Angeles";
+
+export function formatDate(iso: string, timeZone: string = DEFAULT_TIME_ZONE): string {
   return new Date(iso).toLocaleString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "UTC",
+    timeZone,
     timeZoneName: "short",
   });
 }
@@ -26,9 +29,9 @@ export function formatPrice(cents: number): string {
 }
 
 export const VERDICT_TEXT: Record<Verdict, { title: string; detail: string }> = {
-  match: { title: "Match", detail: "No shape change above the noise threshold." },
-  minor_wear: { title: "Minor wear", detail: "Small shape changes that look like normal wear." },
-  needs_review: { title: "Needs review", detail: "Shape changes that a person should look at." },
+  accept: { title: "Accept", detail: "No shape change beyond normal wear above the noise threshold." },
+  damage_likely: { title: "Damage likely", detail: "Shape changes that look like damage. A person should confirm." },
+  needs_review: { title: "Needs review", detail: "Shape changes the comparison could not classify. A person should look at them." },
 };
 
 /** Where the comparison came from, so mock data is never presented as live. */

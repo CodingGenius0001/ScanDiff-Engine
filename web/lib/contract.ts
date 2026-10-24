@@ -139,7 +139,7 @@ export type CentroidM1 = [number, number, number];
  */
 export type RadiusM1 = number;
 export type UncoveredRegions = UncoveredRegion[];
-export type Verdict = "match" | "minor_wear" | "needs_review";
+export type Verdict = "accept" | "damage_likely" | "needs_review";
 /**
  * Unitless confidence in the verdict, from 0 to 1.
  */

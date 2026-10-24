@@ -6,6 +6,7 @@ import { CameraLink, viewFrom } from "@/lib/cameraSync";
 import { M_TO_MM, scanModelUrl } from "@/lib/diffClient";
 import { loadModel, type LoadedModel } from "@/lib/modelLoader";
 import { toDisplay } from "@/lib/format";
+import LocalTime from "./LocalTime";
 import { COLORS, RAMP_CSS } from "@/lib/heatmap";
 import type { BakedHeatmap, Item, LengthUnit } from "@/lib/types";
 import { useLiveScans } from "@/lib/liveScans";
@@ -22,39 +23,33 @@ export default function ItemView({ item }: { item: Item }) {
   const state = useComparison(item);
   const live = useLiveScans(item);
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 pb-12 pt-6 sm:pt-10">
-      <header className="flex flex-col gap-2">
-        <span className="label">
-          {item.kind === "rental" ? "Rental · pickup vs return" : "Shipping · handoff comparison"}
-        </span>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">{item.title}</h1>
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pb-16 pt-8 sm:pt-12">
+      <header className="flex flex-col gap-3 border-b border-ink pb-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm text-ink-soft">
+          <span>{item.kind === "rental" ? "Rental car · pickup and return" : "Shipping · condition at handoff"}</span>
+          <span className="font-mono text-xs">Case {item.id}</span>
+        </div>
+        <h1 className="display text-5xl sm:text-6xl">{item.title}</h1>
         {item.source === "supabase" && (
-          <p className="flex items-center gap-2 font-mono text-xs text-zinc-400" role="status">
-            <span className="relative flex h-2 w-2">
-              <span
-                className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${live.updating ? "bg-amber-400" : "bg-emerald-400"}`}
-              />
-              <span className={`relative inline-flex h-2 w-2 rounded-full ${live.updating ? "bg-amber-400" : "bg-emerald-400"}`} />
-            </span>
+          <p className="flex items-center gap-2 text-sm text-ink-soft" role="status">
+            <span className={`h-1.5 w-1.5 rounded-full ${live.updating ? "animate-pulse bg-stamp" : "bg-ink"}`} />
             {live.updating ? "New scan received. Updating…" : "Live: this page updates when a new scan is uploaded."}
           </p>
         )}
-      </header>
-      <section className="panel">
-        <h2 className="label mb-3">Version timeline</h2>
         <Timeline
           versions={item.versions}
           baseId={item.versions[0].scanId}
           newId={item.versions[item.versions.length - 1].scanId}
         />
-      </section>
+      </header>
       {state.status === "loading" && (
-        <div className="panel scanning stage flex h-72 items-center justify-center" role="status">
-          <span className="label text-zinc-300">Computing comparison…</span>
+        <div className="flex flex-col gap-3 py-16" role="status">
+          <p className="display text-center text-2xl italic text-ink-soft">Computing comparison…</p>
+          <div className="progress mx-auto w-48" />
         </div>
       )}
       {state.status === "error" && (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200" role="alert">
+        <div className="border border-stamp p-4 text-sm text-stamp" role="alert">
           Could not load the comparison: {state.message}{" "}
           <button type="button" onClick={state.retry} className="font-semibold underline">
             Try again
@@ -63,10 +58,9 @@ export default function ItemView({ item }: { item: Item }) {
       )}
       {state.status === "waiting" && (
         <>
-          <div className="panel flex items-center gap-3 text-sm text-zinc-300" role="status">
-            <span className="h-2 w-2 shrink-0 rounded-full bg-accent shadow-[0_0_10px_var(--color-accent)]" />
+          <p className="display text-2xl italic text-ink-soft" role="status">
             Baseline scan received. Waiting for a check scan to compare it with.
-          </div>
+          </p>
           <BaselinePreview item={item} />
         </>
       )}
@@ -142,8 +136,8 @@ function ComparisonView({ data }: { data: Comparison }) {
       <VerdictBanner diff={diff} />
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 text-sm font-medium transition-colors hover:border-white/25 has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10 has-[:checked]:text-violet-100">
-            <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} className="h-4 w-4 accent-violet-500" />
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 border border-ink px-3 text-sm has-[:checked]:bg-ink has-[:checked]:text-paper">
+            <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} className="h-4 w-4 accent-black" />
             Heat map
           </label>
           <button
@@ -153,11 +147,11 @@ function ComparisonView({ data }: { data: Comparison }) {
               setSelectedId(null);
               link.flyTo(h.position, h.target);
             }}
-            className="min-h-11 rounded-full border border-white/10 bg-white/[0.03] px-4 text-sm font-medium transition-colors hover:border-white/25"
+            className="min-h-11 border border-ink px-3 text-sm hover:bg-paper-deep"
           >
             Reset view
           </button>
-          <span className="font-mono text-[11px] text-zinc-500">Drag to rotate · views are linked</span>
+          <span className="caption">Drag to rotate. Both exhibits move together.</span>
         </div>
         {heat &&
           (diff.heatmap ? (
@@ -169,17 +163,26 @@ function ComparisonView({ data }: { data: Comparison }) {
           // Engine result: the heat map is baked onto the new scan's surface, aligned to the baseline.
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <ScanViewer
-              title={`Baseline: ${diff.baseScan.name}`}
-              subtitle="Baseline scan."
+              exhibit="A"
+              title={diff.baseScan.name}
+              subtitle={<>Fig. 1. Baseline scan, <LocalTime iso={diff.baseScan.capturedAt} />.</>}
               model={baseModel}
               {...common}
             />
             <ScanViewer
-              title={`New: ${diff.newScan.name}`}
+              exhibit="B"
+              title={diff.newScan.name}
               subtitle={
-                heat
-                  ? "Heat map on the new scan. Removed parts show only in the flagged regions."
-                  : "Aligned into the baseline frame by the engine."
+                heat ? (
+                  <>
+                    Fig. 2. Heat map on the new scan, <LocalTime iso={diff.newScan.capturedAt} />. Removed parts appear
+                    only in the findings.
+                  </>
+                ) : (
+                  <>
+                    Fig. 2. New scan aligned to the baseline, <LocalTime iso={diff.newScan.capturedAt} />.
+                  </>
+                )
               }
               model={heat ? heatModel : newModel}
               {...common}
@@ -188,15 +191,17 @@ function ComparisonView({ data }: { data: Comparison }) {
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <ScanViewer
-              title={`Baseline: ${diff.baseScan.name}`}
-              subtitle="Red here means material that is missing from the new scan."
+              exhibit="A"
+              title={diff.baseScan.name}
+              subtitle="Fig. 1. Red marks material that is missing from the new scan."
               model={baseModel}
               distances={diff.baseToNew}
               {...common}
             />
             <ScanViewer
-              title={`New: ${diff.newScan.name}`}
-              subtitle="Red here means the surface moved compared with the baseline."
+              exhibit="B"
+              title={diff.newScan.name}
+              subtitle="Fig. 2. Red marks where the surface moved compared with the baseline."
               model={newModel}
               distances={diff.newToBase}
               {...common}
@@ -204,7 +209,7 @@ function ComparisonView({ data }: { data: Comparison }) {
           </div>
         )}
         {selected && (
-          <div className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm text-violet-50 shadow-[0_0_30px_-10px_var(--color-accent)]" role="status">
+          <div className="border-l-2 border-ink bg-paper-deep px-4 py-2.5 text-sm" role="status">
             {"label" in selected ? (
               <>
                 <span className="font-semibold">{selected.label === "needs_review" ? "Needs review" : "Normal wear"}</span>
@@ -221,16 +226,16 @@ function ComparisonView({ data }: { data: Comparison }) {
           </div>
         )}
       </section>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="panel">
-          <h2 className="label mb-3">Flagged regions</h2>
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+        <section>
+          <h2 className="display mb-3 border-b border-ink pb-2 text-3xl">Findings</h2>
           <RegionList diff={diff} selectedId={selectedId} onSelect={select} />
         </section>
-        <section className="panel">
-          <h2 className="label">
+        <section>
+          <h2 className="display border-b border-ink pb-2 text-3xl">
             {diff.heatmap ? "Change from the baseline surface" : "Distance per vertex, both scans"}
           </h2>
-          <p className="mb-2 text-xs text-zinc-500">Areas with no data are left out.</p>
+          <p className="caption mb-2 mt-2">Areas with no data are left out.</p>
           <Histogram
             histogram={diff.histogram}
             threshold={diff.noiseThreshold}
@@ -245,9 +250,9 @@ function ComparisonView({ data }: { data: Comparison }) {
 
 function Legend({ threshold, max, units }: { threshold: number; max: number; units: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] text-zinc-400">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-soft">
       <span className="flex items-center gap-1.5">
-        <span className="h-3 w-5 rounded-sm" style={{ background: COLORS.noChange }} />
+        <span className="h-3 w-5" style={{ background: COLORS.noChange }} />
         No change (≤ {threshold} {units})
       </span>
       <span className="flex items-center gap-1.5">
@@ -260,7 +265,7 @@ function Legend({ threshold, max, units }: { threshold: number; max: number; uni
         </span>
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="h-3 w-5 rounded-sm" style={{ background: COLORS.noData }} />
+        <span className="h-3 w-5" style={{ background: COLORS.noData }} />
         No data
       </span>
     </div>
@@ -269,9 +274,9 @@ function Legend({ threshold, max, units }: { threshold: number; max: number; uni
 
 /** Legend for the engine's baked signed scale (colors match the engine's GLB). */
 function SignedLegend({ heatmap, units }: { heatmap: BakedHeatmap; units: LengthUnit }) {
-  const swatch = (background: string) => <span className="h-3 w-5 rounded-sm" style={{ background }} />;
+  const swatch = (background: string) => <span className="h-3 w-5" style={{ background }} />;
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] text-zinc-400">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-soft">
       <span className="flex items-center gap-1.5">
         {swatch(SIGNED.dent)}
         Dent (down to {heatmap.min} {units})
@@ -286,13 +291,13 @@ function SignedLegend({ heatmap, units }: { heatmap: BakedHeatmap; units: Length
       </span>
       <span className="flex items-center gap-1.5">
         {/* Not a gray swatch: gray already means "unchanged" on this scale. */}
-        <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-dashed border-zinc-500 text-[9px] font-bold">
+        <span className="flex h-4 w-4 items-center justify-center rounded-full border border-dashed border-ink text-[9px] font-bold">
           –
         </span>
         No data (dashed marker), not counted as damage
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-rose-400 text-[9px] font-bold text-rose-300">
+        <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-stamp text-[9px] font-bold text-stamp">
           ×
         </span>
         Missing part (no surface on the new scan)
@@ -332,20 +337,26 @@ function BaselinePreview({ item }: { item: Item }) {
   if (!url) return null;
   if (error)
     return (
-      <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-900" role="alert">
+      <div className="border border-stamp p-4 text-sm text-stamp" role="alert">
         {error}
       </div>
     );
   if (!model)
     return (
-      <div className="rounded-xl border border-zinc-200 p-8 text-center text-sm text-zinc-500" role="status">
-        Preparing the 3D model. The first load of a scan takes a few seconds.
+      <div className="flex flex-col gap-3 py-16" role="status">
+        <p className="display text-center text-xl italic text-ink-soft">Preparing the 3D model. The first load takes a few seconds.</p>
+        <div className="progress mx-auto w-48" />
       </div>
     );
   return (
     <ScanViewer
-      title={`${scan.label}: ${item.title}`}
-      subtitle="Shape only. LiDAR does not capture color."
+      exhibit="A"
+      title={`${scan.label}, ${item.title}`}
+      subtitle={
+        <>
+          Fig. 1. Baseline scan, <LocalTime iso={scan.capturedAt} />. Shape only; LiDAR does not capture color.
+        </>
+      }
       model={model}
       threshold={0}
       colorMax={0}
