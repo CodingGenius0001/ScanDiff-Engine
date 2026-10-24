@@ -55,6 +55,8 @@ struct DiffResult: Equatable, Decodable {
     var diffID: String?
     /// True for the engine's fixed example (`is_mock`) or the app's offline mock.
     var isMock: Bool
+    /// Which engine answered; set by the client, not part of the response.
+    var engineHost: String?
 
     init(
         triage: Triage,

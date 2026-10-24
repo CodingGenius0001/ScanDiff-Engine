@@ -100,6 +100,11 @@ struct DiffResultView: View {
                     .font(.footnote)
                     .foregroundStyle(.orange)
             }
+            #if DEBUG
+            Text("Engine: \(diff.engineHost ?? "mock (none)")")
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+            #endif
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()

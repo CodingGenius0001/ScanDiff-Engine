@@ -120,12 +120,46 @@ struct PreparedScan: Equatable {
     var metadata: ScanMetadata
     var modelURL: URL
     var trackedPoseCount: Int
+    var modelSize: ModelSize
+}
+
+/// Size of the cleaned model, used to catch reconstructions that kept only a
+/// fragment. Limits are deliberately loose so they never block a good scan.
+struct ModelSize: Equatable {
+    /// Axis-aligned bounding box of the cleaned model, in centimeters.
+    var dimensionsCM: SIMD3<Float>
+    var vertices: Int
+    var triangles: Int
+
+    enum Limits {
+        static let minLargestCM: Float = 3
+        static let minSmallestCM: Float = 0.3
+        static let minTriangles = 2_000
+    }
+
+    var largestCM: Float { dimensionsCM.max() }
+    var smallestCM: Float { dimensionsCM.min() }
+
+    var isAcceptable: Bool {
+        largestCM.isFinite && smallestCM.isFinite
+            && largestCM >= Limits.minLargestCM
+            && smallestCM >= Limits.minSmallestCM
+            && triangles >= Limits.minTriangles
+    }
+
+    var summary: String {
+        String(
+            format: "box=%.1fx%.1fx%.1f cm vertices=%d triangles=%d",
+            dimensionsCM.x, dimensionsCM.y, dimensionsCM.z, vertices, triangles
+        )
+    }
 }
 
 struct ScanQuality: Equatable {
     var shotCount: Int
     var completedOrbit: Bool
     var savedPhotoCount: Int
+    var modelSize: ModelSize? = nil
 
     var rejection: String? {
         if shotCount < ScanQuality.minimumShots {
@@ -136,6 +170,9 @@ struct ScanQuality: Equatable {
         }
         if savedPhotoCount > 0 && savedPhotoCount < ScanQuality.minimumKeyPhotos {
             return "Only \(savedPhotoCount) sharp frames were saved. Re-scan more slowly, in even light."
+        }
+        if let modelSize, !modelSize.isAcceptable {
+            return "Model looks too small or incomplete — rescan closer, fill the frame. (Measured \(String(format: "%.1f × %.1f × %.1f cm", modelSize.dimensionsCM.x, modelSize.dimensionsCM.y, modelSize.dimensionsCM.z)), \(modelSize.triangles) triangles.)"
         }
         return nil
     }

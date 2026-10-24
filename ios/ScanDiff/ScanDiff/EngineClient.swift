@@ -6,11 +6,46 @@ protocol EngineClient {
 
 enum EngineClients {
     static func make() -> any EngineClient {
-        if let url = AppSecrets.engineURL {
-            return LiveEngineClient(baseURL: url)
+        let candidates = [AppSecrets.engineURL, AppSecrets.engineFallbackURL].compactMap { $0 }
+        if !candidates.isEmpty {
+            return FailoverEngineClient(candidates: candidates)
         }
         Diagnostics.log("⚠️ MOCK RESULT: ENGINE_URL is empty, so check scans get a fake diff, not the engine's.")
         return MockEngineClient()
+    }
+}
+
+/// Sends the diff to the first engine whose /health answers: ENGINE_URL, then
+/// ENGINE_URL_FALLBACK. Only an unreachable engine triggers the fallback; an
+/// engine that answers with an error (404, 422) is reported as-is.
+struct FailoverEngineClient: EngineClient {
+    var candidates: [URL]
+
+    func diff(baseID: UUID, newID: UUID) async throws -> DiffResult {
+        var unreachable: [String] = []
+        for (index, url) in candidates.enumerated() {
+            let role = index == 0 ? "primary" : "fallback"
+            guard await Self.isHealthy(url) else {
+                Diagnostics.log("engine \(role) \(url.host() ?? "?") not healthy, trying next")
+                unreachable.append(url.host() ?? url.absoluteString)
+                continue
+            }
+            Diagnostics.log("engine \(role) \(url.host() ?? "?") answered /health")
+            var result = try await LiveEngineClient(baseURL: url).diff(baseID: baseID, newID: newID)
+            result.engineHost = url.host()
+            return result
+        }
+        throw ScanError.engineFailed("Couldn't reach the comparison engine (\(unreachable.joined(separator: ", "))). Check the connection and try again.")
+    }
+
+    private static func isHealthy(_ url: URL) async -> Bool {
+        var request = URLRequest(url: url.appendingPathComponent("health"))
+        request.timeoutInterval = 4
+        guard let (_, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse else {
+            return false
+        }
+        return http.statusCode == 200
     }
 }
 
