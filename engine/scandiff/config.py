@@ -57,8 +57,12 @@ RANSAC_CONFIDENCE = 0.999
 ICP_DISTANCES_MM = (10.0, 5.0, 2.0)
 ICP_MAX_ITERATIONS = 50
 
-# An alignment below MIN_FITNESS or above MAX_RMSE_MM (at the finest ICP distance) is rejected.
+# An alignment is rejected when under MIN_FITNESS of the new points are within
+# ALIGN_GATE_DISTANCE_MM of the base, or its RMSE at the finest ICP distance is over MAX_RMSE_MM.
+# The gate is looser than ICP's 2 mm so a scan with real change still passes: a moved cord
+# put 45% of a correctly aligned coffee maker over 2 mm off, while wrong objects stay under 0.33 at 5 mm.
 MIN_FITNESS = 0.6
+ALIGN_GATE_DISTANCE_MM = 5.0
 MAX_RMSE_MM = 1.5
 
 # Signed-distance histogram: fixed bins across this range, plus one overflow bin on each side.

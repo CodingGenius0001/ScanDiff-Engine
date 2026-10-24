@@ -93,3 +93,24 @@ def test_global_register_returns_a_4x4_transform():
 
     assert transform.shape == (4, 4)
     assert np.allclose(transform[3], [0, 0, 0, 1])
+
+
+def test_align_accepts_a_correct_alignment_with_large_real_change():
+    # Like a power cord wrapped around the item: extra material 3.5 mm off most of the
+    # surface, so under 60% of the new points are within 2 mm of the base.
+    base = _box()
+    points = np.asarray(base.points)
+    normals = np.asarray(base.normals)
+    wrapped = points[:, 0] > -0.03
+    layer = points[wrapped] + normals[wrapped] * 0.0035
+    new = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(np.vstack([points, layer])))
+    new.normals = o3d.utility.Vector3dVector(np.vstack([normals, normals[wrapped]]))
+    new = _moved(new, seed=6)
+
+    result = align(new, base)
+
+    assert result.fitness < 0.6
+    assert result.gate_fitness >= 0.99
+    # The original surface lands back on the base, in whichever of the box's symmetric poses.
+    original = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(np.asarray(result.aligned.points)[: len(points)]))
+    assert _mean_distance_mm(original, base) < 0.5

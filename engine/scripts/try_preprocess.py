@@ -16,6 +16,7 @@ sys.path.insert(0, str(ENGINE_DIR))
 
 import open3d as o3d  # noqa: E402
 
+from scandiff import config  # noqa: E402
 from scandiff.align import align  # noqa: E402
 from scandiff.errors import ScanDiffError  # noqa: E402
 from scandiff.io import find_model_file, load_mesh  # noqa: E402
@@ -104,7 +105,8 @@ def main() -> None:
             start = time.perf_counter()
             aligned = align(new, base)
             print(
-                f"alignment: {aligned.method}, fitness {aligned.fitness:.3f}, "
+                f"alignment: {aligned.method}, fitness {aligned.fitness:.3f} within 2 mm, "
+                f"{aligned.gate_fitness:.3f} within {config.ALIGN_GATE_DISTANCE_MM:g} mm (gated), "
                 f"RMSE {aligned.rmse_mm:.2f} mm{time.perf_counter() - start:9.2f} s"
             )
             check = scale_check(base, aligned.aligned)

@@ -17,8 +17,11 @@ class AlignResult:
     """`transform` maps the new scan into the base scan's frame."""
 
     transform: np.ndarray
+    # Fitness and RMSE at the finest ICP distance.
     fitness: float
     rmse_mm: float
+    # Share of new points within config.ALIGN_GATE_DISTANCE_MM of the base; this is what is gated.
+    gate_fitness: float
     # Which global registration won: "ransac" or "fgr".
     method: str
     # The new cloud, already in the base frame.
@@ -127,17 +130,27 @@ def refine(
 def align(new: o3d.geometry.PointCloud, base: o3d.geometry.PointCloud) -> AlignResult:
     """Bring `new` into `base`'s frame: global registration, then ICP.
 
-    Raises AlignmentFailed when the result is below config.MIN_FITNESS or above
+    Raises AlignmentFailed when the fitness within config.ALIGN_GATE_DISTANCE_MM
+    is below config.MIN_FITNESS, or the RMSE at the finest ICP distance is above
     config.MAX_RMSE_MM.
     """
     rough, method = _best_global(new, base, config.VOXEL_MM)
     transform, fitness, rmse_mm = refine(new, base, rough)
-    if fitness < config.MIN_FITNESS or rmse_mm > config.MAX_RMSE_MM:
+    gate_fitness = reg.evaluate_registration(
+        new, base, config.ALIGN_GATE_DISTANCE_MM * MM, transform
+    ).fitness
+    if gate_fitness < config.MIN_FITNESS or rmse_mm > config.MAX_RMSE_MM:
         raise AlignmentFailed(
-            f"alignment failed, please re-scan (fitness {fitness:.2f}, RMSE {rmse_mm:.2f} mm)"
+            f"alignment failed, please re-scan (fitness {gate_fitness:.2f} within "
+            f"{config.ALIGN_GATE_DISTANCE_MM:g} mm, RMSE {rmse_mm:.2f} mm)"
         )
     aligned = o3d.geometry.PointCloud(new)
     aligned.transform(transform)
     return AlignResult(
-        transform=transform, fitness=fitness, rmse_mm=rmse_mm, method=method, aligned=aligned
+        transform=transform,
+        fitness=fitness,
+        rmse_mm=rmse_mm,
+        gate_fitness=float(gate_fitness),
+        method=method,
+        aligned=aligned,
     )
