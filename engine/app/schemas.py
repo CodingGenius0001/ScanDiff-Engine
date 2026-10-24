@@ -10,7 +10,7 @@ from scandiff.config import ROTATION_ATOL
 
 Label = Literal["normal_wear", "needs_review"]
 DamageType = Literal["normal_wear", "scratch_scuff", "dent_damage", "missing_part"]
-Kind = Literal["dent", "added"]
+Kind = Literal["dent", "added", "missing"]
 Verdict = Literal["match", "minor_wear", "needs_review"]
 ScanSide = Literal["base", "new"]
 

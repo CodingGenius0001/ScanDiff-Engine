@@ -93,7 +93,8 @@
         "kind": {
           "enum": [
             "dent",
-            "added"
+            "added",
+            "missing"
           ],
           "title": "Kind",
           "type": "string"
