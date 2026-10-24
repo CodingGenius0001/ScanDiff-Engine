@@ -1,6 +1,7 @@
 """Upload metadata, camera parsing, and model loading."""
 
 import hashlib
+import json
 import logging
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from pydantic import ValidationError
 from app.schemas import PhotoMeta, ScanMetadata
 from scandiff.errors import ChecksumMismatch, ScanTooSparse, UnsupportedFormat
 from scandiff.io import intrinsics_for_image, load_mesh, load_model, read_usd_mesh
+from scandiff.storage import expected_hashes
 
 FIXTURE = Path(__file__).parent / "fixtures" / "metadata.json"
 
@@ -46,6 +48,21 @@ def test_sample_metadata_parses_cameras():
         metadata.photos[0].K,
         [[2888.5503, 0.0, 2037.4142], [0.0, 2888.5503, 1511.8813], [0.0, 0.0, 1.0]],
     )
+
+
+def test_texture_names_and_file_hashes_parse():
+    raw = json.loads(FIXTURE.read_text())
+    raw["textures"] = ["texture_0.png", "texture_2.png", "texture_1.png"]
+    raw["files"] = [
+        {"name": "model.obj", "sha256": "ab" * 32},
+        {"name": "texture_0.png", "sha256": ""},
+        {"name": raw["model_file"], "sha256": "00" * 32},
+    ]
+    metadata = ScanMetadata.model_validate(raw)
+
+    assert metadata.textures == ["texture_0.png", "texture_2.png", "texture_1.png"]
+    # Empty hashes are skipped, and model_sha256 wins over a conflicting `files` entry.
+    assert expected_hashes(metadata) == {"model.obj": "ab" * 32, raw["model_file"]: raw["model_sha256"]}
 
 
 def test_transform_must_end_with_one_and_be_a_rotation():

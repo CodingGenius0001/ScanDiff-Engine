@@ -149,8 +149,8 @@ def read_metadata(path: Path) -> ScanMetadata:
 
 
 def expected_hashes(metadata: ScanMetadata) -> dict[str, str]:
-    hashes = {metadata.model_file: metadata.model_sha256}
-    hashes.update({texture.file: texture.sha256 for texture in metadata.textures})
+    hashes = {record.name: record.sha256 for record in metadata.files if record.sha256}
+    hashes[metadata.model_file] = metadata.model_sha256
     return hashes
 
 

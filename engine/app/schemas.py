@@ -193,13 +193,13 @@ def _require_rotation(rotation: np.ndarray) -> None:
         )
 
 
-class TextureFile(BaseModel):
-    """One extra texture file named by a later app version."""
+class FileRecord(BaseModel):
+    """One bundle file and its hex sha256, from `files` in metadata.json. An empty hash means unknown."""
 
     model_config = ConfigDict(extra="ignore")
 
-    file: str
-    sha256: str
+    name: str
+    sha256: str = ""
 
 
 class PhotoMeta(BaseModel):
@@ -254,4 +254,6 @@ class ScanMetadata(BaseModel):
     scan_id: str
     photos: list[PhotoMeta]
     units: str = "m"
-    textures: list[TextureFile] = Field(default_factory=list)
+    # Texture file names that model.mtl references. Their hashes, if any, are in `files`.
+    textures: list[str] = Field(default_factory=list)
+    files: list[FileRecord] = Field(default_factory=list)

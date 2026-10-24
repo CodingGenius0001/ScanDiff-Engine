@@ -25,7 +25,8 @@ The upload contains:
 | `scan_id` | string | This capture |
 | `photos` | array | Reference photos |
 | `units` | string | Optional. Missing means meters |
-| `textures` | array | Optional. Each entry is `{file, sha256}` |
+| `textures` | array of strings | Optional. Texture file names that `model.mtl` references |
+| `files` | array | Optional. `{name, sha256}` for every file in the upload except `metadata.json`. Downloads are checked against these hashes; an empty `sha256` is not checked |
 
 Camera positions are meters. The mesh loader multiplies USD points by the stage `metersPerUnit`, so the mesh is meters even when the file was authored in another unit.
 
