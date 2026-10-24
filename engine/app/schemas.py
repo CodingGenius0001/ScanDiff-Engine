@@ -3,7 +3,10 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, field_validator
+import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from scandiff.config import ROTATION_ATOL
 
 Label = Literal["normal_wear", "needs_review"]
 DamageType = Literal["normal_wear", "scratch_scuff", "dent_damage", "missing_part"]
@@ -80,47 +83,80 @@ class DiffResponse(BaseModel):
     diff_id: str
 
 
-Vec4 = Annotated[list[float], Field(min_length=4, max_length=4)]
-Matrix4 = Annotated[list[Vec4], Field(min_length=4, max_length=4)]
+Flat16 = Annotated[list[float], Field(min_length=16, max_length=16)]
+Flat9 = Annotated[list[float], Field(min_length=9, max_length=9)]
 PositiveInt = Annotated[int, Field(gt=0)]
 
-
-class Intrinsics(BaseModel):
-    """Pinhole camera intrinsics, in pixels."""
-
-    fx: float = Field(gt=0)
-    fy: float = Field(gt=0)
-    cx: float
-    cy: float
+_ROW_MAJOR = "the flat list was probably parsed row-major by mistake"
 
 
-class PhotoMetadata(BaseModel):
-    """One reference photo shipped with a scan upload."""
+def _require_rotation(rotation: np.ndarray) -> None:
+    orthonormal = np.allclose(rotation.T @ rotation, np.eye(3), atol=ROTATION_ATOL)
+    if abs(float(np.linalg.det(rotation)) - 1.0) > ROTATION_ATOL or not orthonormal:
+        raise ValueError(
+            "camera_transform is not a rotation after column-major parsing; " + _ROW_MAJOR
+        )
 
-    filename: str
-    camera_to_world: Matrix4
-    intrinsics: Intrinsics
-    width: PositiveInt
-    height: PositiveInt
 
-    @field_validator("filename")
+class TextureFile(BaseModel):
+    """One extra texture file named by a later app version."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    file: str
+    sha256: str
+
+
+class PhotoMeta(BaseModel):
+    """One reference photo. Flat arrays stay column-major ARKit dumps.
+
+    Use `T_cam_to_world` and `K`. Nothing else should read the flat lists.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    file: str
+    camera_transform: Flat16
+    intrinsics: Flat9
+    image_width: PositiveInt | None = None
+    image_height: PositiveInt | None = None
+
+    @field_validator("camera_transform")
     @classmethod
-    def filename_is_basename(cls, value: str) -> str:
-        if not value or "/" in value or "\\" in value or value in {".", ".."}:
-            raise ValueError("filename must be a file name, not a path")
+    def transform_ends_with_one(cls, value: list[float]) -> list[float]:
+        if not np.isclose(value[-1], 1.0):
+            raise ValueError("camera_transform last element must be 1")
         return value
+
+    @property
+    def T_cam_to_world(self) -> np.ndarray:
+        """4x4 camera-to-world matrix. Translation is column 3, in meters."""
+        transform = np.array(self.camera_transform, dtype=float).reshape(4, 4).T
+        _require_rotation(transform[:3, :3])
+        return transform
+
+    @property
+    def K(self) -> np.ndarray:
+        """3x3 pinhole intrinsics, [[fx, 0, cx], [0, fy, cy], [0, 0, 1]]."""
+        matrix = np.array(self.intrinsics, dtype=float).reshape(3, 3).T
+        if not np.isclose(matrix[2, 2], 1.0):
+            raise ValueError("intrinsics K[2, 2] is not 1; " + _ROW_MAJOR)
+        return matrix
 
 
 class ScanMetadata(BaseModel):
-    """`metadata.json` from the iPhone app.
+    """`metadata.json` from the iPhone app."""
 
-    The app uploads a USDZ mesh with this file. The engine converts that USDZ
-    to OBJ before any later pipeline step. `units` is always meters.
-    """
+    model_config = ConfigDict(extra="ignore")
 
-    item_id: str
-    scan_id: str
-    captured_at: datetime
+    created_at: datetime
+    created_by: str
     device: str
-    units: Literal["m"]
-    photos: list[PhotoMetadata]
+    item_id: str
+    kind: str
+    model_file: str
+    model_sha256: str
+    scan_id: str
+    photos: list[PhotoMeta]
+    units: str = "m"
+    textures: list[TextureFile] = Field(default_factory=list)

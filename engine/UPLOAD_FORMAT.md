@@ -1,56 +1,55 @@
 # Upload format
 
-Agreed with the iOS app. The JSON shape is `ScanMetadata` in `app/schemas.py`.
+The iOS app sends one scan. The JSON shape is `ScanMetadata` and `PhotoMeta` in `app/schemas.py`. A real capture is in `tests/fixtures/metadata.json`.
 
-The iPhone uploads one scan:
+The upload contains:
 
-- one `.usdz` mesh
 - `metadata.json`
-- one image per `photos` entry, using that entry's `filename`
+- the USDZ named by `model_file` (usually `model.usdz`)
+- one JPEG per `photos[].file`
+- any `textures[].file` the app adds later
 
-The engine converts the USDZ to OBJ before preprocessing, alignment, and every later step. Later stages read the OBJ. Mesh coordinates and the camera translation are meters. `units` is always `"m"`.
+`sha256` of the model file bytes must equal `model_sha256`. A mismatch is rejected.
 
 ## metadata.json
 
 | Field | Type | |
 |---|---|---|
+| `created_at` | string | ISO 8601 datetime |
+| `created_by` | string | `iPhone` |
+| `device` | string | Model and OS, such as `iPhone18,2, iOS 27.0` |
 | `item_id` | string | Item this scan belongs to |
+| `kind` | string | Free-form, such as `baseline`, `pickup`, or `return` |
+| `model_file` | string | USDZ file name in the upload |
+| `model_sha256` | string | Hex sha256 of that file |
 | `scan_id` | string | This capture |
-| `captured_at` | string | ISO 8601 datetime |
-| `device` | string | Phone model, such as `iPhone 16 Pro` |
-| `units` | `"m"` | Length unit. No other value is valid |
-| `photos` | array | Reference photos, described below |
+| `photos` | array | Reference photos |
+| `units` | string | Optional. Missing means meters |
+| `textures` | array | Optional. Each entry is `{file, sha256}` |
 
-### photos
+Camera positions are meters. The mesh loader multiplies USD points by the stage `metersPerUnit`, so the mesh is meters even when the file was authored in another unit.
+
+## photos
 
 | Field | Type | |
 |---|---|---|
-| `filename` | string | Image file name in the upload, not a path |
-| `camera_to_world` | 4×4 numbers | Row-major camera-to-world transform. `m[row][col]` maps camera coordinates into the scan frame. Translation is meters |
-| `intrinsics` | object | `fx`, `fy`, `cx`, `cy` in pixels |
-| `width` | integer | Image width in pixels |
-| `height` | integer | Image height in pixels |
+| `file` | string | JPEG file name |
+| `camera_transform` | 16 numbers | ARKit `simd_float4x4`, flattened column-major. The last element is `1` |
+| `intrinsics` | 9 numbers | ARKit `simd_float3x3`, flattened column-major |
+| `image_width` | integer | Optional full-frame width in pixels |
+| `image_height` | integer | Optional full-frame height in pixels |
 
-```json
-{
-  "item_id": "item_123",
-  "scan_id": "scan_456",
-  "captured_at": "2026-10-24T07:30:00Z",
-  "device": "iPhone 16 Pro",
-  "units": "m",
-  "photos": [
-    {
-      "filename": "IMG_0001.jpg",
-      "camera_to_world": [
-        [1.0, 0.0, 0.0, 0.1],
-        [0.0, 1.0, 0.0, 0.2],
-        [0.0, 0.0, 1.0, 0.3],
-        [0.0, 0.0, 0.0, 1.0]
-      ],
-      "intrinsics": { "fx": 1500.0, "fy": 1500.0, "cx": 960.0, "cy": 720.0 },
-      "width": 1920,
-      "height": 1440
-    }
-  ]
-}
+Both arrays are parsed column-major, then transposed:
+
+```python
+T_cam_to_world = np.array(camera_transform, dtype=float).reshape(4, 4).T
+K = np.array(intrinsics, dtype=float).reshape(3, 3).T
 ```
+
+After that, the camera position is `T_cam_to_world[:3, 3]`, and `K` is `[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]`. `PhotoMeta.T_cam_to_world` and `PhotoMeta.K` are the only way to read these. The upper 3×3 of `T` must be a rotation (determinant about 1, orthonormal within `1e-3`) and `K[2, 2]` must be 1. A failure means the flat list was parsed row-major.
+
+Intrinsics belong to the full camera frame. For a 4032×3024 frame, `cx` and `cy` are about 2037 and 1512. When a JPEG is loaded, its real size comes from Pillow. If `image_width` or `image_height` is missing, that side of the frame is `round(2 * cx)` or `round(2 * cy)`. If the JPEG is smaller than the frame, `fx`, `fy`, `cx`, and `cy` are scaled down to the JPEG and a warning is logged.
+
+## Model file
+
+`trimesh` cannot read USDZ. The loader uses `usd-core` (`pxr`) for points, face indices, and `metersPerUnit`. If that read fails, it raises `UnsupportedFormat` and asks the app to also send an OBJ.
