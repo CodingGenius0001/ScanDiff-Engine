@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 .env
 data/
+# Offline uploads from scandiff.storage.upload_file. The mock's sample GLBs stay tracked.
+static/*
+!static/sample_*.glb

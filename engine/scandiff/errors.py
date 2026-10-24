@@ -35,3 +35,7 @@ class ScanNotFound(ScanDiffError):
 
 class InvalidMetadata(ScanDiffError):
     """A scan's metadata.json does not match ScanMetadata."""
+
+
+class UploadFailed(ScanDiffError):
+    """A result file could not be uploaded to Supabase Storage."""

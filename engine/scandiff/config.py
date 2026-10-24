@@ -87,3 +87,7 @@ CALIBRATED = _calibration is not None
 # Placeholders until calibration: 1 mm of noise, a 3 mm threshold.
 NOISE_SIGMA_MM = _calibration["sigma_mm"] if CALIBRATED else 1.0
 THRESHOLD_MM = _calibration["threshold_mm"] if CALIBRATED else 3.0
+
+# Heat map: colors saturate at this many thresholds; bigger meshes are decimated for the browser.
+HEATMAP_SATURATION_THRESHOLDS = 5.0
+HEATMAP_MAX_FACES = 100_000

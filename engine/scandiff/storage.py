@@ -4,12 +4,15 @@ The iOS app uploads each scan flat into `<bucket>/<item_id>/<scan_id>/`:
 metadata.json, model.usdz, and photo_NN.jpg. The `scans` table row for a scan
 has the same id in `id`, lowercase, while the folder name is uppercase.
 Settings come from the environment or engine/.env (see .env.example).
+
+Results (heat maps, legends) are uploaded to a separate public bucket, or
+saved under engine/static/ when Supabase is not configured.
 """
 
 import os
 import tempfile
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from dotenv import load_dotenv
 from postgrest.exceptions import APIError
@@ -18,12 +21,18 @@ from storage3.utils import StorageException
 from supabase import Client, create_client
 
 from app.schemas import ScanMetadata
-from scandiff.errors import InvalidMetadata, ScanNotFound, StorageNotConfigured
+from scandiff.errors import InvalidMetadata, ScanNotFound, StorageNotConfigured, UploadFailed
 from scandiff.io import file_sha256, verify_model_sha256
 
 ENGINE_DIR = Path(__file__).resolve().parents[1]
+ENV_PATH = ENGINE_DIR / ".env"
 DATA_DIR = ENGINE_DIR / "data" / "scans"
+STATIC_DIR = ENGINE_DIR / "static"
 PAGE_SIZE = 1000
+DEFAULT_RESULTS_BUCKET = "scandiff"
+# Base of the URLs returned for files saved locally; app/main.py serves STATIC_DIR at /static.
+DEFAULT_LOCAL_URL = "http://localhost:8000"
+CONTENT_TYPES = {".glb": "model/gltf-binary", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg"}
 
 
 @dataclass(frozen=True)
@@ -35,7 +44,7 @@ class Settings:
 
 
 def load_settings() -> Settings:
-    load_dotenv(ENGINE_DIR / ".env")
+    load_dotenv(ENV_PATH)
     missing = [
         name for name in ("SUPABASE_URL", "SUPABASE_KEY", "SUPABASE_BUCKET") if not os.environ.get(name)
     ]
@@ -190,3 +199,41 @@ def fetch_model(scan: str) -> tuple[Path, ScanMetadata]:
         download(client, settings.bucket, f"{folder}/{metadata.model_file}", model)
     verify_model_sha256(model, metadata.model_sha256)
     return model, metadata
+
+
+def upload_file(data: bytes, path: str) -> str:
+    """Store a result file and return a URL the web viewer can load.
+
+    With SUPABASE_URL and SUPABASE_KEY set, the file goes to the public bucket
+    named by SUPABASE_RESULTS_BUCKET (default "scandiff"), replacing any file
+    at that path. Without them, it is saved under engine/static/ and the URL
+    starts with ENGINE_PUBLIC_URL (default http://localhost:8000), so the
+    engine works offline.
+    """
+    relative = _relative_path(path)
+    load_dotenv(ENV_PATH)
+    url, key = os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY")
+    if not (url and key):
+        write_atomic(STATIC_DIR / relative, data)
+        base = os.environ.get("ENGINE_PUBLIC_URL") or DEFAULT_LOCAL_URL
+        return f"{base.rstrip('/')}/static/{relative}"
+
+    bucket_name = os.environ.get("SUPABASE_RESULTS_BUCKET") or DEFAULT_RESULTS_BUCKET
+    bucket = create_client(url, key).storage.from_(bucket_name)
+    content_type = CONTENT_TYPES.get(PurePosixPath(relative).suffix.lower(), "application/octet-stream")
+    try:
+        bucket.upload(relative, data, {"content-type": content_type, "upsert": "true"})
+    except StorageException as exc:
+        raise UploadFailed(
+            f"Could not upload {relative} to the {bucket_name} bucket: {exc}. The bucket must "
+            "exist, be public, and allow inserts and updates for this key."
+        ) from exc
+    return bucket.get_public_url(relative)
+
+
+def _relative_path(path: str) -> str:
+    """`path` as a relative POSIX path that cannot leave the bucket or engine/static/."""
+    parts = PurePosixPath(path).parts
+    if not parts or PurePosixPath(path).is_absolute() or ".." in parts:
+        raise ValueError(f"Upload path must be relative and stay inside the bucket, got {path!r}.")
+    return str(PurePosixPath(*parts))

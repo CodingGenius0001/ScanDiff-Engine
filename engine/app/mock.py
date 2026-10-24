@@ -6,6 +6,7 @@ import numpy as np
 import trimesh
 
 from app.schemas import COLORMAP, DiffResponse, HeatmapLegend, Histogram, Region, Stats, UncoveredRegion
+from scandiff.heatmap import diverging_colors
 from scandiff.regions import measure_region
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -53,21 +54,7 @@ _WALL_RADIUS = 0.009
 
 def _diverging_colors(signed_mm: np.ndarray) -> np.ndarray:
     """Blue for dents, gray inside the neutral band, red for added material."""
-    gray = np.array([168.0, 168.0, 168.0])
-    blue = np.array([37.0, 99.0, 235.0])
-    red = np.array([220.0, 38.0, 38.0])
-    rgb = np.tile(gray, (len(signed_mm), 1))
-    neutral = _LEGEND.neutral_band_mm
-    neg = signed_mm < -neutral
-    pos = signed_mm > neutral
-    t_neg = np.clip((np.abs(signed_mm) - neutral) / (abs(_LEGEND.min_mm) - neutral), 0.0, 1.0)
-    t_pos = np.clip((signed_mm - neutral) / (_LEGEND.max_mm - neutral), 0.0, 1.0)
-    rgb[neg] = gray + (blue - gray) * t_neg[neg, None]
-    rgb[pos] = gray + (red - gray) * t_pos[pos, None]
-    colors = np.empty((len(signed_mm), 4), dtype=np.uint8)
-    colors[:, :3] = np.clip(rgb, 0, 255).astype(np.uint8)
-    colors[:, 3] = 255
-    return colors
+    return diverging_colors(signed_mm, _LEGEND.neutral_band_mm, _LEGEND.max_mm)
 
 
 def _signed_change_mm(vertices: np.ndarray) -> np.ndarray:
