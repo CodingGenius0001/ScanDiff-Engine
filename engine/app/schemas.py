@@ -69,12 +69,18 @@ class Region(BaseModel):
 
 
 class UncoveredRegion(BaseModel):
-    """Surface that only one of the two scans captured, so it cannot be compared."""
+    """Surface that only one of the two scans captured, so it cannot be compared.
+
+    `centroid_m` and `radius_m` match Region, so a marker can be placed and sized.
+    """
 
     id: str
     only_in: ScanSide
     area_cm2: float = Field(description="Uncovered area on that scan, square centimeters.")
-    centroid: CentroidM
+    centroid_m: CentroidM
+    radius_m: float = Field(
+        description="Max distance from centroid_m to any point in the uncovered patch, meters, in the base scan frame."
+    )
 
 
 class Histogram(BaseModel):
@@ -112,15 +118,23 @@ class HeatmapLegend(BaseModel):
     """How to read vertex colors on the heatmap GLB.
 
     The GLB is in the base scan's frame, in meters, with these colors already applied.
-    Blue is change toward a dent, gray is inside the neutral band, and red is added material.
+    The scale is signed, not a magnitude ramp from unchanged to large change:
+    blue is a dent (negative), gray is inside the neutral band around zero, and red is added material (positive).
     """
 
-    min_mm: float = Field(description="Low end of the color scale, millimeters of signed change from the base surface.")
-    max_mm: float = Field(description="High end of the color scale, millimeters of signed change from the base surface.")
+    min_mm: float = Field(description="Low end of the color scale, millimeters of signed change from the base surface. Negative is a dent.")
+    max_mm: float = Field(description="High end of the color scale, millimeters of signed change from the base surface. Positive is added material.")
     threshold_mm: float = Field(
         description="Comparison threshold, millimeters from the base surface. Matches stats.threshold_mm."
     )
-    colormap: Literal["diverging_blue_gray_red"] = COLORMAP
+    colormap: Literal["diverging_blue_gray_red"] = Field(
+        default=COLORMAP,
+        description=(
+            "Signed scale baked into the heatmap GLB vertex colors. "
+            "Blue is a dent, gray is within neutral_band_mm of zero, red is added material. "
+            "Not a blue-to-red magnitude ramp."
+        ),
+    )
     neutral_band_mm: float = Field(
         description="Half-width of the gray band around zero, millimeters. Equal to threshold_mm."
     )
@@ -129,11 +143,19 @@ class HeatmapLegend(BaseModel):
 class DiffResponse(BaseModel):
     """Comparison of a new scan against a base scan, for the web viewer.
 
-    `heatmap_url` is a GLB in the base scan's frame, in meters, with vertex colors already applied.
+    All three GLBs are in the base scan frame, in meters. The upload is USDZ, which three.js cannot load,
+    so the engine publishes both scans as GLB. `new_model_url` is already aligned into the base frame.
+    `heatmap_url` is the base surface with vertex colors already applied on the signed blue/gray/red scale.
     """
 
     heatmap_url: str = Field(
-        description="GLB in the base scan frame, meters, with vertex colors already applied."
+        description="Heatmap GLB in the base scan frame, meters, with signed blue/gray/red vertex colors already applied."
+    )
+    base_model_url: str = Field(
+        description="Base scan as GLB, in the base scan frame, meters. No heatmap colors."
+    )
+    new_model_url: str = Field(
+        description="New scan as GLB, aligned into the base scan frame, meters. No heatmap colors."
     )
     heatmap_legend: HeatmapLegend
     histogram: Histogram
