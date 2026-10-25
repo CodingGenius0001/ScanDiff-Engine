@@ -59,6 +59,9 @@ Every issue was recorded here before it was fixed. Severity: Critical (breaks th
 | AUD-18 | Medium | iOS | `UploadService.writeDecision` treats an update that matched no row as success: PostgREST answers 2xx with zero rows when row-level security filters the row (wrong account, item not joined, row deleted by "Delete latest check-in"). The phone then says "Saved. The checkout releases the payment." while `scans.decision` is unchanged and the checkout never releases. The web's `writeDecision` already checks this with `.select("id")`. | Code reading (`ScanSessionModel.swift:527-529`); the old code had no way to observe the row count, so the regression test needs the injectable client added with the fix | Update without `select` | `UploadService.writeDecision` adds `.select("id")` and throws `decisionFailed("The decision was not saved: …")` on zero rows, so the phone shows the error instead of "Saved". `UploadService` takes an injectable `client` (defaults to the app's), and the retry backoff became a named function so tests can run without sleeping; production behaviour unchanged. | `ios/ScanDiff/ScanDiffTests/UploadServiceTests.swift`: `DecisionWriteTests` (3, PostgREST stubbed with `URLProtocol`), `UploadRetryTests` (5) | Fixed |
 | AUD-19 | Low | engine mock | The engine's fixed example (`GET /schema/example`, `POST /diff?mock=true`) contradicts the engine's own rule: region `r2` is `dent_damage` at confidence 0.71, over `DAMAGE_MIN_CONFIDENCE` 0.7, so its derived `triage` is `damage`, while the response's verdict is `needs_review` (triage `inconclusive`). By `verdict.decide` that combination is `damage_likely`. A viewer of the example sees a "damage" region under a "needs review" headline. | `test_the_mock_follows_the_engines_own_verdict_rule`: `('needs_review', ['r2'])`; found by the new iOS test `testRepoEngineMockResponse` | Hand-written mock numbers | `engine/app/mock.py`: `r2` confidence 0.68 (under the rule), so it triages `inconclusive`, matching the verdict and its reason "a person should confirm it". Values only; contract shape unchanged. iOS fixture `engine_repo_mock.json` regenerated from the fixed engine. | `test_the_mock_follows_the_engines_own_verdict_rule`; iOS `ContractDecoderEdgeCaseTests.testRepoEngineMockResponse` | Fixed |
 | AUD-20 | Low | engine API | A lone UTF-16 surrogate in a name from `metadata.json` (JSON `"\\ud800"` decodes to one) ends up in an `inconclusive` reason such as "The scans are of different items (…)", and serializing the response raises `PydanticSerializationError` (UTF-8 cannot encode it): `POST /diff` answers 500. Found by hypothesis. | `test_inconclusive_results_always_validate` (falsifying example `reason='\\ud800'`); `test_security.py::test_a_lone_surrogate_in_a_name_is_still_a_json_answer` | Reasons echo untrusted names unescaped | `pipeline.inconclusive` replaces unencodable characters in the reason (`encode('utf-8', 'replace')`) | both tests named in Repro | Fixed |
+| AUD-21 | Low | engine deploy | `engine/Dockerfile` has no `USER`, so the API runs as root in the container. That is what made AUD-02 able to overwrite the app's own code. The image could not be built here (no Docker or Podman on this Mac). | Read the Dockerfile | Default user | None (changing the image user changes volume permissions on `engine-data`; needs a server test) | n/a | Open: add a non-root user after the hackathon |
+| AUD-22 | Low | iOS ↔ Supabase | `ItemID.normalize`/`isValid` put no length limit on item IDs, while `items.id` and `claim_item` allow at most 64 characters. A longer ID reaches the upload and fails with `claim_item`'s message "Item IDs use letters, numbers, - and _.", which does not mention length. | `rls_audit_test.sql`: `claim_item(repeat('a', 65))` → 22023; Swift code reading | Rules not shared | None | n/a | Open |
+| AUD-23 | Info | engine | `engine/calibration.json` does not exist, so `noise_floor_mm` and `threshold_mm` are the 3 mm placeholders (`config.py`). Already in TEST_REPORT.md. | `ls engine/calibration.json` | Calibration not run | None | n/a | Open |
 
 ## 3. Optimization register
 
@@ -71,3 +74,155 @@ Only changes benchmarked before and after are listed as applied. Benchmarks ran 
 | — | Vectorize `read_usd_mesh` (per-point `Gf` transform loop) | `engine/scandiff/io.py` | 12–28 ms per real USDZ (6 scans) | not changed | n/a | Rejected: under 1 % of a diff |
 | — | Read JPEG size/orientation from the header instead of decoding 19 full-resolution key photos (0.44 s of 2.65 s) | `engine/scandiff/photos.py::load_photo` | 0.44 s per diff (profile) | not changed | n/a | Rejected: a truncated JPEG would then fail later inside the crop thread pool (HTTP 500), undoing AUD-07 |
 | — | Compute each cloud's local normals once instead of twice (`cloud_point_areas` and `find_regions._surface` both do it) | `app/pipeline.py`, `scandiff/regions.py` | ~0.3 s per diff (estimated from the profile) | not changed | n/a | Deferred: needs signature changes across modules; not worth the risk tonight |
+
+## 4. Test execution record
+
+All commands ran on this Mac (macOS 27, Xcode 27.1, Node 24.4.1, Python 3.12.14, Postgres 16.13). Outputs are copied from the runs, not paraphrased. "Blanked env" means every service variable was set to an empty string on the command line, so the local `.env.local`/`Secrets.xcconfig` values were not used (Next only fills variables that are undefined; `xcodebuild` command-line settings override the xcconfig).
+
+### 4.1 Baseline, before any change (branch point `11060bd`)
+
+| Component | Command | Result |
+|---|---|---|
+| Engine | `cd engine && .venv/bin/python -m pytest -q -p no:cacheprovider` | `101 passed, 7 deselected in 18.69s` |
+| iOS | `xcodebuild test -project ScanDiff.xcodeproj -scheme ScanDiff -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5' SUPABASE_URL= SUPABASE_ANON_KEY= ENGINE_URL= ENGINE_URL_FALLBACK= GOOGLE_*= DEMO2_*= CODE_SIGNING_ALLOWED=NO` | `Executed 37 tests, with 0 failures` · `** TEST SUCCEEDED **` (35 s) |
+| Supabase RLS | `bash ios/supabase/tests/run.sh` (throwaway Postgres 16, Unix socket only) | `All RLS tests passed.` (0.9 s) |
+| Web | none: no test runner existed | 0 tests |
+| Contract | `engine/.venv/bin/python scripts/check_contract.py contract/diff_response.json` | `PASS … (triage=damage verdict=damage_likely regions=3 mock=False)` |
+| Contract (deployed-engine fixtures) | same script on `ios/ScanDiff/ScanDiffTests/Fixtures/engine_real_accept.json` and `engine_mock_needs_review.json` | crash: `AttributeError: 'list' object has no attribute 'get'` (AUD-08); `jsonschema`: 6 and 21 violations (AUD-01) |
+
+### 4.2 Runs during the audit (reproductions and fixes)
+
+| What | Command | Result |
+|---|---|---|
+| Path traversal repro (AUD-02) | `pytest tests/test_security.py` before the fix | `18 failed, 9 passed`; one case reached `write_atomic('/etc/.escaped.jpg…')` → `PermissionError` |
+| Domain tests, first run | `pytest tests/test_domain.py --durations=12` | `9 passed in 8.32s` (each compare 0.7–1.1 s) |
+| Domain probe (what the pipeline returned) | `domain_probe.py` (scratchpad) | identical → accept, 0 regions, rmse 0.0; rigid 40°+30 cm → accept, rmse 0.79 mm; noise 0.3 mm → accept, max 1.38 mm; 6 mm dent → `needs_review`, 1 region `dent_damage` 5.8 mm 2.3 cm² conf 0.69; missing corner → `needs_review`, 1 region `missing_part` 16.9 mm 8.3 cm² conf 0.49; one-sided check scan → `inconclusive`, `compared_fraction` 0.3518 |
+| Pose repros (AUD-05/06/07) | `pytest tests/test_photo_poses.py` before the fixes | `7 failed, 2 passed`; malformed pose via `POST /diff`: `assert 500 == 200` |
+| Hypothesis finding (AUD-20) | `pytest tests/test_properties.py` | falsifying example `reason='\ud800'` → `PydanticSerializationError`; through `/diff`: `assert 500 == 200` |
+| Open redirect repro (AUD-03) | `npx vitest run tests/safeNext.test.ts` before the fix | `5 failed | 10 passed` (4 escapes to `https://evil.com/`, 1 `TypeError: Invalid URL`) |
+| Deployed-shape repro (AUD-01) | `npx vitest run tests/diffClient.test.ts` before the fix | `3 failed | 5 passed`: `TypeError: Cannot read properties of undefined (reading 'map')` ×2, lost `reason` ×1 |
+| Refund race repro (AUD-13) | `npx vitest run tests/refunds.test.ts` before the fix | `expected [ …(2) ] to have a length of 1 but got 2` |
+| QR id repro (AUD-11) | `npx vitest run tests/itemId.test.ts` before the fix | `4 failed | 11 passed` |
+| Checker repros (AUD-08) | `pytest tests/test_check_contract.py` before the fix | `5 failed, 2 passed`: `AttributeError` ×4, `HTTP Error 401: Unauthorized` ×1 |
+| Mock consistency (AUD-19) | `pytest tests/test_properties.py -k mock_follows` before the fix | `AssertionError: ('needs_review', ['r2'])` |
+| RLS audit + probes | `bash ios/supabase/tests/run.sh` (now also runs `rls_audit_test.sql`) | `All RLS tests passed.` · `All audit RLS checks passed.`; probes: seller sets accept → 1 row, buyer flips → 1, buyer clears → 1, link-joined member accepts → 1, `charger-002/../x.jpg` storage name → 1 |
+| `setup.sql` on a fresh database, twice | `fresh_setup.sh` (scratchpad; local Postgres) | both runs exit 0; 4 `scans` policies; realtime has `scans`; both check constraints; `create_item('mug')` → `mug-002`, `mug-003` |
+| Web production build | `npm run build` with blanked env | `✓ Compiled successfully`, TypeScript OK, 17 routes generated (5.1 s) |
+| Client bundle secret check | `grep -rl -E "NESSIE_API_KEY\|GOOGLE_OAUTH_CLIENT_SECRET\|service_role\"\|sb_secret_…" .next/static` | 1 hit, the app's own guard (`"".startsWith("sb_secret_")`) inlined with the blank value; Nessie host not in any client chunk |
+| HTTP E2E smoke | `next start -H 127.0.0.1 -p 3917` with blanked env, then `curl` | 10 pages 200 (`/`, `/checkout/mug-001`, `/item/mug-001`, `/item/car-001`, `/item/mug-001/evidence`, `/sell`, `/login`, `/item/coffee-maker-1`, `/checkout/mug-002`, `/join/mug-002?code=x`); checkout shows "Demo only", "no real payment", "Pay with Visa (demo)"; `POST /api/refunds` → 503 without key, 404 on bad body; `/auth/callback?next=/%09/evil.com`, `//evil.com`, `/%0A/evil.com` → `307 /login?next=%2F`; server log: no errors |
+| iOS device build | `xcodebuild build -configuration Release -destination 'generic/platform=iOS'` (blanked secrets, no signing) | `** BUILD SUCCEEDED **` (35.6 s), 0 warnings in app sources |
+| Real-data comparisons (offline) | `pytest -m real_data` (scans already on disk; uploads faked) | `7 passed` |
+| Python 3.11 compatibility (the Docker base is `python:3.11-slim`) | `uv python install 3.11` into the scratchpad, `uv pip install -r engine/requirements-dev.txt`, then pytest | `Python 3.11.14` · `175 passed, 7 deselected in 38.49s` · real data `7 passed` (macOS, not Linux) |
+
+### 4.3 Test inventory
+
+| Suite | Before | After | New files |
+|---|---|---|---|
+| Engine (pytest) | 108 (101 + 7 real-data) | **182** (175 + 7 real-data) | `conftest.py` (hermetic guard), `test_hermetic.py` 4, `test_security.py` 28, `test_domain.py` 9, `test_properties.py` 15 (hypothesis), `test_photo_poses.py` 9, `test_check_contract.py` 9 |
+| Web (vitest, new) | 0 | **67** | `safeNext` 15, `diffClient` 8, `realOrder` 11, `refunds` 12, `itemId` 15, `supabaseConfig` 6 |
+| iOS (XCTest) | 37 | **63** | `UploadServiceTests.swift` 8 (retry, decision write vs stubbed PostgREST), `AuditEdgeCaseTests.swift` 18 (deep link, decoder, SHA-256), 2 fixtures generated from the repo's engine |
+| Supabase RLS (SQL on local Postgres) | 69 checks | **102 checks** + 5 probes | `rls_audit_test.sql` (33 checks, 5 probes), wired into `run.sh` |
+| Build / static | — | `next build`, `tsc --noEmit`, `eslint`, `xcodebuild build` (device, Release), `xcodebuild test`, Python 3.11 run, HTTP smoke of 10 pages + 2 routes | |
+
+By category: unit (most suites); integration (`compare()` end to end, `/diff` through FastAPI, `getDiff` through fetch, refund route through fake Nessie, decision write through stubbed PostgREST); E2E (HTTP smoke against `next start`; `--engine` checker against a real local uvicorn); edge/negative (traversal, malformed poses, corrupt JPEGs, nulls everywhere, bad bodies); regression (one per fixed issue); concurrency (32 parallel sessions, concurrent refunds, concurrent hashing); failure recovery (401 renew, failure not cached, Nessie lookup retry, upload retry, cancellation); security (RLS, secrets scan, key guard, open redirect, path traversal, CORS/session); performance (benchmarks in section 3, domain timings); compatibility (Python 3.11 and 3.12, iOS 18.5 simulator, generic iOS device build, Node 24); property/fuzz (hypothesis over the contract and geometry; exhaustive redirect fuzz); domain (synthetic identical, rigid, noisy, dented, missing chunk, low coverage, different item, wrong size).
+
+## 5. Final verification run
+
+`final_verify.sh` (scratchpad) at `496cae4`, every suite offline with blanked service settings, 67 s in total:
+
+```
+=== engine pytest (3.12)      175 passed, 7 deselected, 1 warning in 31.59s
+=== engine real_data (3.12)   7 passed, 175 deselected, 2 warnings in 5.05s
+=== contract sample           PASS contract/diff_response.json (triage=damage verdict=damage_likely regions=3 mock=False)
+=== supabase run.sh           All RLS tests passed. / All audit RLS checks passed.
+=== web vitest                Test Files 6 passed (6) · Tests 67 passed (67)
+=== web tsc                   0 errors
+=== web lint                  0 problems
+=== web build                 ✓ Compiled successfully · Finished TypeScript · Generating static pages (17/17)
+=== ios xcodebuild test       Executed 63 tests, with 0 failures · ** TEST SUCCEEDED **
+```
+
+Engine code is unchanged since the Python 3.11 run (`c206178`), and iOS app code since the device build (`a11b521`). The one warning is hypothesis noting that `norecursedirs` in `pytest.ini` hides `.hypothesis`; the real-data warnings are NumPy `invalid value encountered in det` from an existing test.
+
+## 6. Final summary
+
+### (1) Scope covered
+
+All four parts and their seams: the engine (API, pipeline, storage, schemas, mock, scripts), the web app (diff client, live and mock checkout, refunds/Nessie, auth redirect, item IDs, key guard, build), the iOS app (decoder, deep link, hashing, upload retry, decision write, device build), `setup.sql` and its RLS, and the contract between them. All of it ran locally with fakes; nothing live was called.
+
+### (2) Test inventory
+
+Engine 182, web 67, iOS 63, SQL 102 checks plus 5 probes, plus builds, lint, typecheck and an HTTP smoke run. Before the audit: 108 / 0 / 37 / 69. Details in 4.3.
+
+### (3) Results
+
+Everything passes at `496cae4` (section 5). Every fixed issue has a test that failed before its fix and passes after (repros in 4.2).
+
+### (4) Issues found and fixed (13)
+
+- **AUD-01** (Critical): comparison page crashed on the deployed engine's field names. Fixed in the web client.
+- **AUD-02** (High): path traversal from `metadata.json`.
+- **AUD-05** (High): one unsolved key photo made a whole scan inconclusive.
+- **AUD-03** (Medium): open redirect after sign-in.
+- **AUD-04** (Medium): engine tests could reach live services.
+- **AUD-07** (Medium): bad pose or photo gave HTTP 500.
+- **AUD-18** (Medium): the phone said "Saved" when nothing was saved.
+- **AUD-06, 08, 11, 13, 19, 20** (Low): row-major check, contract checker, QR item IDs, refund race, mock consistency, unencodable reasons.
+
+### (5) Issues still open (10)
+
+- **AUD-01 remainder**: nobody knows which code `engine.scandiff.us` runs.
+- **AUD-12** (Medium): the seller, or any member, can set or flip a decision.
+- **AUD-14** (Medium): the refund route needs no sign-in.
+- **AUD-15** (Medium): the engine API is effectively open, with no size limits.
+- **AUD-16** (Medium): without vision, real dents come out "needs review".
+- **AUD-09** (Info): no hash-chain ledger exists.
+- **AUD-10** (Info): Nessie is used for the mock refund only.
+- **AUD-17** (Low): committed demo password.
+- **AUD-21** (Low): the container runs as root.
+- **AUD-22** (Low): no 64-character item ID limit in the app.
+- **AUD-23** (Info): calibration placeholders.
+
+The three Mediums (12, 14, 15) were left on purpose: fixing them changes the scripted demo or needs a redeploy.
+
+### (6) Optimizations
+
+OPT-01: local normals via `eigh`. The function is 1.75× faster and a real comparison is 2–13 % faster, with byte-identical results on three real pairs. Three other candidates were measured and rejected or deferred (section 3).
+
+### (7) Blocked items and why
+
+- **Docker image build**: no Docker or Podman on this Mac. The code was run on Python 3.11 and 3.12 on macOS instead.
+- **Live end-to-end PITCH run**: needs the live Supabase project and engine, which were forbidden. A local Supabase stack needs Docker, and there were no PostgREST or Realtime binaries. Covered instead by state-machine tests, an HTTP smoke run and the RLS suite.
+- **On-device capture → upload → diff**: needs a person with the LiDAR iPhone, and Object Capture does not run in the Simulator. PHONE_TEST.md steps 4–9 are still pending.
+- **Which code `engine.scandiff.us` runs**: checking needs a call to the live engine.
+- **Not run (they hit live services)**: `scripts/demo_dry_run.mjs`, the live Nessie sandbox, live Claude vision.
+
+### (8) Risks for the live demo
+
+1. **Comparison page crash (AUD-01)**: if `engine.scandiff.us` still answers in the brief's field names and the web is not redeployed with this branch, PITCH step 5 crashes.
+2. **Unsolved key photo (AUD-05)**: one unsolved photo in the live check-in makes the comparison "Inconclusive" until the engine is redeployed. Rare: 0 of 57 real poses on disk were unsolved.
+3. **Wording for real dents (AUD-16)**: a real dent shows "Needs human review", not "likely damage", unless vision is enabled on the server.
+4. **Who can accept (AUD-12)**: anyone on the item, including the seller's laptop, can click Accept. PITCH step 6 relies on this, so don't claim only the buyer can release.
+5. **Slow first diff**: the first comparison after an engine restart is slow (19 s cold per TEST_REPORT). Warm it up once before going on stage.
+6. **Network**: venue Wi-Fi or realtime trouble falls back to 4 s polling. If the network is down entirely, use the mock demos (`/checkout/mug-001`) and the recording.
+
+### (9) Must-dos before 9:00 AM PDT Sunday, in priority order
+
+1. **Adi, 10 min.** Find out what `engine.scandiff.us` runs (`ssh` to the server, `diff -r /srv/scandiff` against the repo) and commit it. Then, from a laptop, run `engine/.venv/bin/python scripts/check_contract.py --engine https://engine.scandiff.us --mock`; it now gets a session itself. This is a live call, so it is the team's decision, not mine.
+2. **Keshav, 15 min.** Merge `audit/full-audit` (or cherry-pick `26ea7db` for AUD-01 and `f705005` for AUD-03), redeploy Vercel, and rehearse the whole PITCH main path and dispute branch once on the deployed site with the real engine.
+3. **Adi, 20 min, only if a rehearsal fits afterwards.** Redeploy the engine from this branch with `deploy/deploy.sh`. That brings AUD-02, 05, 07, 19, 20 and OPT-01; the contract shape is unchanged. If there is no time to rehearse, skip it: the old engine has been working.
+4. **Pitch wording, 5 min.** Say "flags it for review" for geometric changes (AUD-16). Don't mention a hash chain (AUD-09). "Nessie refunds the mock mug dispute; the live checkout is a demo hold" (AUD-10). "Demo only, no real payment" (unchanged).
+5. **Adi, 2 min.** Confirm `VISION_API_KEY` is set in `deploy/engine.env` if you want real dents to read as "likely damage".
+6. **Koushik, 10 min, optional.** Rebuild and install the iOS app from this branch, so a decision that didn't save shows an error instead of "Saved" (AUD-18). Then run PHONE_TEST.md steps 4–6.
+7. **Before going on stage.** Run one comparison to warm the engine, and keep the recorded run and `/checkout/mug-001` open as fallbacks.
+8. **After the hackathon.** Rotate the demo password (AUD-17). Restrict decisions to the check scan's uploader and lock them once set (AUD-12). Add auth and size limits to the engine (AUD-15) and the refund route (AUD-14). Add a non-root container user (AUD-21). Run calibration (AUD-23).
+
+### What was changed, and what was not
+
+The diff response contract shape, the `scans` table, the deep link format and the PITCH flows are unchanged. Changes that touch them, all backward compatible:
+
+- **Contract values.** The web now also reads the deployed engine's alternate names. The engine mock's `r2` confidence went from 0.71 to 0.68 (values only).
+- **Deep links.** The web no longer draws a QR code for an item ID the app would rewrite. No kebab-case ID is affected, including every ID `/sell` hands out.
+- **Engine input validation.** Scans with folder paths in file names, or with row-major poses, are now `inconclusive`. Scans with unsolved poses are now accepted. All 6 real scans on disk are unaffected.
+
+Nothing was pushed or merged.
