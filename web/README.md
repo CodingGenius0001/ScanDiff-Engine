@@ -35,9 +35,10 @@ The page always shows where its data came from (browser mock, engine example, or
 
 - Real scans are read **as the signed-in user** (Google or email/password through Supabase Auth), on the server and in the browser, so row-level security applies. Signed out, real items show a sign-in prompt; the mock demos stay public. The session lives in cookies (`@supabase/ssr`), refreshed by `proxy.ts`.
 - Google sign-in on the web returns to `/auth/callback`. In Supabase → Authentication → URL Configuration, add every site origin's `/auth/callback` under Redirect URLs (for example `http://localhost:3000/auth/callback` and `https://scandiff.us/auth/callback`).
-- `/sell` lists an item: the ID is lowercased and checked (letters, numbers, `-`, `_`), and a near miss of an existing ID (such as `coffe-maker-3`) asks "Did you mean …?". A QR code for `scandiff://scan?item=<id>&kind=baseline` opens the iPhone app on that item.
+- `/sell` lists an item: you type what it is ("Mug") and the ID is assigned as the next free `mug-NNN` (lowercase, so one item never splits across two folders). Two QR codes, `scandiff://scan?item=<id>&kind=baseline` and `…&kind=check`, open the iPhone app on that item. A real item's page shows the same two codes.
+- **Delete latest check-in** on a real item's page removes its newest check-in row, so the check-in can be redone live. It never deletes a baseline, and scan files in Storage stay. It needs this rule in the Supabase SQL editor (once): `create policy "signed-in delete check scans" on public.scans for delete to authenticated using (kind = 'check');` Without it, the button says the database does not allow it.
 - `/checkout/<item id>` for a real item holds the demo payment until a check scan uploaded after the hold is accepted, then shows the receipt; a dispute keeps it held and links the evidence page. It shows the buyer's QR (`kind=check`). The listing and hold are kept in the browser; scans and decisions come from the table, live.
-- Live updates poll every 4 s and listen on Supabase realtime. For instant updates, run once in the Supabase SQL editor: `alter publication supabase_realtime add table public.scans;`
+- Live updates listen on Supabase realtime (enabled in `ios/supabase/setup.sql`) and also poll every 4 s as a fallback.
 - `PITCH.md` is the scripted demo path, including the dispute branch.
 
 To run the engine for testing: `cd engine`, install `requirements.txt`, then `uvicorn app.main:app --port 8000`. Note that the engine rewrites the sample GLBs in `engine/static/` on startup.

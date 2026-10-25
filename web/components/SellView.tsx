@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/format";
-import { closestItemId, itemIdProblem, normalizeItemId } from "@/lib/itemId";
+import { nextItemId } from "@/lib/itemId";
 import { useScanRows } from "@/lib/liveScans";
-import { DEFAULT_PRICE_CENTS, saveListing, useRealOrderRecord } from "@/lib/realOrder";
+import { DEFAULT_PRICE_CENTS, listedItemIds, saveListing, useRealOrderRecord } from "@/lib/realOrder";
 import { fetchItemIds } from "@/lib/scans";
 import { browserSupabase } from "@/lib/supabase";
 import DemoBadge from "./DemoBadge";
@@ -32,25 +32,22 @@ export default function SellView() {
 }
 
 function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
-  const [rawId, setRawId] = useState("");
-  const [title, setTitle] = useState("");
+  const [name, setName] = useState("");
   const [price, setPrice] = useState((DEFAULT_PRICE_CENTS / 100).toFixed(2));
-  const [known, setKnown] = useState<string[]>([]);
-  const [newDespiteTypo, setNewDespiteTypo] = useState(false);
+  const [known, setKnown] = useState<string[] | null>(null);
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     const db = browserSupabase();
+    // /sell only renders signed in with Supabase configured, so db is always there.
     if (db) fetchItemIds(db).then(setKnown, () => setKnown([]));
   }, []);
 
-  const id = normalizeItemId(rawId);
-  const problem = itemIdProblem(id);
-  const near = problem ? undefined : closestItemId(id, known);
-  const exists = known.includes(id);
+  // Items already scanned, plus items listed in this browser that may not be scanned yet.
+  const id = known && nextItemId(name, [...known, ...listedItemIds()]);
+  const nameProblem = name.trim() === "" ? "Enter what the item is, for example Mug." : !id && known ? "Use letters or numbers in the name." : null;
   const cents = Math.round(Number(price) * 100);
   const priceProblem = Number.isFinite(cents) && cents > 0 ? null : "Enter a price above $0.";
-  const blocked = problem !== null || priceProblem !== null || (near !== undefined && !newDespiteTypo);
 
   return (
     <form
@@ -58,71 +55,34 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
       onSubmit={(e) => {
         e.preventDefault();
         setTouched(true);
-        if (blocked) return;
-        saveListing(id, { title: title.trim() || id, priceCents: cents, listedAt: new Date().toISOString() });
+        if (!id || nameProblem || priceProblem) return;
+        saveListing(id, { title: name.trim(), priceCents: cents, listedAt: new Date().toISOString() });
         onListed(id);
       }}
     >
       <label className="flex flex-col gap-1 text-sm">
-        Item ID
+        Item
         <input
-          value={rawId}
-          onChange={(e) => {
-            setRawId(e.target.value);
-            setNewDespiteTypo(false);
-          }}
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          placeholder="coffee-maker-4"
-          className="min-h-11 border border-ink bg-paper px-3 font-mono"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Mug"
+          className="min-h-11 border border-ink bg-paper px-3"
         />
         <span className="caption">
-          {rawId && id !== rawId ? (
+          {id ? (
             <>
-              Saved as <span className="font-mono text-ink">{id}</span>. IDs are lowercase so one item never splits
-              across two folders.
+              Item ID <span className="font-mono text-ink">{id}</span>, assigned automatically. The iPhone app files every
+              scan of this item under it.
             </>
+          ) : known === null ? (
+            "Reading the item IDs already in use…"
           ) : (
-            "Lowercase letters, numbers, - and _. The iPhone app files every scan under this ID."
+            "The item ID is assigned from the name, for example mug-001."
           )}
         </span>
       </label>
+      {touched && nameProblem && <p className="text-sm text-stamp">{nameProblem}</p>}
 
-      {(touched || rawId !== "") && problem && <p className="text-sm text-stamp">{problem}</p>}
-
-      {near && (
-        <div className="border-l-2 border-stamp pl-3 text-sm">
-          <p>
-            Did you mean <span className="font-mono">{near}</span>? It already has a seller scan.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button type="button" onClick={() => setRawId(near)} className="min-h-10 border border-ink px-3 font-semibold">
-              Use {near}
-            </button>
-            <label className="flex min-h-10 items-center gap-2">
-              <input type="checkbox" checked={newDespiteTypo} onChange={(e) => setNewDespiteTypo(e.target.checked)} className="h-4 w-4 accent-black" />
-              No, {id} is a different item
-            </label>
-          </div>
-        </div>
-      )}
-      {exists && (
-        <p className="border-l-2 border-ink pl-3 text-sm">
-          <span className="font-mono">{id}</span> already has a seller scan. A new baseline scan replaces it as the
-          reference for future comparisons.
-        </p>
-      )}
-
-      <label className="flex flex-col gap-1 text-sm">
-        Title
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Drip coffee maker"
-          className="min-h-11 border border-ink bg-paper px-3"
-        />
-      </label>
       <label className="flex flex-col gap-1 text-sm">
         Price (demo)
         <input
@@ -134,7 +94,7 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
         {touched && priceProblem && <span className="text-sm text-stamp">{priceProblem}</span>}
       </label>
 
-      <button type="submit" className="min-h-12 bg-ink px-5 font-semibold text-paper disabled:opacity-40" disabled={touched && blocked}>
+      <button type="submit" className="min-h-12 bg-ink px-5 font-semibold text-paper disabled:opacity-40" disabled={!id}>
         List item
       </button>
       <p className="caption">The listing is kept in this browser for the demo. Only the scans go to the database.</p>
@@ -165,29 +125,35 @@ function AwaitBaseline({ itemId, onBack }: { itemId: string; onBack: () => void 
             {fresh ? "Seller baseline received" : "This item already has a seller baseline from"}{" "}
             <LocalTime iso={baseline.created_at} />.
           </p>
-          {!fresh && <p className="caption">Scan again with the code below to replace it, or go on to the checkout.</p>}
-          <Link
-            href={`/checkout/${encodeURIComponent(itemId)}`}
-            className="mt-3 inline-flex min-h-12 items-center bg-ink px-6 font-semibold text-paper"
-          >
-            Open the checkout →
-          </Link>
+          {!fresh && <p className="caption">Scan again with the baseline code below to replace it, or go on to the checkout.</p>}
+          <div className="mt-3 flex flex-wrap items-center gap-4">
+            <Link
+              href={`/checkout/${encodeURIComponent(itemId)}`}
+              className="inline-flex min-h-12 items-center bg-ink px-6 font-semibold text-paper"
+            >
+              Open the checkout →
+            </Link>
+            <Link href={`/item/${encodeURIComponent(itemId)}`} className="text-sm font-semibold underline">
+              Item page
+            </Link>
+          </div>
         </div>
       ) : (
         <p className="text-sm">Scan the item with the ScanDiff iPhone app before packing it. This page updates when the scan arrives.</p>
       )}
 
-      {!fresh && (
-        <div className="flex flex-col items-center gap-4 border-t border-rule pt-4">
+      <div className="flex flex-col items-center gap-4 border-t border-rule pt-4">
+        <div className="grid w-full gap-6 sm:grid-cols-2">
           <ScanQR itemId={itemId} kind="baseline" />
-          {!baseline && (
-            <div className="w-full">
-              <p className="display text-lg italic text-ink-soft">Waiting for the seller&apos;s baseline scan…</p>
-              <div className="progress mt-2" />
-            </div>
-          )}
+          <ScanQR itemId={itemId} kind="check" />
         </div>
-      )}
+        {!baseline && (
+          <div className="w-full">
+            <p className="display text-lg italic text-ink-soft">Waiting for the seller&apos;s baseline scan…</p>
+            <div className="progress mt-2" />
+          </div>
+        )}
+      </div>
       {error && <p className="text-sm text-stamp">Could not read the scans: {error}. Retrying.</p>}
 
       <button type="button" onClick={onBack} className="self-start text-sm underline">

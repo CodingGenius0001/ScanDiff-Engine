@@ -11,7 +11,9 @@
  *          -> disputed             decision = dispute on that scan
  *
  * The payment is released only on an accepted check scan uploaded after the
- * hold, so an earlier scan's decision can never release a new order.
+ * hold, so an earlier scan's decision can never release a new order. Scans
+ * are told apart by id, not version: after a check-in is deleted, the phone
+ * reuses its version number for the next one.
  *
  * DEMO ONLY: no real payment is taken, held or released.
  */
@@ -33,8 +35,10 @@ export interface Listing {
 
 export interface Hold {
   at: string;
-  /** Highest scan version when the payment was held; only newer check scans count. */
-  afterVersion: number;
+  /** Ids of every scan that existed when the payment was held; only other check scans count. */
+  seen?: string[];
+  /** Older holds: highest scan version at hold time. */
+  afterVersion?: number;
 }
 
 export interface RealOrderRecord {
@@ -67,8 +71,15 @@ export function saveListing(itemId: string, listing: Listing) {
 
 /** Pay (demo): hold the payment until a check scan newer than every current scan is accepted. */
 export function placeHold(itemId: string, rows: ScanRow[]) {
-  const afterVersion = Math.max(0, ...rows.map((r) => r.version));
-  update(itemId, (cur) => ({ ...cur, hold: { at: new Date().toISOString(), afterVersion }, decided: undefined }));
+  const seen = rows.map((r) => r.id);
+  update(itemId, (cur) => ({ ...cur, hold: { at: new Date().toISOString(), seen }, decided: undefined }));
+}
+
+/** Item ids listed in this browser, so a new listing never reuses one before it is scanned. */
+export function listedItemIds(): string[] {
+  return Object.entries(all())
+    .filter(([, r]) => r.listing)
+    .map(([id]) => id);
 }
 
 /** Back to listed. Scans and decisions in the database are not touched. */
@@ -94,7 +105,9 @@ export function realOrderStatus(itemId: string, record: RealOrderRecord, rows: S
   const baseline = rows.filter((r) => r.kind === "baseline").at(-1);
   if (!record.hold) return { status: "listed", baseline };
   const latest = newestCheck(itemId, rows);
-  const check = latest && latest.version > record.hold.afterVersion ? latest : undefined;
+  const hold = record.hold;
+  const isNew = (r: ScanRow) => (hold.seen ? !hold.seen.includes(r.id) : r.version > (hold.afterVersion ?? 0));
+  const check = latest && isNew(latest) ? latest : undefined;
   if (!check) return { status: "held_scan_required", baseline };
   const status = check.decision === "accept" ? "released" : check.decision === "dispute" ? "disputed" : "scan_uploaded";
   return { status, check, baseline };

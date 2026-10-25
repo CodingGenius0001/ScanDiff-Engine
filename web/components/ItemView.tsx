@@ -15,6 +15,7 @@ import DecisionPanel from "./DecisionPanel";
 import Histogram from "./Histogram";
 import RegionList from "./RegionList";
 import ScanDecisionPanel from "./ScanDecisionPanel";
+import ScanCodes from "./ScanCodes";
 import ScanViewer, { type Marker } from "./ScanViewer";
 import Timeline from "./Timeline";
 import VerdictBanner from "./VerdictBanner";
@@ -80,6 +81,7 @@ export default function ItemView({ item }: { item: Item }) {
       )}
       {state.status === "ready" && <ComparisonView data={state.data} />}
       {item.source === "supabase" ? <ScanDecisionPanel item={item} decision={live.decision} onDecided={live.decided} /> : <DecisionPanel item={item} />}
+      {item.source === "supabase" && <ScanCodes item={item} />}
     </main>
   );
 }
