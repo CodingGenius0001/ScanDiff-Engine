@@ -54,6 +54,39 @@ final class AuthService: ObservableObject {
         }
     }
 
+    /// After sign-up, keeps trying the same credentials until the email is
+    /// confirmed, on this phone or any other device, so the user never has to
+    /// come back and sign in. Returns false on timeout or a non-retryable error.
+    func waitForConfirmation(email: String, password: String, timeout: Duration = .seconds(900)) async -> Bool {
+        guard let client else { return false }
+        let clock = ContinuousClock()
+        let started = clock.now
+        Diagnostics.log("waiting for email confirmation")
+        try? await Task.sleep(for: .seconds(5))
+        while clock.now - started < timeout, !Task.isCancelled {
+            if phase == .signedIn { return true }
+            // Every 5 s for two minutes, then every 10 s, within Supabase's sign-in rate limit.
+            var delay: Duration = clock.now - started < .seconds(120) ? .seconds(5) : .seconds(10)
+            do {
+                try await client.auth.signIn(email: email, password: password)
+                Diagnostics.log("email confirmed, signed in automatically")
+                return true
+            } catch {
+                switch SignInError.from(error) {
+                case .emailNotConfirmed, .offline:
+                    break
+                case .rateLimited:
+                    delay = .seconds(30)
+                default:
+                    Diagnostics.log("stopped waiting for confirmation: \(error.localizedDescription)")
+                    return false
+                }
+            }
+            try? await Task.sleep(for: delay)
+        }
+        return phase == .signedIn
+    }
+
     /// Native Google sign-in first. If that fails for any reason other than
     /// the user cancelling, falls back to the Supabase web OAuth flow.
     func signInWithGoogle() async throws {
