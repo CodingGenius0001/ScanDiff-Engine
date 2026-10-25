@@ -309,6 +309,9 @@ class PhotoMeta(BaseModel):
     def T_cam_to_world(self) -> np.ndarray:
         """4x4 camera-to-world matrix. Translation is column 3, in meters."""
         transform = np.array(self.camera_transform, dtype=float).reshape(4, 4).T
+        # Parsed column-major, a row-major dump still has a rotation in its 3x3, but its translation in the bottom row.
+        if not np.allclose(transform[3], [0.0, 0.0, 0.0, 1.0], atol=ROTATION_ATOL):
+            raise ValueError("camera_transform's bottom row is not [0, 0, 0, 1]; " + _ROW_MAJOR)
         _require_rotation(transform[:3, :3])
         return transform
 
@@ -318,6 +321,8 @@ class PhotoMeta(BaseModel):
         matrix = np.array(self.intrinsics, dtype=float).reshape(3, 3).T
         if not np.isclose(matrix[2, 2], 1.0):
             raise ValueError("intrinsics K[2, 2] is not 1; " + _ROW_MAJOR)
+        if not np.allclose(matrix[2, :2], 0.0):
+            raise ValueError("intrinsics' bottom row is not [0, 0, 1]; " + _ROW_MAJOR)
         return matrix
 
 
@@ -341,6 +346,19 @@ class ScanMetadata(BaseModel):
     # The textured OBJ the app exports beside the model (same frame as model_file); older scans have none.
     obj_file: PlainName | None = None
     material_file: PlainName | None = None
+
+    @field_validator("photos", mode="before")
+    @classmethod
+    def unsolved_photos_are_dropped(cls, value: object) -> object:
+        """The app writes 16 zeros for a key photo whose pose reconstruction did not solve; it cannot be projected into."""
+        if isinstance(value, list):
+            return [
+                photo
+                for photo in value
+                if not (isinstance(photo, dict) and isinstance(photo.get("camera_transform"), list)
+                        and len(photo["camera_transform"]) == 16 and not any(photo["camera_transform"]))
+            ]
+        return value
 
     @field_validator("textures", mode="before")
     @classmethod
