@@ -11,8 +11,8 @@ from scandiff.config import DAMAGE_MIN_CONFIDENCE, ROTATION_ATOL
 Label = Literal["normal_wear", "needs_review"]
 DamageType = Literal["normal_wear", "scratch_scuff", "dent_damage", "missing_part"]
 Kind = Literal["dent", "added", "missing"]
-Verdict = Literal["accept", "damage_likely", "needs_review"]
-ScanSide = Literal["base", "new"]
+Verdict = Literal["accept", "damage_likely", "needs_review", "inconclusive"]
+ScanSide = Literal["base", "new", "neither"]
 # Plain-language triage shared with the iOS app (contract/README.md). Derived from the fields
 # above, never computed separately, so it cannot disagree with `verdict` or a region's label.
 Triage = Literal["no_change", "wear", "damage", "inconclusive"]
@@ -100,8 +100,9 @@ class Region(BaseModel):
 
 
 class UncoveredRegion(BaseModel):
-    """Surface that only one of the two scans captured, so it cannot be compared.
+    """Surface that was not compared because a scan did not capture it, such as an unscanned bottom.
 
+    `only_in` says which scan did capture it: "base", "new", or "neither".
     `centroid_m` and `radius_m` match Region, so a marker can be placed and sized.
     """
 
@@ -136,7 +137,7 @@ class Stats(BaseModel):
         description="Largest absolute change, millimeters from the base surface."
     )
     noise_floor_mm: float = Field(
-        description="Estimated sensor noise, millimeters, in the base scan frame."
+        description="95th-percentile distance between two scans of an unchanged object, millimeters."
     )
     threshold_mm: float = Field(
         description="Change at or below this is treated as unchanged, millimeters from the base surface."
@@ -185,34 +186,39 @@ class DiffResponse(BaseModel):
     into the base frame. `heatmap_url` is the new scan's surface, also aligned into the base frame,
     with vertex colors already applied on the signed blue/gray/red scale. A part removed since the base
     scan has no surface in it; regions and stats still report it.
+
+    verdict "inconclusive" means the scans could not be compared (unreadable, different items, failed
+    alignment, or too little overlap): verdict_reason says why, and the URLs, legend, stats and
+    fingerprints that could not be produced are null.
     """
 
     is_mock: bool = Field(
         description="True when this is the engine's fixed example response, not a comparison of the two scans."
     )
-    heatmap_url: str = Field(
+    heatmap_url: str | None = Field(
         description="Heatmap GLB: the new scan's surface aligned into the base scan frame, meters, with signed blue/gray/red vertex colors already applied."
     )
-    base_model_url: str = Field(
+    base_model_url: str | None = Field(
         description="Base scan as GLB, in the base scan frame, meters. No heatmap colors."
     )
-    new_model_url: str = Field(
+    new_model_url: str | None = Field(
         description="New scan as GLB, aligned into the base scan frame, meters. No heatmap colors."
     )
-    heatmap_legend: HeatmapLegend
+    heatmap_legend: HeatmapLegend | None
     histogram: Histogram
-    stats: Stats
+    stats: Stats | None
     regions: list[Region]
     uncovered_regions: list[UncoveredRegion]
     verdict: Verdict
     verdict_confidence: UnitInterval = Field(description="Unitless confidence in the verdict, from 0 to 1.")
     verdict_reason: str
-    base_fingerprint: str
-    new_fingerprint: str
+    base_fingerprint: str | None
+    new_fingerprint: str | None
     diff_id: str
     compared_fraction: UnitInterval | None = Field(
         default=None,
-        description="Fraction of the base surface both scans covered, from 0 to 1. Null until coverage is computed.",
+        description="Fraction of the base surface both scans captured and was compared, from 0 to 1. "
+        "The rest is in uncovered_regions and never flagged. Null only in the mock.",
     )
 
     @computed_field(description="no_change, wear, damage, or inconclusive. A triage, not a guarantee.")
@@ -220,7 +226,7 @@ class DiffResponse(BaseModel):
     def triage(self) -> Triage:
         if self.verdict == "damage_likely":
             return "damage"
-        if self.verdict == "needs_review":
+        if self.verdict in ("needs_review", "inconclusive"):
             return "inconclusive"
         return "wear" if self.regions else "no_change"
 

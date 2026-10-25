@@ -124,7 +124,7 @@ def test_calibration_round_trips_through_the_file(tmp_path):
 
     assert 0 < calibration["sigma_mm"] < 0.5
     assert calibration["sigma_mm"] < calibration["p95_mm"] < calibration["p99_mm"]
-    assert calibration["threshold_mm"] == max(config.MIN_THRESHOLD_MM, 3 * calibration["sigma_mm"])
+    assert calibration["threshold_mm"] == max(config.MIN_THRESHOLD_MM, calibration["p95_mm"])
     assert len(calibration["pairs"]) == 1
 
     path = write_calibration(calibration, tmp_path / "calibration.json")

@@ -14,13 +14,15 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
+import httpx
 from dotenv import load_dotenv
 from postgrest.exceptions import APIError
 from pydantic import ValidationError
 from storage3.utils import StorageException
-from supabase import Client, create_client
+from supabase import Client, ClientOptions, create_client
 
 from app.schemas import ScanMetadata
+from scandiff import config
 from scandiff.errors import InvalidMetadata, ScanNotFound, StorageNotConfigured, UploadFailed
 from scandiff.io import file_sha256, verify_model_sha256
 
@@ -240,11 +242,12 @@ def upload_file(data: bytes, path: str) -> str:
         return f"{base.rstrip('/')}/static/{relative}"
 
     bucket_name = os.environ.get("SUPABASE_RESULTS_BUCKET") or DEFAULT_RESULTS_BUCKET
-    bucket = create_client(url, key).storage.from_(bucket_name)
+    options = ClientOptions(storage_client_timeout=config.UPLOAD_TIMEOUT_S)
+    bucket = create_client(url, key, options).storage.from_(bucket_name)
     content_type = CONTENT_TYPES.get(PurePosixPath(relative).suffix.lower(), "application/octet-stream")
     try:
         bucket.upload(relative, data, {"content-type": content_type, "upsert": "true"})
-    except StorageException as exc:
+    except (StorageException, httpx.HTTPError) as exc:
         raise UploadFailed(
             f"Could not upload {relative} to the {bucket_name} bucket: {exc}. The bucket must "
             "exist, be public, and allow inserts and updates for this key."

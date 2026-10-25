@@ -54,9 +54,16 @@ def test_full_comparison_of_the_coffee_maker_rescan(monkeypatch, tmp_path):
     monkeypatch.setattr(classify, "vision_provider", lambda: None)
     base, new = (load_scan(find_model_file(scan), storage.read_metadata(scan / "metadata.json")) for scan in COFFEE_PAIR)
 
-    result = compare(base, new, diff_id="real")
+    # Different item ids only because scan 2's id is misspelled; it is the same coffee maker.
+    assert compare(base, new, diff_id="real").verdict == "inconclusive"
+    result = compare(base, new, diff_id="real", check_items=False)
 
     assert result.regions and not result.is_mock
+    # The bottom was never captured, so it is uncovered rather than compared.
+    assert 0.5 < result.compared_fraction < 0.95
+    bottom = max(result.uncovered_regions, key=lambda patch: patch.area_cm2)
+    assert bottom.only_in == "neither" and bottom.centroid_m[1] < 0.02
+    assert all(region.centroid_m[1] > 0.01 for region in result.regions[:8])
     assert result.stats.diff_time_s < 60
     assert all("\n" not in region.reason for region in result.regions)
     # The cord moved between scans, so most crops of the worst regions exist on at least one side.

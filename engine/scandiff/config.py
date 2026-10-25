@@ -69,9 +69,9 @@ MAX_RMSE_MM = 1.5
 HISTOGRAM_RANGE_MM = 15.0
 HISTOGRAM_BIN_MM = 1.0
 
-# Change threshold: 3 sigma of scan-to-scan noise, never below MIN_THRESHOLD_MM.
+# Change threshold: the 95th-percentile distance between two scans of an unchanged object
+# (the noise floor), never below MIN_THRESHOLD_MM in case the two scans are near copies.
 MIN_THRESHOLD_MM = 2.0
-THRESHOLD_SIGMAS = 3.0
 CALIBRATION_PATH = Path(__file__).resolve().parents[1] / "calibration.json"
 
 
@@ -84,8 +84,8 @@ def load_calibration(path: Path = CALIBRATION_PATH) -> dict | None:
 
 _calibration = load_calibration()
 CALIBRATED = _calibration is not None
-# Placeholders until calibration: 1 mm of noise, a 3 mm threshold.
-NOISE_SIGMA_MM = _calibration["sigma_mm"] if CALIBRATED else 1.0
+# Placeholders until calibration: a 3 mm noise floor and threshold.
+NOISE_FLOOR_MM = _calibration["p95_mm"] if CALIBRATED else 3.0
 THRESHOLD_MM = _calibration["threshold_mm"] if CALIBRATED else 3.0
 
 # Regions: DBSCAN over the changed points, with eps in voxels.
@@ -145,6 +145,21 @@ ACCEPT_FRACTION = 0.02
 DAMAGE_MIN_CONFIDENCE = 0.7
 # Below this share of the new scan within ALIGN_GATE_DISTANCE_MM of the base, a person checks.
 REVIEW_MIN_FITNESS = 0.8
+
+# Coverage: a surface point counts as captured by a scan when one of the scan's key photos
+# sees it, facing the camera at least this much (cosine) and not hidden behind the mesh.
+# Only points both scans captured are compared.
+COVERAGE_MIN_FACING = 0.15
+# With less of the base surface compared than this, the result is inconclusive.
+MIN_COMPARED_FRACTION = 0.5
+# Uncovered patches smaller than this are left out of uncovered_regions.
+MIN_UNCOVERED_CM2 = 2.0
+
+# Seconds one result upload to Supabase Storage may take; a diff uploads several at once.
+UPLOAD_TIMEOUT_S = 60
+
+# A session from GET /health lasts this long after its last use.
+SESSION_TTL_S = 12 * 3600
 
 # Heat map: colors saturate at this many thresholds; bigger meshes are decimated for the browser.
 HEATMAP_SATURATION_THRESHOLDS = 5.0
