@@ -13,6 +13,8 @@ final class ScanSessionModel {
 
     private let processingService = ProcessingService()
     private var didStartProcessing = false
+    private var retryInHighDetail = false
+    private var autoStartTask: Task<Void, Never>?
     private var observationTasks: [Task<Void, Never>] = []
     private var autoDetectTask: Task<Void, Never>?
     private var bannerTask: Task<Void, Never>?
@@ -29,6 +31,10 @@ final class ScanSessionModel {
     /// Bumped each time an orbit completes, to drive a success haptic.
     var orbitCompletions = 0
     var didCaptureBottom = false
+    /// 0–1 while capture is about to start on its own after the box is found.
+    var autoStartProgress: Double?
+    /// The user asked to fit the box themselves, so capture waits for their tap.
+    var autoStartHeld = false
 
     var currentOrbit: Int { completedPasses + 1 }
     var plannedOrbits: Int { request.kind.plannedOrbits }
@@ -126,6 +132,9 @@ final class ScanSessionModel {
         observationTasks.removeAll()
         autoDetectTask?.cancel()
         autoDetectTask = nil
+        autoStartTask?.cancel()
+        autoStartTask = nil
+        autoStartProgress = nil
         bannerTask?.cancel()
         progressBanner = nil
         session = nil
@@ -175,13 +184,55 @@ final class ScanSessionModel {
         }
     }
 
+    /// Once the box is found, starts capturing by itself after the camera has
+    /// been steady for a moment. "Let me adjust" holds it for manual fitting.
+    private func scheduleAutoStart() {
+        autoStartTask?.cancel()
+        guard !autoStartHeld else { return }
+        autoStartTask = Task { [weak self] in
+            let needed = Duration.seconds(1.5)
+            let tick = Duration.milliseconds(100)
+            var steadyFor = Duration.zero
+            while !Task.isCancelled {
+                guard let self, let session = self.session,
+                      session.state == .detecting, !self.autoStartHeld else {
+                    self?.autoStartProgress = nil
+                    return
+                }
+                let steady = session.cameraTracking == .normal
+                    && !session.feedback.contains(.outOfFieldOfView)
+                    && !session.feedback.contains(.movingTooFast)
+                steadyFor = steady ? steadyFor + tick : .zero
+                self.autoStartProgress = min(steadyFor / needed, 1)
+                if steadyFor >= needed {
+                    Diagnostics.log("auto-start capture after steady box")
+                    self.autoStartProgress = nil
+                    self.startCapturing()
+                    return
+                }
+                try? await Task.sleep(for: tick)
+            }
+        }
+    }
+
+    func holdAutoStart() {
+        Diagnostics.log("auto-start held for manual box fitting")
+        autoStartHeld = true
+        autoStartTask?.cancel()
+        autoStartProgress = nil
+    }
+
     func redetect() {
         guard let session else { return }
+        holdAutoStart()
         detectionFailed = !session.resetDetection()
         Diagnostics.log("resetDetection ok=\(!detectionFailed)")
     }
 
     func startCapturing() {
+        guard session?.state == .detecting else { return }
+        autoStartTask?.cancel()
+        autoStartProgress = nil
         Diagnostics.log("startCapturing")
         session?.startCapturing()
     }
@@ -262,6 +313,8 @@ final class ScanSessionModel {
         switch state {
         case .ready:
             scheduleAutoDetect()
+        case .detecting:
+            scheduleAutoStart()
         case .completed:
             finishCaptureIfNeeded()
         case .failed(let error):
@@ -318,24 +371,18 @@ final class ScanSessionModel {
         UIApplication.shared.isIdleTimerDisabled = true
         defer { UIApplication.shared.isIdleTimerDisabled = false }
         let output = folders.bundle.appendingPathComponent(ScanBundle.modelFileName)
-        Diagnostics.log("reconstruction start")
+        let started = Date()
         do {
-            var lastLoggedDecile = -1
-            let poses = try await processingService.process(
-                imagesDirectory: folders.images,
-                checkpointDirectory: folders.checkpoint,
-                outputURL: output,
-                onProgress: { [weak self] fraction in
-                    self?.progress = fraction
-                    let percent = Int((fraction * 100).rounded())
-                    self?.statusMessage = "Reconstructing the model… \(percent)%"
-                    if percent / 10 != lastLoggedDecile {
-                        lastLoggedDecile = percent / 10
-                        Diagnostics.log("reconstruction \(percent)%")
-                    }
-                }
-            )
-            Diagnostics.log("reconstruction done, poses=\(poses?.posesBySample.count ?? 0)")
+            let poses: PhotogrammetrySession.Poses?
+            do {
+                poses = try await reconstruct(to: output, highSensitivity: retryInHighDetail)
+            } catch ScanError.reconstructionFailed(let detail) where !retryInHighDetail {
+                // Plain, dark or shiny objects often only solve with more features.
+                Diagnostics.log("reconstruction failed (\(detail)), retrying with high feature sensitivity")
+                retryInHighDetail = true
+                poses = try await reconstruct(to: output, highSensitivity: true)
+            }
+            Diagnostics.log("reconstruction done in \(String(format: "%.0f", Date().timeIntervalSince(started)))s, poses=\(poses?.posesBySample.count ?? 0)")
             statusMessage = "Cleaning the mesh and packaging the scan…"
             let input = ScanBundle.Input(
                 scanID: scanID,
@@ -371,10 +418,49 @@ final class ScanSessionModel {
             try? FileManager.default.removeItem(at: folders.images)
             try? FileManager.default.removeItem(at: folders.checkpoint)
             stage = .review
+        } catch ScanError.reconstructionFailed(let detail) {
+            Diagnostics.log("processing failed after high-sensitivity retry: \(detail)")
+            stage = .processingFailed(ScanError.reconstructionFailed(detail).errorDescription ?? detail)
         } catch {
             Diagnostics.log("processing failed: \(error.localizedDescription)")
             stage = .failed(error.localizedDescription)
         }
+    }
+
+    /// Runs reconstruction again on the photos already taken, in high-detail mode.
+    func retryProcessing() {
+        guard case .processingFailed = stage else { return }
+        Diagnostics.log("processing retry tapped")
+        didStartProcessing = false
+        retryInHighDetail = true
+        progress = 0
+        stage = .processing
+    }
+
+    private func reconstruct(to output: URL, highSensitivity: Bool) async throws -> PhotogrammetrySession.Poses? {
+        Diagnostics.log("reconstruction start\(highSensitivity ? " (high sensitivity)" : "")")
+        progress = 0
+        let label = highSensitivity ? "Retrying with extra detail…" : "Reconstructing the model…"
+        statusMessage = label
+        // A fresh checkpoint: the failed pass's checkpoint was made with other settings.
+        let checkpoint = highSensitivity ? folders.checkpoint.appendingPathComponent("high", isDirectory: true) : folders.checkpoint
+        try? FileManager.default.createDirectory(at: checkpoint, withIntermediateDirectories: true)
+        var lastLoggedDecile = -1
+        return try await processingService.process(
+            imagesDirectory: folders.images,
+            checkpointDirectory: checkpoint,
+            outputURL: output,
+            highSensitivity: highSensitivity,
+            onProgress: { [weak self] fraction in
+                self?.progress = fraction
+                let percent = Int((fraction * 100).rounded())
+                self?.statusMessage = "\(label) \(percent)%"
+                if percent / 10 != lastLoggedDecile {
+                    lastLoggedDecile = percent / 10
+                    Diagnostics.log("reconstruction \(percent)%")
+                }
+            }
+        )
     }
 
     func cancelProcessing() {

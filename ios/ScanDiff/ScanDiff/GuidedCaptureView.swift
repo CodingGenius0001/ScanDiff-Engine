@@ -162,6 +162,23 @@ private struct InstructionCard: View {
                     model.startDetecting()
                 }
             }
+        case .detecting where !model.autoStartHeld:
+            heading("Object found", "Hold steady: scanning starts automatically.")
+            ProgressView(value: model.autoStartProgress ?? 0)
+                .tint(.green)
+            HStack(spacing: 10) {
+                Button {
+                    model.holdAutoStart()
+                } label: {
+                    Text("Let me adjust")
+                        .frame(minHeight: 30)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                primary("Start now", systemImage: "record.circle") {
+                    model.startCapturing()
+                }
+            }
         case .detecting:
             heading("Fit the box", "Drag its edges to wrap the object. Keep the table out.")
             HStack(spacing: 10) {

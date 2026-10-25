@@ -200,6 +200,8 @@ enum ScanStage {
     case result
     case rejected(String)
     case failed(String)
+    /// Reconstruction couldn't build a model; the photos are kept so it can be retried.
+    case processingFailed(String)
 }
 
 enum ScanError: LocalizedError {
@@ -207,6 +209,8 @@ enum ScanError: LocalizedError {
     case invalidItemID
     case folderCreationFailed
     case sessionFailed(String)
+    /// PhotogrammetrySession couldn't solve the object from the photos (CoreOC error 6).
+    case reconstructionFailed(String)
     case cancelled
     case missingModel
     case exportFailed(String)
@@ -226,6 +230,8 @@ enum ScanError: LocalizedError {
             "ScanDiff could not create a folder for this scan."
         case .sessionFailed(let message):
             message
+        case .reconstructionFailed:
+            "The 3D model couldn't be built from these photos. This happens with dark, shiny or plain objects, or when the photos don't overlap enough."
         case .cancelled:
             "Processing was cancelled."
         case .missingModel:

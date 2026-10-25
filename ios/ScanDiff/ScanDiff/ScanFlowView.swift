@@ -35,6 +35,8 @@ struct ScanFlowView: View {
                 MessageScreen(title: "Re-scan", message: message, showsTips: true, onClose: onClose)
             case .failed(let message):
                 MessageScreen(title: "Scan failed", message: message, showsTips: false, onClose: onClose)
+            case .processingFailed(let message):
+                ProcessingFailedView(message: message, onRetry: model.retryProcessing, onClose: onClose)
             }
         }
         .navigationTitle(model.request.itemID)
