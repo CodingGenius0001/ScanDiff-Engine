@@ -7,7 +7,7 @@ import { M_TO_MM, scanModelUrl } from "@/lib/diffClient";
 import { loadModel, type LoadedModel } from "@/lib/modelLoader";
 import { toDisplay, VERDICT_TEXT } from "@/lib/format";
 import LocalTime from "./LocalTime";
-import { COLORS, missingGhost, RAMP_CSS } from "@/lib/heatmap";
+import { colorScaleMax, COLORS, missingGhost, RAMP_CSS } from "@/lib/heatmap";
 import type { BakedHeatmap, Item, LengthUnit } from "@/lib/types";
 import { useLiveScans } from "@/lib/liveScans";
 import { useComparison, type Comparison } from "@/lib/useComparison";
@@ -136,7 +136,7 @@ function ComparisonView({ data }: { data: Comparison }) {
   );
 
   const selected = [...diff.flaggedRegions, ...diff.uncoveredRegions].find((r) => r.id === selectedId);
-  const colorMax = diff.summary.maxDistance;
+  const colorMax = colorScaleMax(diff.newToBase, diff.noiseThreshold, diff.summary.maxDistance);
   // Material present on the baseline and gone on arrival has no surface to color on the new scan: show it as a ghost.
   const ghost = useMemo(
     () =>
@@ -296,7 +296,7 @@ function Legend({ threshold, max, units, missing }: { threshold: number; max: nu
         </span>
         <span className="h-3 w-24 rounded-sm" style={{ background: RAMP_CSS }} />
         <span>
-          {max.toFixed(0)} {units} (log scale)
+          {max.toFixed(0)}+ {units} (log scale)
         </span>
       </span>
       <span className="flex items-center gap-1.5">

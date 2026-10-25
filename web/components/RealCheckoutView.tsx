@@ -16,6 +16,7 @@ import type { ScanRow } from "@/lib/scans";
 import type { Item } from "@/lib/types";
 import { MugIcon, OrderSteps } from "./CheckoutView";
 import DemoBadge from "./DemoBadge";
+import DemoCardCheckout, { DEMO_CARD } from "./DemoCardCheckout";
 import Fingerprint from "./Fingerprint";
 import LocalTime from "./LocalTime";
 import ScanQR from "./ScanQR";
@@ -95,24 +96,18 @@ export default function RealCheckoutView({ item }: { item: Item }) {
           )}
 
           {order?.status === "listed" && (
-            <>
-              <button
-                type="button"
-                onClick={() => placeHold(item.id, rows!)}
-                className="min-h-12 key bg-ink px-5 text-base font-semibold text-paper"
-              >
-                Pay with Visa (demo)
-              </button>
-              <p className="text-xs text-ink-soft">
-                The payment is held until the buyer scans the item on arrival and accepts the comparison.
-              </p>
-            </>
+            <DemoCardCheckout
+              title={record.listing?.title ?? item.id}
+              priceCents={price}
+              onPay={() => placeHold(item.id, rows!)}
+            />
           )}
 
           {order?.status === "held_scan_required" && (
             <>
               <p className="text-sm">
-                Payment of {formatPrice(price)} is <strong>held: scan required</strong>
+                Payment of {formatPrice(price)} from Visa •••• {DEMO_CARD.number.slice(-4)} is{" "}
+                <strong>held: scan required</strong>
                 {record.hold && (
                   <>
                     {" "}

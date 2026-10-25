@@ -100,3 +100,15 @@ export function missingGhost(
   g.computeVertexNormals();
   return g;
 }
+
+/**
+ * Top of the color scale: the largest change on surface the new scan has,
+ * not a missing part (shown as a ghost). Otherwise one far-off missing
+ * piece stretches the log scale until a real dent reads as faint amber.
+ * Missing material beyond it saturates at the darkest red.
+ */
+export function colorScaleMax(newToBase: (number | null)[] | undefined, threshold: number, fallback: number): number {
+  let max = 0;
+  for (const d of newToBase ?? []) if (d !== null && d > max) max = d;
+  return max > threshold ? max : Math.max(fallback, threshold);
+}
