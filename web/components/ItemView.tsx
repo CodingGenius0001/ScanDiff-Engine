@@ -7,7 +7,7 @@ import { M_TO_MM, scanModelUrl } from "@/lib/diffClient";
 import { loadModel, type LoadedModel } from "@/lib/modelLoader";
 import { toDisplay, VERDICT_TEXT } from "@/lib/format";
 import LocalTime from "./LocalTime";
-import { COLORS, RAMP_CSS } from "@/lib/heatmap";
+import { COLORS, missingGhost, RAMP_CSS } from "@/lib/heatmap";
 import type { BakedHeatmap, Item, LengthUnit } from "@/lib/types";
 import { useLiveScans } from "@/lib/liveScans";
 import { useComparison, type Comparison } from "@/lib/useComparison";
@@ -137,6 +137,20 @@ function ComparisonView({ data }: { data: Comparison }) {
 
   const selected = [...diff.flaggedRegions, ...diff.uncoveredRegions].find((r) => r.id === selectedId);
   const colorMax = diff.summary.maxDistance;
+  // Material present on the baseline and gone on arrival has no surface to color on the new scan: show it as a ghost.
+  const ghost = useMemo(
+    () =>
+      diff.baseToNew
+        ? missingGhost(
+            baseModel.geometry,
+            diff.baseToNew,
+            diff.noiseThreshold,
+            diff.flaggedRegions.filter((r) => r.seenOn === "baseline"),
+          )
+        : null,
+    [diff, baseModel],
+  );
+  useEffect(() => () => ghost?.dispose(), [ghost]);
   const common = {
     threshold: diff.noiseThreshold,
     colorMax,
@@ -173,7 +187,7 @@ function ComparisonView({ data }: { data: Comparison }) {
           (diff.heatmap ? (
             <SignedLegend heatmap={diff.heatmap} units={diff.units} />
           ) : (
-            <Legend threshold={diff.noiseThreshold} max={colorMax} units={diff.units} />
+            <Legend threshold={diff.noiseThreshold} max={colorMax} units={diff.units} missing={!!ghost} />
           ))}
         {heatModel ? (
           // Engine result: the heat map is baked onto the new scan's surface, aligned to the baseline.
@@ -217,9 +231,14 @@ function ComparisonView({ data }: { data: Comparison }) {
             <ScanViewer
               exhibit="B"
               title={diff.newScan.name}
-              subtitle="Fig. 2. Red marks where the surface moved compared with the baseline."
+              subtitle={
+                ghost
+                  ? "Fig. 2. Red marks where the surface moved compared with the baseline. Translucent red is material that is missing."
+                  : "Fig. 2. Red marks where the surface moved compared with the baseline."
+              }
               model={newModel}
               distances={diff.newToBase}
+              ghost={ghost}
               {...common}
             />
           </div>
@@ -264,7 +283,7 @@ function ComparisonView({ data }: { data: Comparison }) {
   );
 }
 
-function Legend({ threshold, max, units }: { threshold: number; max: number; units: string }) {
+function Legend({ threshold, max, units, missing }: { threshold: number; max: number; units: string; missing: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-soft">
       <span className="flex items-center gap-1.5">
@@ -284,6 +303,12 @@ function Legend({ threshold, max, units }: { threshold: number; max: number; uni
         <span className="h-3 w-5" style={{ background: COLORS.noData }} />
         No data
       </span>
+      {missing && (
+        <span className="flex items-center gap-1.5">
+          <span className="h-3 w-5 border border-[#dc2626]" style={{ background: "rgb(220 38 38 / 0.45)" }} />
+          Missing material
+        </span>
+      )}
     </div>
   );
 }

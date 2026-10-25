@@ -1,6 +1,6 @@
 /**
  * Builds mock DiffResults shaped exactly like `DiffResult` in types.ts.
- * MOCK ONLY. The 5 mm noise threshold below is a placeholder that lives in
+ * MOCK ONLY. Each scenario's noise threshold is a placeholder that lives in
  * the mock data; components read the threshold from the DiffResult.
  */
 import type * as THREE from "three";
@@ -18,8 +18,6 @@ import {
   mugNew,
 } from "./geometry";
 
-/** Placeholder noise threshold for the mock only (millimeters). */
-const MOCK_NOISE_THRESHOLD_MM = 5;
 
 const geometryCache = new Map<string, THREE.BufferGeometry>();
 
@@ -43,6 +41,12 @@ export function mockGeometry(scanId: string): THREE.BufferGeometry {
 }
 
 interface Scenario {
+  /**
+   * Placeholder noise threshold (mm), just above the scenario's simulated scan
+   * noise: the mug's surface noise stays under about 1.3 mm between scans, the
+   * car's coarser noise under 3 mm.
+   */
+  threshold: number;
   distance: DistanceOptions;
   /** True where the NEW scan has no data (area seen only by the baseline). */
   uncovered: (p: Vec3, n: Vec3) => boolean;
@@ -54,6 +58,7 @@ const v = (x: THREE.Vector3): Vec3 => [x.x, x.y, x.z];
 
 const SCENARIOS: Record<string, Scenario> = {
   "mug-before|mug-arrival": {
+    threshold: 2,
     distance: { spacing: 2.5, maxSearch: 40 },
     uncovered: (p, n) => p[1] < 1.5 && n[1] < -0.5,
     uncoveredRegions: [
@@ -91,11 +96,12 @@ const SCENARIOS: Record<string, Scenario> = {
         center: v(MUG.wearCenter),
         radius: MUG.wearRadius,
         seenOn: "new",
-        description: "Shallow flattening near the base, just above the noise threshold.",
+        description: "Shallow flattening near the base.",
       },
     ],
   },
   "car-pickup|car-return": {
+    threshold: 5,
     distance: { spacing: 40, maxSearch: 300 },
     uncovered: (p, n) => p[1] > CAR.cabinTop - 5 && n[1] > 0.5,
     uncoveredRegions: [
@@ -198,7 +204,7 @@ export function buildMockDiff(baseId: string, newId: string): DiffResult {
   if (!s) throw new Error(`No mock diff for ${baseId} -> ${newId}`);
   const base = mockGeometry(baseId);
   const next = mockGeometry(newId);
-  const threshold = MOCK_NOISE_THRESHOLD_MM;
+  const threshold = s.threshold;
 
   const newToBase = toNullable(surfaceDistances(next, base, s.distance), next, s.uncovered);
   // A baseline area the new scan did not cover has nothing to compare against.

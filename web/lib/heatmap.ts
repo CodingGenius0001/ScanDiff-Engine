@@ -51,3 +51,39 @@ export function vertexColors(distances: (number | null)[], threshold: number, ma
 
 /** CSS gradient matching the ramp, for the legend. */
 export const RAMP_CSS = `linear-gradient(to right, ${COLORS.ramp.join(", ")})`;
+
+/**
+ * Material that is gone: the baseline triangles inside a region seen only on
+ * the baseline with any vertex farther than `threshold` from the new scan
+ * (any, so the ghost reaches all the way to the break). Drawn as a translucent ghost on the new scan, which has no surface
+ * there to color.
+ */
+export function missingGhost(
+  base: THREE.BufferGeometry,
+  baseToNew: (number | null)[],
+  threshold: number,
+  regions: { center: [number, number, number]; radius: number }[],
+): THREE.BufferGeometry | null {
+  const pos = base.getAttribute("position");
+  if (!regions.length || baseToNew.length !== pos.count) return null;
+  const inRegion = (i: number) =>
+    regions.some((r) => {
+      const dx = pos.getX(i) - r.center[0], dy = pos.getY(i) - r.center[1], dz = pos.getZ(i) - r.center[2];
+      return dx * dx + dy * dy + dz * dz <= r.radius * r.radius;
+    });
+  const gone = (i: number) => (baseToNew[i] ?? 0) > threshold && inRegion(i);
+  const index = base.index;
+  const tri = index ? (t: number, k: number) => index.getX(t * 3 + k) : (t: number, k: number) => t * 3 + k;
+  const count = index ? index.count / 3 : pos.count / 3;
+  const out: number[] = [];
+  for (let t = 0; t < count; t++) {
+    const a = tri(t, 0), b = tri(t, 1), c = tri(t, 2);
+    if (!gone(a) && !gone(b) && !gone(c)) continue;
+    for (const i of [a, b, c]) out.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+  }
+  if (!out.length) return null;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(out, 3));
+  g.computeVertexNormals();
+  return g;
+}

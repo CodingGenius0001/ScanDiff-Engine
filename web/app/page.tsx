@@ -64,6 +64,9 @@ export default function Home() {
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-12 rounded-sm" style={{ background: RAMP_CSS }} /> changed
               </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-4 rounded-sm border border-[#dc2626] bg-[#dc2626]/45" /> missing
+              </span>
             </span>
           </div>
         </div>

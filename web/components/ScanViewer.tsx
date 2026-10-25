@@ -32,6 +32,8 @@ interface Props {
   markers: Marker[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Material missing from this scan, drawn as a translucent red ghost. */
+  ghost?: THREE.BufferGeometry | null;
 }
 
 export default function ScanViewer(props: Props) {
@@ -55,6 +57,7 @@ export default function ScanViewer(props: Props) {
           {/* Fill from below, so undersides (often "no data") read as surface, not a black hole. */}
           <directionalLight position={[0.3, -2, 0.6]} intensity={0.7} />
           <Model {...props} />
+          {props.heat && props.ghost && <Ghost geometry={props.ghost} />}
           <LinkedControls link={props.link} />
           <BadgeProjector markers={props.markers} badges={badges} />
         </Canvas>
@@ -117,6 +120,15 @@ function Model({ model, distances, threshold, colorMax, heat }: Props) {
         metalness={0}
         side={THREE.DoubleSide}
       />
+    </mesh>
+  );
+}
+
+/** Where material used to be: translucent red, so the missing section reads at a glance. */
+export function Ghost({ geometry }: { geometry: THREE.BufferGeometry }) {
+  return (
+    <mesh geometry={geometry} renderOrder={1}>
+      <meshStandardMaterial color={COLORS.ramp[2]} emissive={COLORS.ramp[2]} emissiveIntensity={0.35} transparent opacity={0.5} depthWrite={false} side={THREE.DoubleSide} />
     </mesh>
   );
 }
