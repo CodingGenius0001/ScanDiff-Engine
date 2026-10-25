@@ -256,8 +256,9 @@ export const CAR = {
   wheelRadius: 330,
   mirror: { x: 700, y: 1080, size: [140, 110, 200] as const },
   dentCenter: new THREE.Vector3(-300, 650, 900),
-  dentRadius: 320,
-  dentDepth: 30,
+  // A parking-lot hit: about a metre across, so it reads at whole-car zoom.
+  dentRadius: 520,
+  dentDepth: 40,
   wearCenter: new THREE.Vector3(2100, 450, -400),
   wearRadius: 220,
   wearDepth: 8,

@@ -4,7 +4,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { useEffect, useState } from "react";
 import * as THREE from "three";
-import { missingGhost, vertexColors } from "@/lib/heatmap";
+import { colorScaleMax, missingGhost, vertexColors } from "@/lib/heatmap";
 import { Ghost } from "./ScanViewer";
 
 /**
@@ -20,7 +20,7 @@ export default function HeroScan() {
       if (cancelled) return;
       const diff = buildMockDiff("mug-before", "mug-arrival");
       const g = mockGeometry("mug-arrival").clone();
-      g.setAttribute("color", new THREE.BufferAttribute(vertexColors(diff.newToBase ?? [], diff.noiseThreshold, diff.summary.maxDistance), 3));
+      g.setAttribute("color", new THREE.BufferAttribute(vertexColors(diff.newToBase ?? [], diff.noiseThreshold, colorScaleMax(diff.newToBase, diff.noiseThreshold, diff.summary.maxDistance)), 3));
       g.computeBoundingSphere();
       // The broken-off handle piece, from the seller's baseline, so the missing section shows in red.
       const ghost = missingGhost(
