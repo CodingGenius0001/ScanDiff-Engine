@@ -40,8 +40,8 @@ export default function ScanCodes({ item }: { item: Item }) {
     <section className="sheet">
       <h2 className="display text-3xl">Scan with the iPhone</h2>
       <div className="mt-4 grid gap-6 sm:grid-cols-2">
-        <ScanQR itemId={item.id} kind="baseline" />
-        <ScanQR itemId={item.id} kind="check" />
+        <ScanQR itemId={item.id} kind="baseline" existing />
+        <ScanQR itemId={item.id} kind="check" existing />
       </div>
       {latestCheck && (
         <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
