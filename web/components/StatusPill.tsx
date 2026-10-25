@@ -8,6 +8,7 @@ const STYLE: Record<OrderStatus, string> = {
   scan_uploaded: "border-ink-faint text-ink",
   released: "border-ink bg-ink text-paper",
   disputed: "border-stamp bg-stamp text-black",
+  refunded: "border-ink bg-ink text-paper",
 };
 
 export default function StatusPill({ status, kind }: { status: OrderStatus; kind: ItemKind }) {

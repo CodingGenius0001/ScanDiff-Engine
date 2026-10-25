@@ -9,6 +9,7 @@ import { useComparison } from "@/lib/useComparison";
 import DemoBadge from "./DemoBadge";
 import Fingerprint from "./Fingerprint";
 import LocalTime from "./LocalTime";
+import RefundNotice from "./RefundNotice";
 import StatusPill from "./StatusPill";
 
 const STEPS: { status: OrderStatus; label: string }[] = [
@@ -29,7 +30,8 @@ export default function CheckoutView({ item }: { item: Item }) {
         <DemoBadge className="w-fit text-sm" />
         <p className="text-xs text-ink-soft">
           Fake marketplace listing for a demo. No card is charged, nothing is held or released, and there is no Apple
-          Pay or Visa integration.
+          Pay or Visa integration. A refund is recorded in Capital One&apos;s Nessie sandbox, which moves no real
+          money.
         </p>
       </header>
 
@@ -93,13 +95,18 @@ export default function CheckoutView({ item }: { item: Item }) {
             </>
           )}
           {order.status === "released" && <Receipt item={item} releasedAt={statusAt(order, "released")} heldAt={statusAt(order, "held_scan_required")} />}
-          {order.status === "disputed" && (
-            <p className="text-sm">
-              The buyer disputed the comparison. Payment stays held (demo).{" "}
-              <Link href={`/item/${item.id}/evidence`} className="font-semibold underline">
-                Open the evidence page
-              </Link>
-            </p>
+          {(order.status === "disputed" || order.status === "refunded") && (
+            <>
+              <p className="text-sm">
+                {order.status === "refunded"
+                  ? "The buyer disputed the comparison and was refunded (demo)."
+                  : "The buyer disputed the comparison. Payment stays held (demo)."}{" "}
+                <Link href={`/item/${item.id}/evidence`} className="font-semibold underline">
+                  Open the evidence page
+                </Link>
+              </p>
+              <RefundNotice item={item} />
+            </>
           )}
         </div>
       </section>
@@ -115,12 +122,13 @@ export default function CheckoutView({ item }: { item: Item }) {
   );
 }
 
-/** Progress through the order. A dispute stops at "Scan uploaded". */
+/** Progress through the order. A dispute stops at "Scan uploaded"; a refund ends at "Refunded". */
 export function OrderSteps({ status }: { status: OrderStatus }) {
-  const stepIndex = status === "disputed" ? 2 : STEPS.findIndex((s) => s.status === status);
+  const steps = status === "refunded" ? [...STEPS.slice(0, 3), { status, label: "Refunded" }] : STEPS;
+  const stepIndex = status === "disputed" ? 2 : steps.findIndex((s) => s.status === status);
   return (
     <ol className="mt-3 grid grid-cols-4 gap-1 text-center text-[11px] sm:text-xs">
-      {STEPS.map((s, i) => (
+      {steps.map((s, i) => (
         <li key={s.status} className="flex flex-col items-center gap-1">
           <span className={`h-1 w-full ${i <= stepIndex ? "bg-ink" : "bg-rule"}`} />
           <span className={i === stepIndex ? "font-semibold text-ink" : "text-ink-soft"}>{s.label}</span>

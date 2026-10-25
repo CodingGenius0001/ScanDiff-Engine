@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { approve, dispute, useOrder } from "@/lib/orderStatus";
+import { refundsOnDispute, requestRefund } from "@/lib/refund";
 import type { Item } from "@/lib/types";
 import DemoBadge from "./DemoBadge";
+import RefundNotice from "./RefundNotice";
 import StatusPill from "./StatusPill";
 
 export default function DecisionPanel({ item }: { item: Item }) {
@@ -47,7 +49,9 @@ export default function DecisionPanel({ item }: { item: Item }) {
           type="button"
           disabled={!ready}
           onClick={() => {
-            if (dispute(item.id, item.kind)) router.push(`/item/${item.id}/evidence`);
+            if (!dispute(item.id, item.kind)) return;
+            if (refundsOnDispute(item)) void requestRefund(item);
+            router.push(`/item/${item.id}/evidence`);
           }}
           className="min-h-11 rounded-md border border-stamp px-5 font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
         >
@@ -68,13 +72,16 @@ export default function DecisionPanel({ item }: { item: Item }) {
           </Link>
         </p>
       )}
-      {order.status === "disputed" && (
-        <p className="mt-2 text-sm">
-          Disputed.{" "}
-          <Link href={`/item/${item.id}/evidence`} className="font-semibold underline">
-            Open the evidence page
-          </Link>
-        </p>
+      {(order.status === "disputed" || order.status === "refunded") && (
+        <div className="mt-2 flex flex-col gap-2">
+          <p className="text-sm">
+            {order.status === "refunded" ? "Disputed and refunded (demo)." : "Disputed."}{" "}
+            <Link href={`/item/${item.id}/evidence`} className="font-semibold underline">
+              Open the evidence page
+            </Link>
+          </p>
+          <RefundNotice item={item} />
+        </div>
       )}
     </section>
   );

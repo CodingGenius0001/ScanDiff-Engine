@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import Fingerprint from "./Fingerprint";
 import Histogram from "./Histogram";
 import LocalTime from "./LocalTime";
+import RefundNotice from "./RefundNotice";
 import StatusPill from "./StatusPill";
 
 export default function EvidenceView({ item }: { item: Item }) {
@@ -49,6 +50,11 @@ export default function EvidenceView({ item }: { item: Item }) {
         </p>
         {state.status === "ready" && (
           <p className="mt-1 text-xs text-ink-soft">{SOURCE_TEXT[state.data.diff.source].note}</p>
+        )}
+        {item.source !== "supabase" && (
+          <div className="mt-3">
+            <RefundNotice item={item} />
+          </div>
         )}
       </header>
 
