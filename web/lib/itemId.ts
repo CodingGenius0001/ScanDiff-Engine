@@ -85,6 +85,20 @@ export function scanLink(
     const problem = itemIdProblem(itemId);
     if (problem || itemId !== normalizeItemId(itemId)) throw new Error(`Bad item ID "${itemId}": ${problem ?? "not lowercase"}`);
   }
+  // The app files every scan under its own normalization (ItemID.normalize: lowercase, "_" and other runs become
+  // "-"), so a link for any other spelling would open a different item than this page is waiting on.
+  if (appItemId(itemId) !== itemId) {
+    throw new Error(`The iPhone app would file this scan under "${appItemId(itemId)}", not "${itemId}".`);
+  }
   const link = `scandiff://scan?item=${encodeURIComponent(itemId)}&kind=${kind}`;
   return invite && kind === "check" ? `${link}&invite=${encodeURIComponent(invite)}` : link;
+}
+
+/** The id the iOS app files a scan under (ItemID.normalize): lowercase letters and digits, joined by single "-". */
+export function appItemId(id: string): string {
+  return id
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .join("-");
 }
