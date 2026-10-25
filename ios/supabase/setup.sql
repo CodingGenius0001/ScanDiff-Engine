@@ -36,4 +36,15 @@ create policy "anon read scan files" on storage.objects for select to anon, auth
 create policy "anon insert scan files" on storage.objects for insert to anon, authenticated with check (bucket_id = 'scans');
 create policy "anon update scan files" on storage.objects for update to anon, authenticated using (bucket_id = 'scans');
 
+-- Realtime: the web checkout and item pages subscribe to changes on scans (new scans, decisions).
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'scans'
+  ) then
+    alter publication supabase_realtime add table public.scans;
+  end if;
+end $$;
+
 notify pgrst, 'reload schema';
