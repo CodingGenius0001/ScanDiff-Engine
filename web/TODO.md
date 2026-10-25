@@ -14,18 +14,25 @@
 - Live updates on real item pages (`lib/liveScans.ts`): polls `scans` every 4 s while visible and listens on Supabase realtime. A new scan refreshes the page in place; a decision made on the phone appears without reload. Tested with a simulated upload (page updated in about 1 to 5 s).
 - Tested 2026-10-24 at 412 px and 1366 px: browser mock (37 checks: checkout, dispute, reload persistence, blocked storage, no horizontal scroll, no console errors) and engine mode against the engine's `/diff` (no console errors, no horizontal scroll).
 
+- Sign-in (2026-10-24): Google, the demo account, or email and password through Supabase Auth; sessions in cookies (`@supabase/ssr`, `proxy.ts`). Real scans are read as the signed-in user on the server and in the browser; signed out, real items show a sign-in prompt. The app refuses a secret or service-role key. Tested on the real project: demo sign-in, reads, sign-out (20 checks).
+- Live checkout for real items (`/checkout/<id>`, `lib/realOrder.ts`): held until a check scan uploaded after the hold is accepted, released the moment the decision lands, dispute state with the evidence page. `/sell` lists an item with ID checks (lowercase, allowed characters, "did you mean") and QR codes for the `scandiff://scan` link. Rehearsed against a local fake Supabase with a script playing the phone: list, baseline, pay, check scan, accept from the phone and from the web, dispute, and an old accepted scan not releasing a new order (15 checks; 3–4 s per update by polling). Every data read went out with the user's token.
+- Viewer checked on a real engine comparison (`coffee-maker-1` vs `coffe-maker-2`): baseline, check and heat-map GLBs load from Storage, 33 clickable regions, histogram, crops.
+
 ## In progress
 - Nothing.
 
 ## Blocked / next
 - **First real comparison:** `coffee-maker-1` has only a baseline. Needs a check scan from Koushik and the engine running (`NEXT_PUBLIC_DIFF_API_URL`); the browser mock cannot compare real scans.
-- **Real items have no title, kind or price** in the table, so they show their `item_id`, count as shipping, and have no checkout.
+- **Real items have no title, kind or price** in the table. `/sell` keeps a title and price in the browser; elsewhere they show their `item_id` and count as shipping.
+- **QR codes on a real iPhone:** the codes decode to the right link (checked with zbarimg), but opening them from the Camera app is untested.
+- **Realtime is off:** a decision write on `_smoke` produced no realtime event, so updates come from the 4 s poll. Koushik: run the publication SQL below.
+- **Google sign-in on the deployed site** needs its `/auth/callback` URL in Supabase's Redirect URLs.
 - **Engine URL** for the demo: a public HTTPS URL (or the laptop's LAN address for the OnePlus).
 
 ## Assumptions to confirm with teammates
 - **Koushik: realtime.** For instant updates instead of 4 s polling, run `alter publication supabase_realtime add table public.scans;` in the Supabase SQL editor.
-- **Adi and Koushik: textures mismatch.** The iPhone uploads `textures` as plain file names; the engine expects `{file, sha256}` objects and rejects all three real scans with 422.
-0. **Koushik: decisions can be changed.** Anyone with the page can switch accept and dispute (the table policy allows anonymous updates). Fine for the demo; tighten before real use.
+- Resolved by Adi (0b8fef5): the engine accepts `textures` as names or `{file, sha256}`.
+0. **Koushik: decisions can be changed.** The table policies still allow anonymous reads and updates, so the web's sign-in is enforced by the app, not the database. Before limiting the policies to `authenticated`, note the engine also reads the table with the publishable key (as anon) and would need a signed-in or server-side key.
 1. Resolved by Adi (0c02c0f): `is_mock` added, +Y up, mock r2 depth fixed, `base_id`/`new_id` are `scans.id`, `kind` is `baseline` or `check`.
 5. **Adi: fingerprints.** Assumed `base_fingerprint` equals the phone's `model_sha256`. A hash is not tamper-evident until it is recorded somewhere independent at handoff time.
 6. **Adi: diff time.** `diff_time_s` is 3.4 s in the mock. If real runs are slow, `/diff` needs a status endpoint instead of one long request.

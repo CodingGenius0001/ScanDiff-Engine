@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { writeDecision, type Decision } from "@/lib/scans";
+import { browserSupabase } from "@/lib/supabase";
 import type { Item } from "@/lib/types";
 
 const DECISION_TEXT: Record<Decision, string> = { accept: "Accepted", dispute: "Disputed" };
@@ -27,11 +28,12 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
   const [error, setError] = useState<string | null>(null);
 
   async function decide(next: Decision) {
-    if (!checkScanId) return;
+    const db = browserSupabase();
+    if (!checkScanId || !db) return;
     setSaving(next);
     setError(null);
     try {
-      await writeDecision(checkScanId, next);
+      await writeDecision(db, checkScanId, next);
       onDecided(next);
       if (next === "dispute") router.push(`/item/${encodeURIComponent(item.id)}/evidence`);
     } catch (e) {

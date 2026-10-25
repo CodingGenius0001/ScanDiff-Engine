@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDiff } from "./diffClient";
+import { getDiff, InconclusiveDiff } from "./diffClient";
 import { loadModel, type LoadedModel } from "./modelLoader";
 import type { DiffResult, Item } from "./types";
 
@@ -18,6 +18,8 @@ type State =
   /** The item has a baseline but no later scan to compare with yet. */
   | { status: "waiting" }
   | { status: "error"; message: string }
+  /** The engine could not compare the two scans; `reason` is its explanation. */
+  | { status: "inconclusive"; reason: string }
   | { status: "ready"; data: Comparison };
 
 /** Loads the diff and both models for an item's first and last scans. */
@@ -47,7 +49,9 @@ export function useComparison(item: Item, withModels = true): State & { retry: (
           setState({ status: "ready", data: { diff, baseModel: baseModel!, newModel: newModel!, heatModel } });
         }
       } catch (e) {
-        if (!cancelled) setState({ status: "error", message: e instanceof Error ? e.message : String(e) });
+        if (cancelled) return;
+        if (e instanceof InconclusiveDiff) setState({ status: "inconclusive", reason: e.reason });
+        else setState({ status: "error", message: e instanceof Error ? e.message : String(e) });
       }
     })();
     return () => {

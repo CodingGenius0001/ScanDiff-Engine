@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { CameraLink, viewFrom } from "@/lib/cameraSync";
 import { M_TO_MM, scanModelUrl } from "@/lib/diffClient";
 import { loadModel, type LoadedModel } from "@/lib/modelLoader";
-import { toDisplay } from "@/lib/format";
+import { toDisplay, VERDICT_TEXT } from "@/lib/format";
 import LocalTime from "./LocalTime";
 import { COLORS, RAMP_CSS } from "@/lib/heatmap";
 import type { BakedHeatmap, Item, LengthUnit } from "@/lib/types";
@@ -61,6 +61,20 @@ export default function ItemView({ item }: { item: Item }) {
           <p className="display text-2xl italic text-ink-soft" role="status">
             Baseline scan received. Waiting for a check scan to compare it with.
           </p>
+          <BaselinePreview item={item} />
+        </>
+      )}
+      {state.status === "inconclusive" && (
+        <>
+          <section role="status">
+            <p className="caption">Finding</p>
+            <h2 className="display text-5xl">
+              <span className="sr-only">Verdict: </span>
+              {VERDICT_TEXT.inconclusive.title}
+            </h2>
+            <p className="mt-2 max-w-xl">{state.reason}</p>
+            <p className="mt-1 max-w-xl text-sm text-ink-soft">{VERDICT_TEXT.inconclusive.detail}</p>
+          </section>
           <BaselinePreview item={item} />
         </>
       )}

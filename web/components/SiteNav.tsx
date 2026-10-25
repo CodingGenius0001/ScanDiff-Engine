@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AccountLink from "./AccountLink";
 
 /** Masthead shared by every page. */
 export default function SiteNav() {
@@ -12,9 +13,13 @@ export default function SiteNav() {
           <Link href="/checkout/mug-001" className="hover:text-ink hover:underline">
             Checkout
           </Link>
-          <Link href="/item/car-001" className="hover:text-ink hover:underline">
+          <Link href="/sell" className="hover:text-ink hover:underline">
+            List an item
+          </Link>
+          <Link href="/item/car-001" className="hidden hover:text-ink hover:underline sm:inline">
             Rental
           </Link>
+          <AccountLink />
         </div>
       </div>
     </nav>

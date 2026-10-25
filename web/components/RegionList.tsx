@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDistance, LABEL_TEXT } from "@/lib/format";
+import { coverageText, formatDistance, LABEL_TEXT } from "@/lib/format";
 import type { DiffResult } from "@/lib/types";
 
 interface Props {
@@ -83,7 +83,7 @@ export default function RegionList({ diff, selectedId, onSelect }: Props) {
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-semibold">No data</span>
                   <span className="mt-0.5 block text-xs text-ink-soft">
-                    {u.description} Covered by {u.coveredBy === "baseline_only" ? "the baseline scan only" : "the new scan only"},
+                    {u.description} {coverageText(u.coveredBy)},
                     so it is not compared and not counted as damage.
                   </span>
                 </span>

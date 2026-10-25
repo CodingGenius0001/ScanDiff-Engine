@@ -1,9 +1,11 @@
 /**
  * Real scans from the Supabase `scans` table (ios/supabase/setup.sql),
- * written by the iOS app on upload.
+ * written by the iOS app on upload. Every function takes the client to read
+ * with: serverSupabase() on the server, browserSupabase() in the browser.
+ * Both carry the signed-in user, so row-level security applies.
  */
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { scanName } from "./scanMetadata";
-import { supabase } from "./supabase";
 import type { Item, ScanMeta, ScanVersion } from "./types";
 
 /** One row of `public.scans`. */
@@ -36,9 +38,8 @@ export function rowToScanMeta(row: ScanRow): ScanMeta {
   };
 }
 
-export async function fetchScan(id: string): Promise<ScanMeta | undefined> {
-  if (!supabase) return undefined;
-  const { data, error } = await supabase.from("scans").select(COLUMNS).eq("id", id).maybeSingle<ScanRow>();
+export async function fetchScan(db: SupabaseClient, id: string): Promise<ScanMeta | undefined> {
+  const { data, error } = await db.from("scans").select(COLUMNS).eq("id", id).maybeSingle<ScanRow>();
   if (error) throw new Error(`Could not read scan ${id}: ${error.message}`);
   return data ? rowToScanMeta(data) : undefined;
 }
@@ -47,14 +48,13 @@ export async function fetchScan(id: string): Promise<ScanMeta | undefined> {
  * An item built from its scans: the newest baseline, then every check scan
  * uploaded after it. The page compares the baseline with the newest check.
  */
-export async function fetchItem(itemId: string): Promise<Item | undefined> {
-  return itemFromRows(itemId, await fetchItemRows(itemId));
+export async function fetchItem(db: SupabaseClient, itemId: string): Promise<Item | undefined> {
+  return itemFromRows(itemId, await fetchItemRows(db, itemId));
 }
 
 /** Every scan row for an item, oldest version first. */
-export async function fetchItemRows(itemId: string): Promise<ScanRow[]> {
-  if (!supabase) return [];
-  const { data, error } = await supabase
+export async function fetchItemRows(db: SupabaseClient, itemId: string): Promise<ScanRow[]> {
+  const { data, error } = await db
     .from("scans")
     .select(COLUMNS)
     .eq("item_id", itemId)
@@ -80,9 +80,8 @@ export function itemFromRows(itemId: string, rows: ScanRow[]): Item | undefined 
 }
 
 /** Item ids that have a baseline scan, newest first. Hides setup test rows (ids starting with "_"). */
-export async function fetchItemIds(): Promise<string[]> {
-  if (!supabase) return [];
-  const { data, error } = await supabase
+export async function fetchItemIds(db: SupabaseClient): Promise<string[]> {
+  const { data, error } = await db
     .from("scans")
     .select("item_id,created_at")
     .eq("kind", "baseline")
@@ -95,18 +94,16 @@ export async function fetchItemIds(): Promise<string[]> {
 export type Decision = "accept" | "dispute";
 
 /** The decision on a check scan, as written by this page or the iOS app. */
-export async function fetchDecision(scanId: string): Promise<Decision | null> {
-  if (!supabase) throw new Error("Supabase is not configured");
-  const { data, error } = await supabase.from("scans").select("decision").eq("id", scanId).maybeSingle<Pick<ScanRow, "decision">>();
+export async function fetchDecision(db: SupabaseClient, scanId: string): Promise<Decision | null> {
+  const { data, error } = await db.from("scans").select("decision").eq("id", scanId).maybeSingle<Pick<ScanRow, "decision">>();
   if (error) throw new Error(`Could not read the decision: ${error.message}`);
   return data?.decision ?? null;
 }
 
 /** Writes `decision` on the check scan's row, the same field the iOS app writes. */
-export async function writeDecision(scanId: string, decision: Decision): Promise<void> {
-  if (!supabase) throw new Error("Supabase is not configured");
+export async function writeDecision(db: SupabaseClient, scanId: string, decision: Decision): Promise<void> {
   // select() returns the changed rows, so a write that matched nothing is not mistaken for success.
-  const { data, error } = await supabase.from("scans").update({ decision }).eq("id", scanId).select("id");
+  const { data, error } = await db.from("scans").update({ decision }).eq("id", scanId).select("id");
   if (error) throw new Error(`Could not save the decision: ${error.message}`);
   if (!data?.length) throw new Error("Could not save the decision: the scan was not found");
 }

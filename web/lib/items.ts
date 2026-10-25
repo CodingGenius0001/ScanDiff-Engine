@@ -1,22 +1,23 @@
 /**
- * Item metadata (title, price, scan history): the mock catalog first, then
- * real scans from Supabase. Kept out of diffClient.ts so that file stays a
- * single getDiff function.
+ * Item metadata (title, price, scan history) for server pages: the mock
+ * catalog first, then real scans from Supabase, read as the signed-in user.
  */
-import type { Item, ScanMeta } from "./types";
-import { MOCK_ITEMS, MOCK_SCANS } from "./mock/catalog";
-import { fetchItem, fetchScan } from "./scans";
+import type { Item } from "./types";
+import { MOCK_ITEMS } from "./mock/catalog";
+import { fetchItem } from "./scans";
+import { currentUser, serverSupabase } from "./supabaseServer";
 
-export async function getItem(id: string): Promise<Item | undefined> {
-  return MOCK_ITEMS.find((i) => i.id === id) ?? fetchItem(id);
+/** "sign_in" when the id is not a mock item and nobody is signed in, so real scans cannot be read. */
+export async function getItem(id: string): Promise<Item | "sign_in" | undefined> {
+  const mock = MOCK_ITEMS.find((i) => i.id === id);
+  if (mock) return mock;
+  const db = await serverSupabase();
+  if (!db) return undefined;
+  if (!(await currentUser(db))) return "sign_in";
+  return fetchItem(db, id);
 }
 
 /** Mock items only; real items are rendered on request. */
 export function listItems(): Item[] {
   return MOCK_ITEMS;
-}
-
-/** Scan names, times and capturers. The engine response does not include them. */
-export async function getScan(id: string): Promise<ScanMeta | undefined> {
-  return MOCK_SCANS[id] ?? fetchScan(id);
 }

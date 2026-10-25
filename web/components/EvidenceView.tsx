@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistance, formatPercent, LABEL_TEXT, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
+import { coverageText, formatDistance, formatPercent, LABEL_TEXT, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/format";
 import { statusAt, useOrder } from "@/lib/orderStatus";
 import type { DiffResult, Item, ScanMeta } from "@/lib/types";
 import { fetchDecision, type Decision } from "@/lib/scans";
+import { browserSupabase } from "@/lib/supabase";
 import { useComparison } from "@/lib/useComparison";
 import { useEffect, useState } from "react";
 import Fingerprint from "./Fingerprint";
@@ -59,6 +60,14 @@ export default function EvidenceView({ item }: { item: Item }) {
         <p className="text-sm text-stamp" role="alert">
           Could not load the comparison: {state.message}
         </p>
+      )}
+      {state.status === "inconclusive" && (
+        <Section title="Diff summary">
+          <p className="text-sm">
+            <strong>{VERDICT_TEXT.inconclusive.title}:</strong> {state.reason}
+          </p>
+          <p className="mt-1 text-sm text-ink-soft">{VERDICT_TEXT.inconclusive.detail}</p>
+        </Section>
       )}
       {state.status === "ready" && <Evidence diff={state.data.diff} />}
     </main>
@@ -138,7 +147,7 @@ function Evidence({ diff }: { diff: DiffResult }) {
           <ul className="list-disc pl-5 text-sm">
             {diff.uncoveredRegions.map((u) => (
               <li key={u.id}>
-                {u.description} Covered by {u.coveredBy === "baseline_only" ? "the baseline scan only" : "the new scan only"}.
+                {u.description} {coverageText(u.coveredBy)}.
               </li>
             ))}
           </ul>
@@ -199,8 +208,9 @@ function ScanDecision({ item }: { item: Item }) {
   const checkScanId = item.versions.length > 1 ? item.versions[item.versions.length - 1].scanId : null;
   const [decision, setDecision] = useState<Decision | null>(null);
   useEffect(() => {
-    if (!checkScanId) return;
-    fetchDecision(checkScanId).then(setDecision, () => setDecision(null));
+    const db = browserSupabase();
+    if (!checkScanId || !db) return;
+    fetchDecision(db, checkScanId).then(setDecision, () => setDecision(null));
   }, [checkScanId]);
   if (!decision) return null;
   return (

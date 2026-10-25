@@ -1,10 +1,18 @@
 /**
- * The ONE Supabase client. Null when the env vars are missing, so the app
- * still runs on the mock catalog alone.
+ * The browser's Supabase client. It keeps the signed-in session in cookies,
+ * so server renders (lib/supabaseServer.ts) read as the same user and every
+ * query goes through row-level security as that user. Null when the env vars
+ * are missing, so the app still runs on the mock catalog alone.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { SUPABASE_KEY, SUPABASE_URL, supabaseConfigured } from "./supabaseConfig";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+let client: SupabaseClient | null = null;
 
-export const supabase: SupabaseClient | null = url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
+/** Call from effects and event handlers only; it needs the browser's cookies. */
+export function browserSupabase(): SupabaseClient | null {
+  if (!supabaseConfigured || typeof window === "undefined") return null;
+  client ??= createBrowserClient(SUPABASE_URL, SUPABASE_KEY);
+  return client;
+}

@@ -35,6 +35,15 @@ export const VERDICT_TEXT: Record<Verdict, { title: string; detail: string }> = 
   inconclusive: { title: "Inconclusive", detail: "The scans could not be compared reliably. Re-scan the item the same way." },
 };
 
+/** Why an area was not compared, for "no data" findings. */
+export function coverageText(coveredBy: "baseline_only" | "new_only" | "neither"): string {
+  return {
+    baseline_only: "Covered by the baseline scan only",
+    new_only: "Covered by the new scan only",
+    neither: "Captured by neither scan",
+  }[coveredBy];
+}
+
 /** Where the comparison came from, so mock data is never presented as live. */
 export const SOURCE_TEXT: Record<DiffSource, { short: string; note: string }> = {
   browser_mock: {

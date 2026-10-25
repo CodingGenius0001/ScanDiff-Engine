@@ -1,19 +1,88 @@
 "use client";
 
 /**
- * Keeps a real item's page in step with the scans table while it is open:
- * a new scan from the phone refreshes the page, and a decision made on the
- * phone shows up here. Polls every few seconds (works on any Supabase
- * setup) and also listens on Supabase realtime, which is instant when the
- * scans table is in the realtime publication.
+ * Keeps a page in step with an item's rows in the scans table while it is
+ * open: a scan or a decision written by the phone shows up here. Listens on
+ * Supabase realtime, which is instant once the scans table is in the
+ * realtime publication, and also polls every few seconds, so it works on any
+ * Supabase setup. Reads go through the signed-in browser client, so
+ * row-level security applies.
  */
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { fetchItemRows, itemFromRows, type Decision } from "./scans";
-import { supabase } from "./supabase";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { fetchItemRows, itemFromRows, type Decision, type ScanRow } from "./scans";
+import { browserSupabase } from "./supabase";
 import type { Item } from "./types";
 
 const POLL_MS = 4000;
+
+export interface ScanRows {
+  /** The item's rows, oldest version first; undefined until the first read. */
+  rows: ScanRow[] | undefined;
+  /** The last read failed (it is retried on the next tick). */
+  error: string | null;
+  /** Apply a write this page just made, so a slower read that started earlier cannot undo it. */
+  patch: (scanId: string, fields: Partial<ScanRow>) => void;
+}
+
+export function useScanRows(itemId: string, enabled = true): ScanRows {
+  const [rows, setRows] = useState<ScanRow[] | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const lastWrite = useRef(0);
+
+  useEffect(() => {
+    const db = browserSupabase();
+    if (!db || !enabled) return;
+    let stopped = false;
+    let busy = false;
+
+    async function read() {
+      if (stopped || busy || document.visibilityState !== "visible") return;
+      busy = true;
+      const started = Date.now();
+      try {
+        const next = await fetchItemRows(db!, itemId);
+        // Stale if this page wrote while the request was in flight.
+        if (stopped || started < lastWrite.current) return;
+        setRows(next);
+        setError(null);
+      } catch (e) {
+        if (!stopped) setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        busy = false;
+      }
+    }
+
+    void read();
+    const timer = setInterval(read, POLL_MS);
+    const channel = db
+      .channel(`scans:${itemId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "scans", filter: `item_id=eq.${itemId}` }, () => read())
+      .subscribe();
+    document.addEventListener("visibilitychange", read);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", read);
+      void db.removeChannel(channel);
+    };
+  }, [itemId, enabled]);
+
+  const patch = useCallback((scanId: string, fields: Partial<ScanRow>) => {
+    lastWrite.current = Date.now();
+    setRows((cur) => cur?.map((r) => (r.id === scanId ? { ...r, ...fields } : r)));
+  }, []);
+
+  return { rows, error, patch };
+}
+
+/** The newest check scan after the current baseline, if any. */
+export function newestCheck(itemId: string, rows: ScanRow[]): ScanRow | undefined {
+  const item = itemFromRows(itemId, rows);
+  if (!item || item.versions.length < 2) return undefined;
+  const id = item.versions.at(-1)!.scanId;
+  return rows.find((r) => r.id === id);
+}
 
 export interface LiveScans {
   /** Decision on the newest check scan as currently stored; undefined until first read. */
@@ -24,68 +93,26 @@ export interface LiveScans {
   updating: boolean;
 }
 
+/** For the item page: the live decision, and a page refresh when the phone uploads a new scan. */
 export function useLiveScans(item: Item): LiveScans {
   const router = useRouter();
-  const [decision, setDecision] = useState<Decision | null | undefined>(undefined);
-  /** The scan list being shown when a refresh was requested; the refresh is done once it changes. */
-  const [refreshedFrom, setRefreshedFrom] = useState<string | null>(null);
+  const { rows, patch } = useScanRows(item.id, item.source === "supabase");
   const shown = item.versions.map((v) => v.scanId).join(",");
-  const shownRef = useRef(shown);
-  const lastWrite = useRef(0);
+  const latest = rows && itemFromRows(item.id, rows);
+  const ids = latest?.versions.map((v) => v.scanId).join(",") ?? "";
+  const check = rows && newestCheck(item.id, rows);
+  // The phone uploaded a scan this page was not rendered with: reload the server data.
+  const stale = ids !== "" && ids !== shown;
 
   useEffect(() => {
-    shownRef.current = shown;
-  }, [shown]);
-
-  useEffect(() => {
-    if (!supabase || item.source !== "supabase") return;
-    let stopped = false;
-    let busy = false;
-
-    async function check() {
-      if (stopped || busy || document.visibilityState !== "visible") return;
-      busy = true;
-      const started = Date.now();
-      try {
-        const rows = await fetchItemRows(item.id);
-        // Stale if this page wrote a decision while the request was in flight.
-        if (stopped || started < lastWrite.current) return;
-        const latest = itemFromRows(item.id, rows);
-        const ids = latest?.versions.map((v) => v.scanId).join(",") ?? "";
-        const newest = latest && latest.versions.length > 1 ? rows.find((r) => r.id === latest.versions.at(-1)!.scanId) : null;
-        setDecision(newest ? newest.decision : null);
-        if (ids && ids !== shownRef.current) {
-          setRefreshedFrom(shownRef.current);
-          router.refresh();
-        }
-      } catch {
-        // A failed poll is retried on the next tick.
-      } finally {
-        busy = false;
-      }
-    }
-
-    void check();
-    const timer = setInterval(check, POLL_MS);
-    const channel = supabase
-      .channel(`scans:${item.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "scans", filter: `item_id=eq.${item.id}` }, () => check())
-      .subscribe();
-    document.addEventListener("visibilitychange", check);
-    return () => {
-      stopped = true;
-      clearInterval(timer);
-      document.removeEventListener("visibilitychange", check);
-      void supabase!.removeChannel(channel);
-    };
-  }, [item.id, item.source, router]);
+    if (stale) router.refresh();
+  }, [stale, ids, router]);
 
   return {
-    decision,
+    decision: rows === undefined ? undefined : (check?.decision ?? null),
     decided: (d) => {
-      lastWrite.current = Date.now();
-      setDecision(d);
+      if (check) patch(check.id, { decision: d });
     },
-    updating: refreshedFrom === shown,
+    updating: stale,
   };
 }

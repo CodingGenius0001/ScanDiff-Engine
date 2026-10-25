@@ -66,8 +66,8 @@ export interface UncoveredRegion {
   id: string;
   center: Vec3;
   radius: number;
-  /** Which scan captured this area. The other scan has no data there. */
-  coveredBy: "baseline_only" | "new_only";
+  /** Which scan captured this area ("neither": an unscanned side, such as the bottom). */
+  coveredBy: "baseline_only" | "new_only" | "neither";
   description: string;
 }
 

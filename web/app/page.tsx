@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { fetchItemIds } from "@/lib/scans";
+import { currentUser, serverSupabase } from "@/lib/supabaseServer";
 
 const DEMOS = [
+  { href: "/sell", title: "Pitch: list an item and run a real checkout", note: "Seller baseline, buyer check scan, comparison, then the payment is released or disputed. Uses the iPhone app." },
   { href: "/checkout/mug-001", title: "Demo checkout", note: "Shipping and returns. Payment held until the buyer approves. Demo only, no real payment." },
   { href: "/item/mug-001", title: "Handmade ceramic mug", note: "Seller scan before packing, buyer scan on arrival." },
   { href: "/item/car-001", title: "Rental car", note: "Pickup scan and return scan." },
@@ -68,11 +70,23 @@ function Row({ n, href, title, note }: { n: number; href: string; title: string;
   );
 }
 
-/** Case files the iOS app has uploaded to Supabase. */
+/** Case files the iOS app has uploaded to Supabase, read as the signed-in user. */
 async function ScannedItems() {
+  const db = await serverSupabase();
+  if (!db) return null;
+  if (!(await currentUser(db))) {
+    return (
+      <p className="border-l border-ink pl-4 text-sm text-ink-soft">
+        <Link href="/login" className="font-semibold text-ink underline">
+          Sign in
+        </Link>{" "}
+        to see the case files scanned with the iPhone app.
+      </p>
+    );
+  }
   let ids: string[];
   try {
-    ids = await fetchItemIds();
+    ids = await fetchItemIds(db);
   } catch (e) {
     return <p className="text-sm text-stamp">{e instanceof Error ? e.message : String(e)}</p>;
   }
