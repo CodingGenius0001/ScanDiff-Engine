@@ -121,8 +121,8 @@ export const Capture: React.FC<{base: number; end: number}> = ({base, end}) => {
 					{...PHONE}
 					kind="image"
 					src="app/10-saved-sha256.png"
-					focus={cuts([[0, {x: 0.5, y: 0.3, zoom: 1.0}], [24, {x: 0.5, y: 0.27, zoom: 1.3}]], hash + 4 - saved)}
-					rings={[{at: 24, dur: hash - saved - 20, x: 0.03, y: 0.302, w: 0.94, h: 0.032}]}
+					focus={cuts([[0, {x: 0.5, y: 0.3, zoom: 1.0}]], hash + 4 - saved)}
+					rings={[{at: 16, dur: hash - saved - 12, x: 0.025, y: 0.307, w: 0.95, h: 0.024}]}
 				/>
 			</Shot>
 			<Shot name="Labels" from={0} to={hash} fadeIn={0}>
