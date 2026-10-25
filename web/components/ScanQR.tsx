@@ -11,8 +11,21 @@ const TEXT: Record<ScanKind, string> = {
  * offers to open ScanDiff, which starts the scan for this item. Drawn as
  * one SVG path, so it renders on the server and prints sharply.
  */
-export default function ScanQR({ itemId, kind }: { itemId: string; kind: ScanKind }) {
-  const link = scanLink(itemId, kind);
+export default function ScanQR({ itemId, kind, existing = false }: { itemId: string; kind: ScanKind; existing?: boolean }) {
+  let link: string;
+  try {
+    link = scanLink(itemId, kind, { existing });
+  } catch (e) {
+    // Never take the page down over a QR code: say why there is none.
+    return (
+      <figure className="flex flex-col items-center gap-2 text-center">
+        <span className="display block text-xl">{TEXT[kind]}</span>
+        <figcaption className="caption max-w-56">
+          No QR code: {e instanceof Error ? e.message : String(e)} Start the scan in the iPhone app instead.
+        </figcaption>
+      </figure>
+    );
+  }
   const { modules } = QRCode.create(link, { errorCorrectionLevel: "M" });
   const quiet = 4;
   const size = modules.size + quiet * 2;

@@ -7,7 +7,8 @@ One scripted path: list an item, seller baseline, buyer check scan, comparison, 
 - Laptop: open the site, sign in (**Use the demo account** on `/login`). Projector mirrors the laptop.
 - iPhone (LiDAR): ScanDiff app installed and signed in, with the same account or any account.
 - Pick a fresh item ID nobody has scanned, for example `coffee-maker-7`. The page warns if it is one letter off an existing ID.
-- Supabase: the scans table must be in the realtime publication for instant updates (see README). Without it, the page still updates within about 4 seconds.
+- Supabase: realtime is on for the scans table, so decisions show instantly; the page also re-checks every 4 seconds as a fallback.
+- Live check-in: the delete rule for check-ins must be in Supabase (see README), or **Delete latest check-in** refuses.
 - Engine: `NEXT_PUBLIC_DIFF_API_URL` set to Adi's public engine. A real comparison takes up to about a minute.
 - Fallback: the recorded run, and the mock demos on the home page (`/checkout/mug-001`), which need no phone, engine or network.
 
@@ -15,13 +16,19 @@ One scripted path: list an item, seller baseline, buyer check scan, comparison, 
 
 | # | Laptop | Phone | Say |
 |---|---|---|---|
-| 1 | **List an item** in the masthead. Enter the ID, a title and a price. **List item**. A QR code appears. | | "A seller lists a coffee maker." |
+| 1 | **List an item** in the masthead. Type what it is ("Mug") and a price; the ID (`mug-002`) is assigned. **List item**. The baseline and check-in QR codes appear. | | "A seller lists a mug." |
 | 2 | Waiting for the seller's baseline scan. | Camera app → QR → **Open in ScanDiff**. Scan the item, upload. | "Before packing, the seller scans it. The scan is fingerprinted with SHA-256." |
 | 3 | "Seller baseline received". **Open the checkout →**. **Pay with Visa (demo)**. Status: **Held: scan required**. A second QR appears. | | "The buyer pays. With Visa, the money is held, not sent." |
 | 4 | Waiting for the buyer's check scan. | Camera → second QR → scan on arrival, upload. | "On arrival the buyer scans it again." |
 | 5 | "The buyer's check scan arrived". **Open comparison**. Heat map, findings, histogram. Click a numbered marker. | | "ScanDiff aligns both scans and shows exactly where the shape changed." |
 | 6 | Back to the checkout tab. | Tap **Accept** (or click Accept on the comparison page). | "The buyer accepts…" |
 | 7 | The checkout flips to **Released** with the receipt and both fingerprints. | | "…and the payment is released the moment the decision lands." |
+
+## Live check-in on stage (item scanned beforehand)
+
+1. Open the item's page. Under **Scan with the iPhone**, click **Delete latest check-in** and confirm. The page drops back to the baseline only.
+2. On the checkout: **Reset demo**, then **Pay with Visa (demo)**.
+3. Phone: Camera → the **check-in** QR → scan, upload. The comparison appears on the item page; accept on the phone and the checkout releases.
 
 ## Dispute branch
 

@@ -107,3 +107,17 @@ export async function writeDecision(db: SupabaseClient, scanId: string, decision
   if (error) throw new Error(`Could not save the decision: ${error.message}`);
   if (!data?.length) throw new Error("Could not save the decision: the scan was not found");
 }
+
+/**
+ * Deletes one check-in row, so the check-in can be done again live. Never a
+ * baseline: the filter on kind makes that impossible. The scan's files in
+ * Storage and the engine's results stay.
+ */
+export async function deleteCheckScan(db: SupabaseClient, scanId: string): Promise<void> {
+  const { data, error } = await db.from("scans").delete().eq("id", scanId).eq("kind", "check").select("id");
+  if (error) throw new Error(`Could not delete the check-in: ${error.message}`);
+  // Row-level security turns a forbidden delete into "0 rows", not an error.
+  if (!data?.length) {
+    throw new Error("The database does not allow deleting check-ins yet. Someone with Supabase access needs to add the delete rule.");
+  }
+}

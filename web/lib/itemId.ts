@@ -25,6 +25,34 @@ export function itemIdProblem(id: string): string | null {
   return null;
 }
 
+/** "Coffee Maker!" → "coffee-maker": lowercase letters and digits, joined by single "-". */
+export function slugifyName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_LENGTH - 4);
+}
+
+/**
+ * The next free id for an item name: "Mug" with mug-001 taken → "mug-002".
+ * Null when the name has no letters or digits to build an id from.
+ */
+export function nextItemId(name: string, taken: Iterable<string>): string | null {
+  const slug = slugifyName(name);
+  if (!slug) return null;
+  const pattern = new RegExp(`^${slug}-(\\d+)$`);
+  let highest = 0;
+  for (const id of taken) {
+    const m = pattern.exec(id.toLowerCase());
+    if (m) highest = Math.max(highest, Number(m[1]));
+  }
+  const id = `${slug}-${String(highest + 1).padStart(3, "0")}`;
+  return itemIdProblem(id) ? null : id;
+}
+
 /**
  * The closest existing id, to catch typos such as coffe-maker-3 for
  * coffee-maker-3. Same rule as the iOS app's "did you mean"
@@ -52,9 +80,21 @@ function editDistance(a: string, b: string): number {
   return prev[b.length];
 }
 
-/** The deep link that opens the iOS app straight into a scan. Throws on an id that is not valid. */
-export function scanLink(itemId: string, kind: ScanKind): string {
-  const problem = itemIdProblem(itemId);
-  if (problem || itemId !== normalizeItemId(itemId)) throw new Error(`Bad item ID "${itemId}": ${problem ?? "not lowercase"}`);
+/** What the iOS app accepts (ItemID.isValid), limited to ASCII: letters, digits, "-" and "_". */
+const APP_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+/**
+ * The deep link that opens the iOS app straight into a scan. New ids must pass
+ * the strict lowercase rules. An item that already has scans keeps its id
+ * exactly as stored (lowercasing it would file the next scan under another
+ * item), as long as the app accepts it. Throws on an id that cannot be used.
+ */
+export function scanLink(itemId: string, kind: ScanKind, { existing = false } = {}): string {
+  if (existing) {
+    if (!APP_PATTERN.test(itemId)) throw new Error(`The item ID "${itemId}" has characters a scan link cannot carry.`);
+  } else {
+    const problem = itemIdProblem(itemId);
+    if (problem || itemId !== normalizeItemId(itemId)) throw new Error(`Bad item ID "${itemId}": ${problem ?? "not lowercase"}`);
+  }
   return `scandiff://scan?item=${encodeURIComponent(itemId)}&kind=${kind}`;
 }
