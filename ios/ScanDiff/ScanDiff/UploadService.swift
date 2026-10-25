@@ -24,7 +24,14 @@ private struct BaselineRow: Decodable {
     let id: UUID
 }
 
+private struct ScanIDRow: Decodable {
+    let id: UUID
+}
+
 struct UploadService {
+    /// The app's signed-in client; tests pass one whose requests go to a stub.
+    var client: SupabaseClient? = SupabaseProvider.client
+
     func upload(_ scan: PreparedScan) async throws -> UploadReceipt {
         let client = try makeClient()
         let itemID = scan.metadata.item_id
@@ -77,14 +84,21 @@ struct UploadService {
 
     func writeDecision(scanID: UUID, decision: String) async throws {
         let client = try makeClient()
+        let updated: [ScanIDRow]
         do {
-            try await client
+            // select() returns the changed rows: row-level security turns a forbidden update into zero rows, not an error.
+            updated = try await client
                 .from("scans")
                 .update(DecisionWrite(decision: decision))
                 .eq("id", value: scanID.uuidString)
+                .select("id")
                 .execute()
+                .value
         } catch {
             throw ScanError.decisionFailed(error.localizedDescription)
+        }
+        guard !updated.isEmpty else {
+            throw ScanError.decisionFailed("The decision was not saved: this account cannot decide on that scan, or it was deleted.")
         }
     }
 
@@ -124,8 +138,17 @@ struct UploadService {
         }
     }
 
-    /// Safe to repeat because every file is written with upsert.
-    private static func withRetry(attempts: Int = 3, _ operation: () async throws -> Void) async throws {
+    /// One second after the first failed try, two after the second.
+    static func uploadBackoff(after attempt: Int) -> Duration {
+        .seconds(Double(attempt))
+    }
+
+    /// Safe to repeat because every file is written with upsert. Waits `backoff(attempt)` between tries.
+    static func withRetry(
+        attempts: Int = 3,
+        backoff: (Int) -> Duration = uploadBackoff(after:),
+        _ operation: () async throws -> Void
+    ) async throws {
         for attempt in 1...attempts {
             do {
                 try await operation()
@@ -133,13 +156,13 @@ struct UploadService {
             } catch {
                 if attempt == attempts || Task.isCancelled { throw error }
                 Diagnostics.log("upload retry \(attempt) after: \(error.localizedDescription)")
-                try await Task.sleep(for: .seconds(Double(attempt)))
+                try await Task.sleep(for: backoff(attempt))
             }
         }
     }
 
     private func makeClient() throws -> SupabaseClient {
-        guard let client = SupabaseProvider.client else {
+        guard let client else {
             throw ScanError.missingSecrets
         }
         return client
