@@ -52,6 +52,16 @@ def heatmap_legend(threshold_mm: float) -> dict:
     }
 
 
+def to_linear(colors: np.ndarray) -> np.ndarray:
+    """sRGB uint8 RGBA to linear uint8 RGBA. glTF stores COLOR_0 in linear space, so viewers
+    show sRGB values written as-is too light: gray turns near-white and tints wash out."""
+    out = colors.copy()
+    c = colors[:, :3].astype(float) / 255.0
+    linear = np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+    out[:, :3] = np.round(linear * 255.0).astype(np.uint8)
+    return out
+
+
 def make_heatmap(
     new_mesh: trimesh.Trimesh,
     transform: np.ndarray,
@@ -61,17 +71,19 @@ def make_heatmap(
     """GLB of the new scan's surface in the base frame, colored by signed distance to the base.
 
     `transform` maps the new scan into the base frame (AlignResult.transform).
-    The mesh is decimated to config.HEATMAP_MAX_FACES first. A part removed
-    since the base scan has no surface here; it shows in the reverse distances.
+    The mesh is decimated to config.HEATMAP_MAX_FACES first, or a coarse one subdivided
+    toward config.HEATMAP_MAX_EDGE_MM. A part removed since the base scan has no surface
+    here; it shows in the reverse distances. Colors are stored linear, as glTF requires.
     """
     mesh = new_mesh.copy()
     mesh.apply_transform(transform)
     mesh = _decimate(mesh, config.HEATMAP_MAX_FACES)
+    mesh = _subdivide(mesh, config.HEATMAP_MAX_EDGE_MM * MM, config.HEATMAP_MAX_FACES)
     vertices = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(mesh.vertices))
     signed_mm = signed_distances(vertices, base_cloud)[0] / MM
     saturation_mm = config.HEATMAP_SATURATION_THRESHOLDS * threshold_mm
     mesh.visual = trimesh.visual.ColorVisuals(
-        mesh, vertex_colors=diverging_colors(signed_mm, threshold_mm, saturation_mm)
+        mesh, vertex_colors=to_linear(diverging_colors(signed_mm, threshold_mm, saturation_mm))
     )
     return mesh.export(file_type="glb", include_normals=True)
 
@@ -85,3 +97,11 @@ def _decimate(mesh: trimesh.Trimesh, max_faces: int) -> trimesh.Trimesh:
     return trimesh.Trimesh(
         vertices=np.asarray(simplified.vertices), faces=np.asarray(simplified.triangles), process=False
     )
+
+
+def _subdivide(mesh: trimesh.Trimesh, max_edge_m: float, max_faces: int) -> trimesh.Trimesh:
+    """Split every triangle into four (midpoints, so the shape is unchanged) while edges average
+    over max_edge_m and the result stays within max_faces."""
+    while len(mesh.faces) * 4 <= max_faces and mesh.edges_unique_length.mean() > max_edge_m:
+        mesh = mesh.subdivide()
+    return mesh
