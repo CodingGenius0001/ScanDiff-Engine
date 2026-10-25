@@ -39,3 +39,9 @@ DerivedData/
 
 # Logs
 *.log
+
+# Raw footage and audio stay local; only the Devpost gallery (used by README.md) is tracked.
+media/*
+!media/devpost/
+media/devpost/*
+!media/devpost/gallery/
