@@ -61,7 +61,7 @@ enum ScanBundle {
             try FileManager.default.copyItem(at: input.modelUSDZ, to: destinationModel)
         }
 
-        let cleanup = try exportOBJ(from: destinationModel, to: bundleDirectory)
+        let (cleanup, modelSize) = try exportOBJ(from: destinationModel, to: bundleDirectory)
         let materialURL = bundleDirectory.appendingPathComponent(materialFileName)
         let textures = FileManager.default.fileExists(atPath: materialURL.path)
             ? try MaterialFile.normalize(at: materialURL)
@@ -115,7 +115,8 @@ enum ScanBundle {
             directory: bundleDirectory,
             metadata: metadata,
             modelURL: destinationModel,
-            trackedPoseCount: tracked
+            trackedPoseCount: tracked,
+            modelSize: modelSize
         )
     }
 
@@ -198,7 +199,7 @@ enum ScanBundle {
     /// Cleans the mesh, then exports model.obj and writes each embedded
     /// texture as a PNG beside it so model.mtl points at files in the bundle.
     /// model.usdz is left exactly as reconstruction produced it.
-    private static func exportOBJ(from usdz: URL, to directory: URL) throws -> MeshCleanupSummary {
+    private static func exportOBJ(from usdz: URL, to directory: URL) throws -> (MeshCleanupSummary, ModelSize) {
         guard MDLAsset.canExportFileExtension("obj") else {
             throw ScanError.exportFailed("This device cannot export OBJ.")
         }
@@ -206,6 +207,7 @@ enum ScanBundle {
         asset.loadTextures()
         let assetMeshes = meshes(in: asset)
         let cleanup = MeshCleaner.clean(assetMeshes)
+        let modelSize = MeshCleaner.measure(assetMeshes)
         var textureIndex = 0
         for mesh in assetMeshes {
             for case let submesh as MDLSubmesh in mesh.submeshes ?? [] {
@@ -229,7 +231,7 @@ enum ScanBundle {
         } catch {
             throw ScanError.exportFailed(error.localizedDescription)
         }
-        return cleanup
+        return (cleanup, modelSize)
     }
 
     private static func meshes(in asset: MDLAsset) -> [MDLMesh] {

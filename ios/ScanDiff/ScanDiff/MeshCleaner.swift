@@ -313,6 +313,31 @@ enum MeshCleaner {
         mesh.vertexCount = order.count
         mesh.submeshes = NSMutableArray(array: rebuilt)
     }
+
+    /// World-space bounding box and counts of the meshes after cleaning
+    /// (reconstruction output is in meters).
+    static func measure(_ meshes: [MDLMesh]) -> ModelSize {
+        var lower = SIMD3<Float>(repeating: .infinity)
+        var upper = SIMD3<Float>(repeating: -.infinity)
+        var vertices = 0
+        var triangles = 0
+        for mesh in meshes {
+            for case let submesh as MDLSubmesh in mesh.submeshes ?? [] where submesh.geometryType == .triangles {
+                triangles += submesh.indexCount / 3
+            }
+            guard let layout = PositionLayout(mesh: mesh) else { continue }
+            let transform = MDLTransform.globalTransform(with: mesh, atTime: 0)
+            for position in layout.readPositions(mesh: mesh) {
+                let world = transform * SIMD4(position, 1)
+                let point = SIMD3(world.x, world.y, world.z)
+                lower = simd_min(lower, point)
+                upper = simd_max(upper, point)
+            }
+            vertices += mesh.vertexCount
+        }
+        let extent = vertices > 0 ? (upper - lower) * 100 : .zero
+        return ModelSize(dimensionsCM: extent, vertices: vertices, triangles: triangles)
+    }
 }
 
 private struct PositionLayout {

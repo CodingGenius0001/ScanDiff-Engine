@@ -13,6 +13,10 @@ enum AppSecrets {
         url(forInfoKey: "EngineURL")
     }
 
+    static var engineFallbackURL: URL? {
+        url(forInfoKey: "EngineURLFallback")
+    }
+
     static var googleIOSClientID: String? {
         nonempty(string(forInfoKey: "GoogleIOSClientID"))
     }

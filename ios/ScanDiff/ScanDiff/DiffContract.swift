@@ -34,6 +34,25 @@ enum RegionTriage: String, Codable {
     case wear
     case damage
     case inconclusive
+    case needsReview = "needs_review"
+
+    /// Accepts the engine's region triage (`normal_wear` | `needs_review`) too.
+    init?(engineValue: String) {
+        if engineValue == "normal_wear" {
+            self = .wear
+        } else {
+            self.init(rawValue: engineValue)
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .wear: "wear"
+        case .damage: "damage"
+        case .inconclusive: "inconclusive"
+        case .needsReview: "needs review"
+        }
+    }
 }
 
 /// The engine's DiffResponse, decoded tolerantly: every field is optional or
@@ -55,6 +74,8 @@ struct DiffResult: Equatable, Decodable {
     var diffID: String?
     /// True for the engine's fixed example (`is_mock`) or the app's offline mock.
     var isMock: Bool
+    /// Which engine answered; set by the client, not part of the response.
+    var engineHost: String?
 
     init(
         triage: Triage,
@@ -88,12 +109,13 @@ struct DiffResult: Equatable, Decodable {
 
     private enum Keys: String, CodingKey {
         case triage, verdict, confidence, verdict_confidence, reason, verdict_reason
-        case compared_fraction, heatmap_url, histogram, regions, uncovered_regions, stats, diff_id, is_mock
+        case compared_fraction, heatmap_url, histogram, histogram_edges_mm, regions, uncovered_regions, stats, diff_id, is_mock
     }
 
     private struct Stats: Decodable {
         var changed_fraction: Double?
         var max_change_mm: Double?
+        var max_mm: Double?
     }
 
     private struct Ignored: Decodable {}
@@ -112,13 +134,26 @@ struct DiffResult: Equatable, Decodable {
             ?? c.decodeIfPresent(String.self, forKey: .verdict_reason)
         comparedFraction = try c.decodeIfPresent(Double.self, forKey: .compared_fraction)
         heatmapURL = (try c.decodeIfPresent(String.self, forKey: .heatmap_url)).flatMap(URL.init(string:))
-        histogram = try c.decodeIfPresent(DiffHistogram.self, forKey: .histogram) ?? DiffHistogram(edgesMM: [], counts: [])
-        uncoveredCount = (try c.decodeIfPresent([Ignored].self, forKey: .uncovered_regions))?.count ?? 0
-        let stats = try c.decodeIfPresent(Stats.self, forKey: .stats)
+        // Current engines send `histogram` as a list of shares with edges in
+        // `histogram_edges_mm`; older ones sent an object with counts.
+        if let shares = try? c.decodeIfPresent([Double].self, forKey: .histogram) {
+            let edges = try? c.decodeIfPresent([Double].self, forKey: .histogram_edges_mm)
+            histogram = DiffHistogram(edgesMM: edges ?? [], counts: [], shares: shares)
+        } else {
+            histogram = (try? c.decodeIfPresent(DiffHistogram.self, forKey: .histogram)) ?? DiffHistogram(edgesMM: [], counts: [])
+        }
+        uncoveredCount = (try? c.decodeIfPresent([Ignored].self, forKey: .uncovered_regions))?.count ?? 0
+        let stats = try? c.decodeIfPresent(Stats.self, forKey: .stats)
         changedFraction = stats?.changed_fraction
-        maxChangeMM = stats?.max_change_mm
+        maxChangeMM = stats?.max_change_mm ?? stats?.max_mm
         diffID = try c.decodeIfPresent(String.self, forKey: .diff_id)
         isMock = try c.decodeIfPresent(Bool.self, forKey: .is_mock) ?? false
+    }
+
+    /// The engine's `inconclusive` (scans couldn't be compared reliably) is
+    /// distinct from `needs_review`, although both triage as inconclusive.
+    var headline: String {
+        verdict == "inconclusive" ? "Inconclusive: couldn't compare reliably" : triage.title
     }
 
     static func decode(_ data: Data) throws -> DiffResult {
@@ -133,10 +168,13 @@ struct DiffResult: Equatable, Decodable {
 struct DiffHistogram: Equatable, Decodable {
     var edgesMM: [Double]
     var counts: [Int]
+    /// Share of the compared surface per bin (current engines); sums to 1.
+    var shares: [Double] = []
 
-    init(edgesMM: [Double], counts: [Int]) {
+    init(edgesMM: [Double], counts: [Int], shares: [Double] = []) {
         self.edgesMM = edgesMM
         self.counts = counts
+        self.shares = shares
     }
 
     private enum Keys: String, CodingKey { case bins_mm, bin_edges_mm, counts }
@@ -192,13 +230,14 @@ struct DiffRegion: Equatable, Identifiable, Decodable {
         centroidM = try c.decodeIfPresent([Double].self, forKey: .centroid_m) ?? c.decodeIfPresent([Double].self, forKey: .centroid)
         confidence = try c.decodeIfPresent(Double.self, forKey: .confidence)
         reason = try c.decodeIfPresent(String.self, forKey: .reason)
-        let explicit = (try? c.decodeIfPresent(String.self, forKey: .triage)).flatMap { $0 }.flatMap(RegionTriage.init(rawValue:))
+        let explicit = (try? c.decodeIfPresent(String.self, forKey: .triage)).flatMap { $0 }.flatMap(RegionTriage.init(engineValue:))
         triage = explicit ?? (label == "normal_wear" ? .wear : .inconclusive)
     }
 
     /// Human name for what changed, e.g. "Dent" or "Missing part".
     var title: String {
-        switch damageType {
+        // Current engines put the damage type in `label`.
+        switch damageType ?? label {
         case "dent_damage": kind == "added" ? "Raised area" : "Dent"
         case "missing_part": "Missing part"
         case "scratch_scuff": "Scratch or scuff"

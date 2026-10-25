@@ -352,13 +352,16 @@ final class ScanSessionModel {
                 try ScanBundle.make(input, poses: poses)
             }.value
             Diagnostics.log("bundle written photos=\(prepared.metadata.photos.count) cleanup=\(prepared.metadata.mesh_cleanup)")
+            Diagnostics.log("model size \(prepared.modelSize.summary) acceptable=\(prepared.modelSize.isAcceptable)")
             self.prepared = prepared
             let quality = ScanQuality(
                 shotCount: shotCount,
                 completedOrbit: completedOrbit,
-                savedPhotoCount: prepared.metadata.photos.count
+                savedPhotoCount: prepared.metadata.photos.count,
+                modelSize: prepared.modelSize
             )
             if let rejection = quality.rejection {
+                Diagnostics.log("scan rejected, capture kept in \(folders.root.lastPathComponent): \(rejection)")
                 stage = .rejected(rejection)
                 return
             }
@@ -419,7 +422,7 @@ final class ScanSessionModel {
         do {
             let result = try await EngineClients.make().diff(baseID: baselineID, newID: receipt.scanID)
             diff = result
-            Diagnostics.log("diff done triage=\(result.triage.rawValue) regions=\(result.regions.count) mock=\(result.isMock) in \(String(format: "%.1f", Date().timeIntervalSince(started)))s")
+            Diagnostics.log("diff done triage=\(result.triage.rawValue) regions=\(result.regions.count) mock=\(result.isMock) host=\(result.engineHost ?? "none") in \(String(format: "%.1f", Date().timeIntervalSince(started)))s")
         } catch {
             Diagnostics.log("diff failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription

@@ -34,6 +34,8 @@
 	<string>ScanDiff sends scans to the comparison engine running on your local network.</string>
 	<key>EngineURL</key>
 	<string>$(ENGINE_URL)</string>
+	<key>EngineURLFallback</key>
+	<string>$(ENGINE_URL_FALLBACK)</string>
 	<key>GoogleIOSClientID</key>
 	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
 	<key>GoogleWebClientID</key>
