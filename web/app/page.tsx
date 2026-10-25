@@ -34,8 +34,9 @@ export default function Home() {
         <div className="absolute inset-x-0 top-0 -z-10 h-[44vh] md:inset-y-0 md:left-auto md:h-auto md:w-[62%]">
           <HeroScan />
         </div>
-        <div className="mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-end gap-8 px-4 pb-10 pt-[46vh] md:pt-24">
-          <div className="max-w-xl">
+        {/* Clicks pass through the empty part of the hero to the mug, which can be dragged. */}
+        <div className="pointer-events-none mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-end gap-8 px-4 pb-10 pt-[46vh] md:pt-24">
+          <div className="pointer-events-auto max-w-xl">
             <h1 className="display text-[56px] sm:text-[88px]">
               every handoff,
               <br />

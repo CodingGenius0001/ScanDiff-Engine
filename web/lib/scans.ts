@@ -64,6 +64,12 @@ export async function fetchItemRows(db: SupabaseClient, itemId: string): Promise
   return data;
 }
 
+/** A readable name from an item ID: "coffee-maker-002" → "Coffee maker". The ID itself is shown beside it. */
+export function itemTitle(itemId: string): string {
+  const words = itemId.replace(/[-_]?\d+$/, "").split(/[-_]+/).filter(Boolean).join(" ");
+  return words ? words[0].toUpperCase() + words.slice(1) : itemId;
+}
+
 export function itemFromRows(itemId: string, rows: ScanRow[]): Item | undefined {
   const baseline = rows.filter((r) => r.kind === "baseline").at(-1);
   if (!baseline) return undefined;
@@ -73,7 +79,7 @@ export function itemFromRows(itemId: string, rows: ScanRow[]): Item | undefined 
     id: itemId,
     // TODO(team): the table has no item kind, title or price. Real items show as shipping, without checkout.
     kind: "shipping",
-    title: itemId,
+    title: itemTitle(itemId),
     source: "supabase",
     versions: [version(baseline, "Baseline"), ...checks.map((r, i) => version(r, `Check ${i + 1}`))],
   };

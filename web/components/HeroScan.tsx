@@ -57,11 +57,45 @@ export default function HeroScan() {
             {scan.ghost && <Ghost geometry={scan.ghost} />}
           </group>
           <FitCamera />
-          <OrbitControls autoRotate autoRotateSpeed={0.6} enableZoom={false} enablePan={false} enableRotate={false} target={[0, 0, 0]} />
+          <OrbitControls
+            autoRotate
+            autoRotateSpeed={0.6}
+            enableZoom={false}
+            enablePan={false}
+            minPolarAngle={0.35}
+            maxPolarAngle={2.2}
+            target={[0, 0, 0]}
+          />
+          <ScrollFriendlyTouch />
         </Canvas>
       )}
     </div>
   );
+}
+
+/**
+ * Drag to turn the mug. On touch screens only sideways drags turn it, so a
+ * vertical swipe over the mug still scrolls the page.
+ */
+function ScrollFriendlyTouch() {
+  const canvas = useThree((s) => s.gl.domElement);
+  useEffect(() => {
+    // OrbitControls sets touch-action: none on connect; run after it.
+    const id = requestAnimationFrame(() => {
+      canvas.style.touchAction = "pan-y";
+      canvas.style.cursor = "grab";
+    });
+    const grab = () => (canvas.style.cursor = "grabbing");
+    const release = () => (canvas.style.cursor = "grab");
+    canvas.addEventListener("pointerdown", grab);
+    window.addEventListener("pointerup", release);
+    return () => {
+      cancelAnimationFrame(id);
+      canvas.removeEventListener("pointerdown", grab);
+      window.removeEventListener("pointerup", release);
+    };
+  }, [canvas]);
+  return null;
 }
 
 /** Pulls the camera back on narrow screens so the whole mug stays in frame. */

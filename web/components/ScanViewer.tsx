@@ -167,7 +167,13 @@ function LinkedControls({ link }: { link: CameraLink }) {
 }
 
 
-/** Moves each badge to its marker's screen position every frame. */
+/** Badge diameter plus a small gap, in CSS pixels. */
+const BADGE_SPACING = 28;
+
+/**
+ * Moves each badge to its marker's screen position every frame. Badges that
+ * would overlap are pushed apart, findings first, so every number stays readable.
+ */
 function BadgeProjector({
   markers,
   badges,
@@ -178,8 +184,11 @@ function BadgeProjector({
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const v = useMemo(() => new THREE.Vector3(), []);
+  // Findings keep their exact spot; "no data" markers give way to them.
+  const ordered = useMemo(() => [...markers].sort((a, b) => Number(a.kind === "nodata") - Number(b.kind === "nodata")), [markers]);
   useFrame(() => {
-    for (const m of markers) {
+    const placed: [number, number][] = [];
+    for (const m of ordered) {
       const el = badges.current.get(m.id);
       if (!el) continue;
       v.set(...m.center).project(camera);
@@ -187,9 +196,22 @@ function BadgeProjector({
         el.style.visibility = "hidden";
         continue;
       }
-      const x = ((v.x + 1) / 2) * size.width - 12;
-      const y = ((1 - v.y) / 2) * size.height - 12;
-      el.style.transform = `translate(${x}px, ${y}px)`;
+      let x = ((v.x + 1) / 2) * size.width;
+      let y = ((1 - v.y) / 2) * size.height;
+      for (let pass = 0; pass < 3; pass++) {
+        for (const [px, py] of placed) {
+          const dx = x - px;
+          const dy = y - py;
+          const d = Math.hypot(dx, dy);
+          if (d >= BADGE_SPACING) continue;
+          // Push straight away from the badge already there (sideways if exactly on top).
+          const [ux, uy] = d > 0.5 ? [dx / d, dy / d] : [1, 0];
+          x = px + ux * BADGE_SPACING;
+          y = py + uy * BADGE_SPACING;
+        }
+      }
+      placed.push([x, y]);
+      el.style.transform = `translate(${x - 12}px, ${y - 12}px)`;
       el.style.visibility = "visible";
     }
   });
