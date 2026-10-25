@@ -86,7 +86,7 @@ struct DiffResultView: View {
                     .foregroundStyle(.black)
                     .accessibilityLabel("Mock result, not from the comparison engine")
             }
-            Text(diff.triage.title)
+            Text(diff.headline)
                 .font(.title2.bold())
                 .foregroundStyle(color(for: diff.triage))
             Text("Confidence \(Int((diff.confidence * 100).rounded()))%")
@@ -146,7 +146,7 @@ struct DiffResultView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Text(region.triage.rawValue)
+                    Text(region.triage.title)
                         .font(.caption2.weight(.semibold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -203,7 +203,7 @@ struct DiffResultView: View {
         switch triage {
         case .wear: .teal
         case .damage: .red
-        case .inconclusive: .orange
+        case .inconclusive, .needsReview: .orange
         }
     }
 }
