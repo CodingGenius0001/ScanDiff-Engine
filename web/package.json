@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "gen:contract": "json2ts -i ../engine/contract/diff_response.schema.json -o lib/contract.ts --no-additionalProperties --bannerComment \"/* Generated from engine/contract/diff_response.schema.json by npm run gen:contract. Do not edit by hand. */\""
+    "gen:contract": "json2ts -i ../engine/contract/diff_response.schema.json -o lib/contract.ts --no-additionalProperties --bannerComment \"/* Generated from engine/contract/diff_response.schema.json by npm run gen:contract. Do not edit by hand. */\"",
+    "test": "vitest run"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -32,6 +33,7 @@
     "eslint-config-next": "16.4.3",
     "json-schema-to-typescript": "^16.0.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.2.4"
   }
 }

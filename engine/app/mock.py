@@ -187,7 +187,8 @@ def mock_diff_response(heatmap_url: str, base_model_url: str, new_model_url: str
                 label="needs_review",
                 damage_type="dent_damage",
                 area_cm2=0.9,
-                confidence=0.71,
+                # Under DAMAGE_MIN_CONFIDENCE, so it is for a person to confirm, as the verdict says.
+                confidence=0.68,
                 reason="Localized 4.9 mm depression with a sharp edge on the side wall.",
             ),
         ],

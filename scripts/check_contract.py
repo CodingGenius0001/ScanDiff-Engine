@@ -31,12 +31,19 @@ REGION_TRIAGE = {"wear", "damage", "inconclusive"}
 def fetch(engine: str, base: str, new: str, mock: bool) -> dict:
     url = f"{engine.rstrip('/')}/diff{'?mock=true' if mock else ''}"
     body = json.dumps({"base_id": base, "new_id": new}).encode()
-    request = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"}, method="POST")
+    headers = {"Content-Type": "application/json"}
+    if not mock:
+        # POST /diff needs the session that GET /health hands out (contract/README.md).
+        with urllib.request.urlopen(f"{engine.rstrip('/')}/health", timeout=30) as response:
+            headers["X-Session-ID"] = json.load(response)["session_id"]
+    request = urllib.request.Request(url, data=body, headers=headers, method="POST")
     with urllib.request.urlopen(request, timeout=180) as response:
         return json.load(response)
 
 
 def check(response: dict) -> list[str]:
+    if not isinstance(response, dict):
+        return [f"the response is a {type(response).__name__}, not a JSON object"]
     problems = []
     validator = jsonschema.Draft202012Validator(json.loads(SCHEMA.read_text()))
     problems += [f"schema: {'/'.join(map(str, e.path)) or '<root>'}: {e.message}" for e in validator.iter_errors(response)]
@@ -56,10 +63,19 @@ def check(response: dict) -> list[str]:
         problems.append("reason must equal verdict_reason")
     if "compared_fraction" not in response:
         problems.append("compared_fraction is missing (null is allowed)")
-    histogram = response.get("histogram", {})
-    if histogram.get("bins_mm") != histogram.get("bin_edges_mm"):
+    histogram = response.get("histogram")
+    if not isinstance(histogram, dict):
+        problems.append(f"histogram must be an object, got {type(histogram).__name__}")
+    elif histogram.get("bins_mm") != histogram.get("bin_edges_mm"):
         problems.append("histogram.bins_mm must equal histogram.bin_edges_mm")
-    for region in response.get("regions", []):
+    regions = response.get("regions")
+    if not isinstance(regions, list):
+        problems.append(f"regions must be a list, got {type(regions).__name__}")
+        regions = []
+    for region in regions:
+        if not isinstance(region, dict):
+            problems.append(f"region {region!r} is not an object")
+            continue
         rid = region.get("id", "?")
         if region.get("triage") not in REGION_TRIAGE:
             problems.append(f"region {rid}: triage {region.get('triage')!r} is not one of {sorted(REGION_TRIAGE)}")
@@ -87,7 +103,8 @@ def main() -> int:
         parser.error("pass a file or --engine")
 
     problems = check(response)
-    summary = f"triage={response.get('triage')} verdict={response.get('verdict')} regions={len(response.get('regions', []))} mock={response.get('is_mock')}"
+    fields = response if isinstance(response, dict) else {}
+    summary = f"triage={fields.get('triage')} verdict={fields.get('verdict')} regions={len(fields.get('regions') or [])} mock={fields.get('is_mock')}"
     if problems:
         print(f"FAIL {source} ({summary})")
         for problem in problems:

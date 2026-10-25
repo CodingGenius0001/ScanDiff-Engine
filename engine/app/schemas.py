@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from scandiff.config import DAMAGE_MIN_CONFIDENCE, ROTATION_ATOL
 
@@ -241,6 +241,16 @@ class DiffResponse(BaseModel):
         return self.verdict_reason
 
 
+def _plain_name(value: str) -> str:
+    """A file or folder name from metadata.json, which the engine joins onto local paths."""
+    if value in ("", ".", "..") or any(char in value for char in "/\\\0"):
+        raise ValueError(f"{value!r} must be a plain name, without folders")
+    return value
+
+
+# File names and ids that become path parts: never a folder, "..", or an absolute path.
+PlainName = Annotated[str, AfterValidator(_plain_name)]
+
 Flat16 = Annotated[list[float], Field(min_length=16, max_length=16)]
 Flat9 = Annotated[list[float], Field(min_length=9, max_length=9)]
 PositiveInt = Annotated[int, Field(gt=0)]
@@ -261,7 +271,7 @@ class TextureFile(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    file: str
+    file: PlainName
     sha256: str = ""
 
 
@@ -270,7 +280,7 @@ class FileRecord(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    name: str
+    name: PlainName
     sha256: str = ""
 
 
@@ -282,7 +292,7 @@ class PhotoMeta(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    file: str
+    file: PlainName
     camera_transform: Flat16
     intrinsics: Flat9
     image_width: PositiveInt | None = None
@@ -299,6 +309,9 @@ class PhotoMeta(BaseModel):
     def T_cam_to_world(self) -> np.ndarray:
         """4x4 camera-to-world matrix. Translation is column 3, in meters."""
         transform = np.array(self.camera_transform, dtype=float).reshape(4, 4).T
+        # Parsed column-major, a row-major dump still has a rotation in its 3x3, but its translation in the bottom row.
+        if not np.allclose(transform[3], [0.0, 0.0, 0.0, 1.0], atol=ROTATION_ATOL):
+            raise ValueError("camera_transform's bottom row is not [0, 0, 0, 1]; " + _ROW_MAJOR)
         _require_rotation(transform[:3, :3])
         return transform
 
@@ -308,6 +321,8 @@ class PhotoMeta(BaseModel):
         matrix = np.array(self.intrinsics, dtype=float).reshape(3, 3).T
         if not np.isclose(matrix[2, 2], 1.0):
             raise ValueError("intrinsics K[2, 2] is not 1; " + _ROW_MAJOR)
+        if not np.allclose(matrix[2, :2], 0.0):
+            raise ValueError("intrinsics' bottom row is not [0, 0, 1]; " + _ROW_MAJOR)
         return matrix
 
 
@@ -319,18 +334,31 @@ class ScanMetadata(BaseModel):
     created_at: datetime
     created_by: str
     device: str
-    item_id: str
+    item_id: PlainName
     kind: str
-    model_file: str
+    model_file: PlainName
     model_sha256: str
-    scan_id: str
+    scan_id: PlainName
     photos: list[PhotoMeta]
     units: str = "m"
     textures: list[TextureFile] = Field(default_factory=list)
     files: list[FileRecord] = Field(default_factory=list)
     # The textured OBJ the app exports beside the model (same frame as model_file); older scans have none.
-    obj_file: str | None = None
-    material_file: str | None = None
+    obj_file: PlainName | None = None
+    material_file: PlainName | None = None
+
+    @field_validator("photos", mode="before")
+    @classmethod
+    def unsolved_photos_are_dropped(cls, value: object) -> object:
+        """The app writes 16 zeros for a key photo whose pose reconstruction did not solve; it cannot be projected into."""
+        if isinstance(value, list):
+            return [
+                photo
+                for photo in value
+                if not (isinstance(photo, dict) and isinstance(photo.get("camera_transform"), list)
+                        and len(photo["camera_transform"]) == 16 and not any(photo["camera_transform"]))
+            ]
+        return value
 
     @field_validator("textures", mode="before")
     @classmethod

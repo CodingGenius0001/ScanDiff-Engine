@@ -93,11 +93,23 @@ function demoBuyerAccount(): Promise<Account> {
   return buyerAccount;
 }
 
+const inFlight = new Map<string, Promise<NessieRefund>>();
+
 /**
  * Deposits `amountCents` back to the demo buyer. `description` identifies the
- * refund: sending the same one again returns the deposit already made.
+ * refund: sending the same one again returns the deposit already made, and
+ * the same one sent twice at once makes one deposit.
  */
-export async function refundBuyer(amountCents: number, description: string): Promise<NessieRefund> {
+export function refundBuyer(amountCents: number, description: string): Promise<NessieRefund> {
+  let refund = inFlight.get(description);
+  if (!refund) {
+    refund = sendRefund(amountCents, description).finally(() => inFlight.delete(description));
+    inFlight.set(description, refund);
+  }
+  return refund;
+}
+
+async function sendRefund(amountCents: number, description: string): Promise<NessieRefund> {
   const account = await demoBuyerAccount();
   const path = `/accounts/${account._id}/deposits`;
   const existing = (await call<Deposit[]>("GET", path)).find((d) => d.description === description);

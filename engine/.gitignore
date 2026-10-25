@@ -12,3 +12,5 @@ static/*
 out/
 # The server copy of .env, written by deploy/deploy.sh.
 deploy/engine.env
+# Hypothesis example database, from the property tests.
+.hypothesis/

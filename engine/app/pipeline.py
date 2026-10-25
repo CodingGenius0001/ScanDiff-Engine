@@ -26,7 +26,7 @@ from scandiff.errors import (
 )
 from scandiff.heatmap import heatmap_legend, make_heatmap
 from scandiff.io import load_mesh
-from scandiff.photos import ScanView, crop_pair, load_photos, upload_crops
+from scandiff.photos import Photo, ScanView, crop_pair, load_photo, upload_crops
 from scandiff.preprocess import MM, check_gross_scale, clean, scale_check, to_point_cloud
 from scandiff.regions import cloud_point_areas, find_regions
 from scandiff.verdict import ClassifiedRegion, decide
@@ -96,8 +96,11 @@ def compare(base: LoadedScan, new: LoadedScan, diff_id: str | None = None, check
 
     scale_warning = scale_check(base_cloud, aligned.aligned)["warning"]
     d_signed, d_reverse = signed_distances(aligned.aligned, base_cloud)
-    base_view = ScanView(load_photos(base.folder, base.metadata), base.mesh)
-    new_view = ScanView(load_photos(new.folder, new.metadata), new.mesh, aligned.transform)
+    try:
+        base_view = ScanView(_key_photos(base), base.mesh)
+        new_view = ScanView(_key_photos(new), new.mesh, aligned.transform)
+    except InvalidMetadata as exc:
+        return inconclusive(_sentence(str(exc)), diff_id, **fingerprints)
     base_areas = cloud_point_areas(base_cloud)
     new_areas = cloud_point_areas(aligned.aligned)
     covered = coverage(base_cloud, aligned.aligned, d_signed, d_reverse, base_view, new_view, base_areas)
@@ -179,6 +182,19 @@ def compare(base: LoadedScan, new: LoadedScan, diff_id: str | None = None, check
     )
 
 
+def _key_photos(scan: LoadedScan) -> list[Photo]:
+    """The scan's key photos, ready to project into. Raises InvalidMetadata naming a photo that cannot be used."""
+    photos = []
+    for meta in scan.metadata.photos:
+        try:
+            photos.append(load_photo(meta, scan.folder))
+        except ValueError as exc:
+            raise InvalidMetadata(f"key photo {meta.file} has an unusable pose: {exc}") from exc
+        except OSError as exc:
+            raise InvalidMetadata(f"key photo {meta.file} is missing or is not an image") from exc
+    return photos
+
+
 def inconclusive(
     reason: str,
     diff_id: str | None = None,
@@ -201,7 +217,8 @@ def inconclusive(
         uncovered_regions=uncovered_regions or [],
         verdict="inconclusive",
         verdict_confidence=1.0,
-        verdict_reason=reason,
+        # Reasons quote names from metadata.json; a lone surrogate there would make the JSON unencodable.
+        verdict_reason=reason.encode("utf-8", "replace").decode("utf-8"),
         base_fingerprint=base_fingerprint,
         new_fingerprint=new_fingerprint,
         diff_id=diff_id or uuid.uuid4().hex,

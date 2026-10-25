@@ -1,0 +1,25 @@
+{
+  "is_mock": false,
+  "heatmap_url": null,
+  "base_model_url": null,
+  "new_model_url": null,
+  "heatmap_legend": null,
+  "histogram": {
+    "bin_edges_mm": [],
+    "counts": [],
+    "bins_mm": []
+  },
+  "stats": null,
+  "regions": [],
+  "uncovered_regions": [],
+  "verdict": "inconclusive",
+  "verdict_confidence": 1.0,
+  "verdict_reason": "Only 35% of the item was captured in both scans; rescan so both cover all of it.",
+  "base_fingerprint": "abababababababababababababababababababababababababababababababab",
+  "new_fingerprint": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+  "diff_id": "diff-incl",
+  "compared_fraction": 0.3518,
+  "triage": "inconclusive",
+  "confidence": 1.0,
+  "reason": "Only 35% of the item was captured in both scans; rescan so both cover all of it."
+}
