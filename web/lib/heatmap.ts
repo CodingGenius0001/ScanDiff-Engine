@@ -4,13 +4,13 @@
  *
  * At or below the noise threshold: light gray, like the engine's neutral
  * band. Above it: amber through red to dark red on a log scale, so a 30 mm
- * dent and a 300 mm missing part both stay readable. No data: dark slate.
+ * dent and a 300 mm missing part both stay readable. No data: cool slate.
  */
 import * as THREE from "three";
 
 export const COLORS = {
   noChange: "#c9c9c5",
-  noData: "#4b5563",
+  noData: "#8a9ab2",
   // Plaster white: plain models read as casts on the gray exhibit plate.
   neutral: "#f2f0ea",
   ramp: ["#fbbf24", "#f97316", "#dc2626", "#7f1d1d"],

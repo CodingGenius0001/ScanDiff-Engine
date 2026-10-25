@@ -5,7 +5,7 @@
  * Units are millimeters and Y is up, matching the mock DiffResult.
  */
 import * as THREE from "three";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 /** Small seeded PRNG so the mock is identical on every run. */
 function mulberry32(seed: number) {
@@ -82,6 +82,58 @@ function addNoise(g: THREE.BufferGeometry, amp: number, seed: number) {
   pos.needsUpdate = true;
 }
 
+
+/**
+ * Weld vertices that share a position (the seams of lathe and torus parts),
+ * so displacing them later cannot tear the surface open, and smooth-shade.
+ */
+function weld(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  g.deleteAttribute("normal");
+  const w = mergeVertices(g, 1e-3);
+  w.computeVertexNormals();
+  return w;
+}
+
+/** Value noise in [-1, 1], keyed on position, so neighbouring vertices move together. */
+function valueNoise(seed: number) {
+  const hash = (x: number, y: number, z: number) => {
+    let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 2147483647) ^ Math.imul(seed, 1274126177);
+    h = Math.imul(h ^ (h >>> 13), 1103515245);
+    return (((h ^ (h >>> 16)) >>> 0) / 4294967296) * 2 - 1;
+  };
+  const fade = (t: number) => t * t * (3 - 2 * t);
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  return (x: number, y: number, z: number) => {
+    const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+    const u = fade(x - xi), v = fade(y - yi), w = fade(z - zi);
+    const c = (dx: number, dy: number, dz: number) => hash(xi + dx, yi + dy, zi + dz);
+    return lerp(
+      lerp(lerp(c(0, 0, 0), c(1, 0, 0), u), lerp(c(0, 1, 0), c(1, 1, 0), u), v),
+      lerp(lerp(c(0, 0, 1), c(1, 0, 1), u), lerp(c(0, 1, 1), c(1, 1, 1), u), v),
+      w,
+    );
+  };
+}
+
+/**
+ * Scanner-like ripple along the normal, up to about `amp`: a broad undulation
+ * plus a fine grain, both smooth across the surface, like a LiDAR mesh rather
+ * than per-vertex static. Normals are recomputed afterwards.
+ */
+function addScanSurface(g: THREE.BufferGeometry, amp: number, seed: number) {
+  const broad = valueNoise(seed);
+  const fine = valueNoise(seed + 1);
+  const pos = g.getAttribute("position");
+  const nor = g.getAttribute("normal");
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const s = amp * (0.7 * broad(x / 14, y / 14, z / 14) + 0.3 * fine(x / 3, y / 3, z / 3));
+    pos.setXYZ(i, x + nor.getX(i) * s, y + nor.getY(i) * s, z + nor.getZ(i) * s);
+  }
+  pos.needsUpdate = true;
+  g.computeVertexNormals();
+}
+
 // ---------------------------------------------------------------- mug
 
 export const MUG = {
@@ -137,24 +189,47 @@ function mugHandle(a0: number, a1: number): THREE.BufferGeometry {
   return g;
 }
 
+/**
+ * Fracture face closing a broken handle end at angle `a`, facing along the
+ * handle (`dir` +1 toward larger angles, -1 toward smaller), so the break
+ * reads as solid ceramic rather than a hollow tube.
+ */
+function handleBreak(a: number, dir: 1 | -1): THREE.BufferGeometry {
+  const g = new THREE.CircleGeometry(MUG.handleTube, 32, 0, Math.PI * 2);
+  // A shallow dome, so the break catches the light like a solid fracture face.
+  const pos = g.getAttribute("position");
+  for (let i = 0; i < pos.count; i++) {
+    const r = Math.hypot(pos.getX(i), pos.getY(i)) / MUG.handleTube;
+    pos.setZ(i, 1.6 * (1 - r * r));
+  }
+  const tangent = new THREE.Vector3(-Math.sin(a), Math.cos(a), 0).multiplyScalar(dir);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent));
+  g.translate(MUG.radius - 3 + MUG.handleRadius * Math.cos(a), MUG.height / 2 + MUG.handleRadius * Math.sin(a), 0);
+  return g;
+}
+
 export function mugBaseline(): THREE.BufferGeometry {
-  const g = merge([mugBody(), mugHandle(-Math.PI / 2, Math.PI / 2)]);
-  addNoise(g, 1, 11);
+  const g = weld(merge([mugBody(), mugHandle(-Math.PI / 2, Math.PI / 2)]));
+  addScanSurface(g, 0.6, 11);
   return g;
 }
 
 export function mugNew(): THREE.BufferGeometry {
-  const g = merge([
-    mugBody(),
-    mugHandle(-Math.PI / 2, MUG.missingFrom),
-    mugHandle(MUG.missingTo, Math.PI / 2),
-  ]);
+  const g = weld(
+    merge([
+      mugBody(),
+      mugHandle(-Math.PI / 2, MUG.missingFrom),
+      handleBreak(MUG.missingFrom, 1),
+      handleBreak(MUG.missingTo, -1),
+      mugHandle(MUG.missingTo, Math.PI / 2),
+    ]),
+  );
   const radialZ = new THREE.Vector3(0, 0, 1);
   dent(g, MUG.dentCenter, MUG.dentRadius, MUG.dentDepth, null, radialZ);
   const radialX = new THREE.Vector3(-1, 0, 0);
   dent(g, MUG.wearCenter, MUG.wearRadius, MUG.wearDepth, null, radialX);
   g.computeVertexNormals();
-  addNoise(g, 1.2, 22);
+  addScanSurface(g, 0.7, 22);
   return g;
 }
 

@@ -52,11 +52,10 @@ export default function ScanViewer(props: Props) {
           <hemisphereLight args={["#ffffff", "#8d8a82", 1.3]} />
           <directionalLight position={[1, 2, 1.5]} intensity={1.3} />
           <directionalLight position={[-1.5, 0.5, -1]} intensity={0.6} />
+          {/* Fill from below, so undersides (often "no data") read as surface, not a black hole. */}
+          <directionalLight position={[0.3, -2, 0.6]} intensity={0.7} />
           <Model {...props} />
           <LinkedControls link={props.link} />
-          {props.markers.map((m) => (
-            <MarkerSphere key={m.id} marker={m} selected={m.id === props.selectedId} />
-          ))}
           <BadgeProjector markers={props.markers} badges={badges} />
         </Canvas>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -155,16 +154,6 @@ function LinkedControls({ link }: { link: CameraLink }) {
   );
 }
 
-function MarkerSphere({ marker, selected }: { marker: Marker; selected: boolean }) {
-  if (!selected) return null;
-  const color = marker.kind === "nodata" ? COLORS.noData : marker.kind === "missing" ? "#ff6a1a" : "#ededeb";
-  return (
-    <mesh position={marker.center}>
-      <sphereGeometry args={[marker.radius, 24, 16]} />
-      <meshBasicMaterial color={color} wireframe transparent opacity={0.35} />
-    </mesh>
-  );
-}
 
 /** Moves each badge to its marker's screen position every frame. */
 function BadgeProjector({
