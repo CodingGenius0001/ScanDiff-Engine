@@ -5,7 +5,7 @@
 #
 # Loads a minimal stand-in for Supabase's auth and storage schemas, a database
 # as the earlier open setup.sql left it, then setup.sql twice (it must be safe
-# to re-run), then the checks in rls_test.sql.
+# to re-run), then the checks in rls_test.sql and rls_audit_test.sql.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -22,3 +22,4 @@ run "$here/legacy_data.sql"
 run "$here/../setup.sql"
 run "$here/../setup.sql"
 psql -h "$tmp" -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -o /dev/null -f "$here/rls_test.sql"
+psql -h "$tmp" -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -o /dev/null -f "$here/rls_audit_test.sql"
