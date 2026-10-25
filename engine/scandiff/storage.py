@@ -224,12 +224,12 @@ def _fetch(scan: str, photos: bool) -> tuple[Path, ScanMetadata]:
     return model, metadata
 
 
-def upload_file(data: bytes, path: str) -> str:
+def upload_file(data: bytes, path: str, bucket: str | None = None) -> str:
     """Store a result file and return a URL the web viewer can load.
 
     With SUPABASE_URL and SUPABASE_KEY set, the file goes to the public bucket
-    named by SUPABASE_RESULTS_BUCKET (default "scandiff"), replacing any file
-    at that path. Without them, it is saved under engine/static/ and the URL
+    named by SUPABASE_RESULTS_BUCKET (default "scandiff"), or to `bucket`,
+    replacing any file at that path. Without them, it is saved under engine/static/ and the URL
     starts with ENGINE_PUBLIC_URL (default http://localhost:8000), so the
     engine works offline.
     """
@@ -241,7 +241,7 @@ def upload_file(data: bytes, path: str) -> str:
         base = os.environ.get("ENGINE_PUBLIC_URL") or DEFAULT_LOCAL_URL
         return f"{base.rstrip('/')}/static/{relative}"
 
-    bucket_name = os.environ.get("SUPABASE_RESULTS_BUCKET") or DEFAULT_RESULTS_BUCKET
+    bucket_name = bucket or os.environ.get("SUPABASE_RESULTS_BUCKET") or DEFAULT_RESULTS_BUCKET
     options = ClientOptions(storage_client_timeout=config.UPLOAD_TIMEOUT_S)
     bucket = create_client(url, key, options).storage.from_(bucket_name)
     content_type = CONTENT_TYPES.get(PurePosixPath(relative).suffix.lower(), "application/octet-stream")
@@ -253,6 +253,12 @@ def upload_file(data: bytes, path: str) -> str:
             "exist, be public, and allow inserts and updates for this key."
         ) from exc
     return bucket.get_public_url(relative)
+
+
+def scans_bucket() -> str:
+    """The bucket the app uploads scans to (SUPABASE_BUCKET), "scans" if unset."""
+    load_dotenv(ENV_PATH)
+    return os.environ.get("SUPABASE_BUCKET") or "scans"
 
 
 def _relative_path(path: str) -> str:

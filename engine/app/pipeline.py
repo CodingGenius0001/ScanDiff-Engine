@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
+from app.scan_models import converted_glb, publish_glb
 from app.schemas import DiffResponse, HeatmapLegend, Histogram, Region, ScanMetadata, Stats, UncoveredRegion
 from scandiff import config, storage
 from scandiff.align import align
@@ -63,6 +64,8 @@ def run_diff(base_id: str, new_id: str) -> DiffResponse:
 
 def compare(base: LoadedScan, new: LoadedScan, diff_id: str | None = None, check_items: bool = True) -> DiffResponse:
     """Align `new` onto `base`, find and classify what changed, and upload the result files.
+
+    Both scans' GLBs are also stored next to their originals (see scan_models.publish_glb).
 
     Only surface that both scans captured is compared (see scandiff/coverage.py).
     Different item ids (unless `check_items` is off), a size mismatch, a
@@ -134,7 +137,9 @@ def compare(base: LoadedScan, new: LoadedScan, diff_id: str | None = None, check
         new_aligned_mesh.apply_transform(aligned.transform)
         urls = {
             "heatmap": pool.submit(lambda: storage.upload_file(heatmap.result(), f"diffs/{diff_id}/heatmap.glb")),
-            "base": pool.submit(storage.upload_file, _glb(base.mesh), f"diffs/{diff_id}/base_model.glb"),
+            # The base scan's frame is the diff's frame, so its stored GLB is the base model as is.
+            "base": pool.submit(lambda: publish_glb(converted_glb(None, base.metadata, base.mesh), base.metadata)),
+            "new_stored": pool.submit(lambda: publish_glb(converted_glb(None, new.metadata, new.mesh), new.metadata)),
             "new": pool.submit(storage.upload_file, _glb(new_aligned_mesh), f"diffs/{diff_id}/new_model.glb"),
         }
         urls = {name: future.result() for name, future in urls.items()}
