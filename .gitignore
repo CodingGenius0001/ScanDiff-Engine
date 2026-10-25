@@ -1,1 +1,41 @@
+# Repo-wide: files no one else needs. engine/, ios/ and web/ have their own .gitignore for project specifics.
+
+# macOS and Windows
+.DS_Store
+._*
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# Secrets: never commit. Templates (.env.example) stay tracked.
+.env
+.env.*
+!.env.example
+*.pem
+
+# Python: bytecode, virtualenvs, test and lint caches
 __pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# Logs
+*.log
