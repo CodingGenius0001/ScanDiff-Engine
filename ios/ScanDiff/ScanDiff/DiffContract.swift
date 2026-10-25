@@ -76,6 +76,10 @@ struct DiffResult: Equatable, Decodable {
     var isMock: Bool
     /// Which engine answered; set by the client, not part of the response.
     var engineHost: String?
+    var baseModelURL: URL?
+    /// The check scan, aligned to the baseline.
+    var newModelURL: URL?
+    var legend: HeatmapLegend?
 
     init(
         triage: Triage,
@@ -110,6 +114,7 @@ struct DiffResult: Equatable, Decodable {
     private enum Keys: String, CodingKey {
         case triage, verdict, confidence, verdict_confidence, reason, verdict_reason
         case compared_fraction, heatmap_url, histogram, histogram_edges_mm, regions, uncovered_regions, stats, diff_id, is_mock
+        case base_model_url, new_model_url, heatmap_legend
     }
 
     private struct Stats: Decodable {
@@ -148,6 +153,9 @@ struct DiffResult: Equatable, Decodable {
         maxChangeMM = stats?.max_change_mm ?? stats?.max_mm
         diffID = try c.decodeIfPresent(String.self, forKey: .diff_id)
         isMock = try c.decodeIfPresent(Bool.self, forKey: .is_mock) ?? false
+        baseModelURL = (try? c.decodeIfPresent(String.self, forKey: .base_model_url)).flatMap(URL.init(string:))
+        newModelURL = (try? c.decodeIfPresent(String.self, forKey: .new_model_url)).flatMap(URL.init(string:))
+        legend = try? c.decodeIfPresent(HeatmapLegend.self, forKey: .heatmap_legend)
     }
 
     /// The engine's `inconclusive` (scans couldn't be compared reliably) is
@@ -162,6 +170,25 @@ struct DiffResult: Equatable, Decodable {
         } catch {
             throw ScanError.engineFailed("The comparison result could not be read: \(error.localizedDescription)")
         }
+    }
+}
+
+/// How to read the heat map's baked colors: gray within ±neutralBandMM,
+/// blending to blue (dent) at minMM and red (added material) at maxMM.
+struct HeatmapLegend: Equatable, Decodable {
+    var minMM: Double
+    var maxMM: Double
+    var neutralBandMM: Double
+
+    private enum Keys: String, CodingKey { case min_mm, max_mm, neutral_band_mm, threshold_mm }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: Keys.self)
+        minMM = try c.decode(Double.self, forKey: .min_mm)
+        maxMM = try c.decode(Double.self, forKey: .max_mm)
+        neutralBandMM = try c.decodeIfPresent(Double.self, forKey: .neutral_band_mm)
+            ?? c.decodeIfPresent(Double.self, forKey: .threshold_mm)
+            ?? 0
     }
 }
 

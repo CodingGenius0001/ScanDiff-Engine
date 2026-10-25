@@ -44,6 +44,7 @@ struct ComparingView: View {
 struct DiffResultView: View {
     @Bindable var model: ScanSessionModel
     var onClose: () -> Void
+    @State private var showsModels = false
 
     var body: some View {
         ScrollView {
@@ -52,9 +53,15 @@ struct DiffResultView: View {
                     verdictCard(diff)
                     coverage(diff)
                     regionList(diff)
-                    if let heatmapURL = diff.heatmapURL, !diff.isMock {
-                        Link("Open heat map", destination: heatmapURL)
-                            .font(.subheadline)
+                    if diff.heatmapURL != nil {
+                        Button {
+                            showsModels = true
+                        } label: {
+                            Label("View heat map in 3D", systemImage: "cube.transparent")
+                                .frame(maxWidth: .infinity, minHeight: 30)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
                     }
                     decisionButtons
                 } else {
@@ -73,6 +80,11 @@ struct DiffResultView: View {
             .padding()
         }
         .navigationTitle("Result")
+        .sheet(isPresented: $showsModels) {
+            if let diff = model.diff {
+                ModelViewerSheet(diff: diff)
+            }
+        }
     }
 
     private func verdictCard(_ diff: DiffResult) -> some View {
