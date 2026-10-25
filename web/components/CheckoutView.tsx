@@ -7,6 +7,7 @@ import { pay, resetOrder, statusAt, uploadScan, useOrder, type OrderStatus } fro
 import type { Item } from "@/lib/types";
 import { useComparison } from "@/lib/useComparison";
 import DemoBadge from "./DemoBadge";
+import DemoCardCheckout, { DEMO_CARD } from "./DemoCardCheckout";
 import Fingerprint from "./Fingerprint";
 import LocalTime from "./LocalTime";
 import RefundNotice from "./RefundNotice";
@@ -53,23 +54,18 @@ export default function CheckoutView({ item }: { item: Item }) {
 
         <div className="mt-4 flex flex-col gap-3">
           {order.status === "listed" && (
-            <>
-              <button
-                type="button"
-                onClick={() => pay(item.id, item.kind)}
-                className="min-h-12 key bg-ink px-5 text-base font-semibold text-paper"
-              >
-                Pay with Visa (demo)
-              </button>
-              <p className="text-xs text-ink-soft">
-                In this demo the payment is held until the buyer scans the item on arrival and approves the comparison.
-              </p>
-            </>
+            <DemoCardCheckout
+              title={item.title}
+              seller="Demo Pottery Co."
+              priceCents={price}
+              onPay={() => pay(item.id, item.kind)}
+            />
           )}
           {order.status === "held_scan_required" && (
             <>
               <p className="text-sm">
-                Payment of {formatPrice(price)} is <strong>held: scan required</strong>. When the parcel arrives, the
+                Payment of {formatPrice(price)} from Visa •••• {DEMO_CARD.number.slice(-4)} is{" "}
+                <strong>held: scan required</strong>. When the parcel arrives, the
                 buyer scans the item with the ScanDiff iOS app.
               </p>
               <button
