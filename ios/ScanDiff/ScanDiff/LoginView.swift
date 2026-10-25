@@ -8,7 +8,13 @@ struct LoginView: View {
     @State private var busy: Busy?
     @State private var errorMessage: String?
     @State private var infoMessage: String?
+    @State private var pendingConfirmation: PendingConfirmation?
     @FocusState private var focus: Field?
+
+    private struct PendingConfirmation: Equatable {
+        let email: String
+        let password: String
+    }
 
     private enum Mode { case signIn, signUp }
     private enum Busy { case google, email }
@@ -92,11 +98,16 @@ struct LoginView: View {
                     .transition(.opacity)
             }
             if let infoMessage {
-                Label(infoMessage, systemImage: "envelope.badge")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .transition(.opacity)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Label(infoMessage, systemImage: "envelope.badge")
+                    if pendingConfirmation != nil {
+                        ProgressView().controlSize(.small)
+                    }
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .transition(.opacity)
             }
 
             Button {
@@ -130,6 +141,13 @@ struct LoginView: View {
         }
         .animation(.default, value: errorMessage)
         .animation(.default, value: infoMessage)
+        .task(id: pendingConfirmation) {
+            guard let pending = pendingConfirmation else { return }
+            let signedIn = await auth.waitForConfirmation(email: pending.email, password: pending.password)
+            guard !Task.isCancelled, !signedIn else { return }
+            pendingConfirmation = nil
+            infoMessage = "Once you've confirmed \(pending.email), sign in here."
+        }
     }
 
     private var modeSelection: Binding<Mode> {
@@ -140,6 +158,7 @@ struct LoginView: View {
                     mode = newMode
                     errorMessage = nil
                     infoMessage = nil
+                    pendingConfirmation = nil
                 }
             }
         )
@@ -176,6 +195,7 @@ struct LoginView: View {
         focus = nil
         errorMessage = nil
         infoMessage = nil
+        pendingConfirmation = nil
         busy = .email
         defer { busy = nil }
         do {
@@ -185,7 +205,8 @@ struct LoginView: View {
             case .signUp:
                 if case .confirmationSent(let address) = try await auth.signUp(email: trimmedEmail, password: password) {
                     mode = .signIn
-                    infoMessage = "We sent a confirmation link to \(address). Open it, then sign in."
+                    infoMessage = "We sent a confirmation link to \(address). Tap it on any device; you'll be signed in here automatically."
+                    pendingConfirmation = PendingConfirmation(email: trimmedEmail, password: password)
                 }
             }
         } catch {

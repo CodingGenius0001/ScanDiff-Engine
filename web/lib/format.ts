@@ -32,10 +32,7 @@ export const VERDICT_TEXT: Record<Verdict, { title: string; detail: string }> = 
   accept: { title: "Accept", detail: "No shape change beyond normal wear above the noise threshold." },
   damage_likely: { title: "Damage likely", detail: "Shape changes that look like damage. A person should confirm." },
   needs_review: { title: "Needs review", detail: "Shape changes the comparison could not classify. A person should look at them." },
-  inconclusive: {
-    title: "Inconclusive",
-    detail: "The scans could not be compared, so nothing is flagged as damage or as unchanged. Scanning the item again usually fixes this.",
-  },
+  inconclusive: { title: "Inconclusive", detail: "The scans could not be compared reliably. Re-scan the item the same way." },
 };
 
 /** Why an area was not compared, for "no data" findings. */
