@@ -63,8 +63,7 @@ def main() -> None:
     print(f"  95% of the surface agrees within      {calibration['p95_mm']:5.2f} mm")
     print(f"  99% of the surface agrees within      {calibration['p99_mm']:5.2f} mm")
     print(f"  Change threshold                      {threshold:5.2f} mm  "
-          f"({config.THRESHOLD_SIGMAS:g} x sigma = {config.THRESHOLD_SIGMAS * sigma:.2f} mm, "
-          f"floor {config.MIN_THRESHOLD_MM:g} mm)")
+          f"(the 95th percentile, floor {config.MIN_THRESHOLD_MM:g} mm)")
     print()
     for index, pair in enumerate(calibration["pairs"], start=1):
         print(f"  Pair {index}: {pair['scans'][0]} vs {pair['scans'][1]}")

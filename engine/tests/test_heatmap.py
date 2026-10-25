@@ -2,6 +2,7 @@
 
 import io
 
+import httpx
 import numpy as np
 import pytest
 import trimesh
@@ -120,12 +121,12 @@ def test_upload_rejects_paths_outside_the_bucket(no_supabase, path):
 
 
 class _FakeBucket:
-    def __init__(self, fail=False):
+    def __init__(self, fail=None):
         self.fail, self.uploads = fail, []
 
     def upload(self, path, data, options):
         if self.fail:
-            raise StorageException({"message": "Bucket not found"})
+            raise self.fail
         self.uploads.append((path, data, options))
 
     def get_public_url(self, path):
@@ -146,7 +147,7 @@ def _fake_supabase(monkeypatch, tmp_path, bucket):
                 names.append(name)
                 return bucket
 
-    monkeypatch.setattr(storage, "create_client", lambda url, key: Client())
+    monkeypatch.setattr(storage, "create_client", lambda url, key, options=None: Client())
     return names
 
 
@@ -163,8 +164,11 @@ def test_upload_goes_to_the_public_scandiff_bucket(monkeypatch, tmp_path):
     assert url.endswith("/public/scandiff/diffs/d1/heatmap.glb")
 
 
-def test_upload_failure_names_the_bucket(monkeypatch, tmp_path):
-    _fake_supabase(monkeypatch, tmp_path, _FakeBucket(fail=True))
+@pytest.mark.parametrize(
+    "error", [StorageException({"message": "Bucket not found"}), httpx.ReadTimeout("The read operation timed out")]
+)
+def test_upload_failure_names_the_bucket(monkeypatch, tmp_path, error):
+    _fake_supabase(monkeypatch, tmp_path, _FakeBucket(fail=error))
 
     with pytest.raises(UploadFailed, match="scandiff bucket"):
         storage.upload_file(b"x", "diffs/d1/heatmap.glb")

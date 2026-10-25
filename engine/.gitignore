@@ -10,3 +10,5 @@ static/*
 !static/sample_*.glb
 # Debug output from scripts, such as check_projection.py overlays.
 out/
+# The server copy of .env, written by deploy/deploy.sh.
+deploy/engine.env

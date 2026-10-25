@@ -216,7 +216,7 @@
           "type": "number"
         },
         "noise_floor_mm": {
-          "description": "Estimated sensor noise, millimeters, in the base scan frame.",
+          "description": "95th-percentile distance between two scans of an unchanged object, millimeters.",
           "title": "Noise Floor Mm",
           "type": "number"
         },
@@ -254,7 +254,7 @@
       "type": "object"
     },
     "UncoveredRegion": {
-      "description": "Surface that only one of the two scans captured, so it cannot be compared.\n\n`centroid_m` and `radius_m` match Region, so a marker can be placed and sized.",
+      "description": "Surface that was not compared because a scan did not capture it, such as an unscanned bottom.\n\n`only_in` says which scan did capture it: \"base\", \"new\", or \"neither\".\n`centroid_m` and `radius_m` match Region, so a marker can be placed and sized.",
       "properties": {
         "id": {
           "title": "Id",
@@ -263,7 +263,8 @@
         "only_in": {
           "enum": [
             "base",
-            "new"
+            "new",
+            "neither"
           ],
           "title": "Only In",
           "type": "string"
@@ -300,7 +301,7 @@
       "type": "object"
     }
   },
-  "description": "Comparison of a new scan against a base scan, for the web viewer.\n\nAll three GLBs are in the base scan frame, in meters, with +Y up as in ARKit and glTF. Every\nposition in this response (centroid_m, bbox_*_m) is in that frame too. The upload is USDZ, which\nthree.js cannot load, so the engine publishes both scans as GLB. `new_model_url` is already aligned\ninto the base frame. `heatmap_url` is the new scan's surface, also aligned into the base frame,\nwith vertex colors already applied on the signed blue/gray/red scale. A part removed since the base\nscan has no surface in it; regions and stats still report it.",
+  "description": "Comparison of a new scan against a base scan, for the web viewer.\n\nAll three GLBs are in the base scan frame, in meters, with +Y up as in ARKit and glTF. Every\nposition in this response (centroid_m, bbox_*_m) is in that frame too. The upload is USDZ, which\nthree.js cannot load, so the engine publishes both scans as GLB. `new_model_url` is already aligned\ninto the base frame. `heatmap_url` is the new scan's surface, also aligned into the base frame,\nwith vertex colors already applied on the signed blue/gray/red scale. A part removed since the base\nscan has no surface in it; regions and stats still report it.\n\nverdict \"inconclusive\" means the scans could not be compared (unreadable, different items, failed\nalignment, or too little overlap): verdict_reason says why, and the URLs, legend, stats and\nfingerprints that could not be produced are null.",
   "properties": {
     "is_mock": {
       "description": "True when this is the engine's fixed example response, not a comparison of the two scans.",
@@ -308,28 +309,63 @@
       "type": "boolean"
     },
     "heatmap_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
       "description": "Heatmap GLB: the new scan's surface aligned into the base scan frame, meters, with signed blue/gray/red vertex colors already applied.",
-      "title": "Heatmap Url",
-      "type": "string"
+      "title": "Heatmap Url"
     },
     "base_model_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
       "description": "Base scan as GLB, in the base scan frame, meters. No heatmap colors.",
-      "title": "Base Model Url",
-      "type": "string"
+      "title": "Base Model Url"
     },
     "new_model_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
       "description": "New scan as GLB, aligned into the base scan frame, meters. No heatmap colors.",
-      "title": "New Model Url",
-      "type": "string"
+      "title": "New Model Url"
     },
     "heatmap_legend": {
-      "$ref": "#/$defs/HeatmapLegend"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HeatmapLegend"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "histogram": {
       "$ref": "#/$defs/Histogram"
     },
     "stats": {
-      "$ref": "#/$defs/Stats"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Stats"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "regions": {
       "items": {
@@ -349,7 +385,8 @@
       "enum": [
         "accept",
         "damage_likely",
-        "needs_review"
+        "needs_review",
+        "inconclusive"
       ],
       "title": "Verdict",
       "type": "string"
@@ -366,12 +403,26 @@
       "type": "string"
     },
     "base_fingerprint": {
-      "title": "Base Fingerprint",
-      "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Base Fingerprint"
     },
     "new_fingerprint": {
-      "title": "New Fingerprint",
-      "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "New Fingerprint"
     },
     "diff_id": {
       "title": "Diff Id",
@@ -390,7 +441,7 @@
         }
       ],
       "default": null,
-      "description": "Fraction of the base surface both scans covered, from 0 to 1. Null until coverage is computed.",
+      "description": "Fraction of the base surface both scans captured and was compared, from 0 to 1. The rest is in uncovered_regions and never flagged. Null only in the mock.",
       "title": "Compared Fraction"
     }
   },

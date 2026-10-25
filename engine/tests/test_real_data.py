@@ -41,10 +41,11 @@ COFFEE_PAIR = [
     not all((scan / "photo_01.jpg").is_file() for scan in COFFEE_PAIR), reason="coffee-maker scans not downloaded"
 )
 def test_full_comparison_of_the_coffee_maker_rescan(monkeypatch, tmp_path):
+    from app import scan_models
     from app.pipeline import compare, load_scan
     from scandiff import classify, storage
 
-    def save(data: bytes, path: str) -> str:
+    def save(data: bytes, path: str, bucket: str | None = None) -> str:
         (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / path).write_bytes(data)
         return f"https://example.test/{path}"
@@ -52,13 +53,25 @@ def test_full_comparison_of_the_coffee_maker_rescan(monkeypatch, tmp_path):
     monkeypatch.setattr(storage, "upload_file", save)
     monkeypatch.setattr("scandiff.photos.upload_file", save)
     monkeypatch.setattr(classify, "vision_provider", lambda: None)
+    # Keep the fake URLs out of the real GLB cache.
+    monkeypatch.setattr(scan_models, "GLB_CACHE_DIR", tmp_path / "glb")
     base, new = (load_scan(find_model_file(scan), storage.read_metadata(scan / "metadata.json")) for scan in COFFEE_PAIR)
 
-    result = compare(base, new, diff_id="real")
+    # Different item ids only because scan 2's id is misspelled; it is the same coffee maker.
+    assert compare(base, new, diff_id="real").verdict == "inconclusive"
+    result = compare(base, new, diff_id="real", check_items=False)
 
     assert result.regions and not result.is_mock
+    # The bottom was never captured, so it is uncovered rather than compared.
+    assert 0.5 < result.compared_fraction < 0.95
+    bottom = max(result.uncovered_regions, key=lambda patch: patch.area_cm2)
+    assert bottom.only_in == "neither" and bottom.centroid_m[1] < 0.02
+    assert all(region.centroid_m[1] > 0.01 for region in result.regions[:8])
     assert result.stats.diff_time_s < 60
     assert all("\n" not in region.reason for region in result.regions)
     # The cord moved between scans, so most crops of the worst regions exist on at least one side.
     assert sum(bool(region.before_crop_url or region.after_crop_url) for region in result.regions[:8]) >= 4
     assert (tmp_path / "diffs/real/heatmap.glb").stat().st_size > 0
+    # Both scans' GLBs are stored next to their originals, and the base one is the diff's base model.
+    assert result.base_model_url.endswith(f"/{base.metadata.item_id}/{base.metadata.scan_id}/model.glb")
+    assert (tmp_path / new.metadata.item_id / new.metadata.scan_id / "model.glb").is_file()

@@ -18,6 +18,7 @@ from scandiff.errors import (
     InvalidMetadata,
     ScanNotFound,
     StorageNotConfigured,
+    UploadFailed,
 )
 from scandiff.io import load_mesh
 
@@ -73,6 +74,20 @@ def stored_scan(tmp_path, monkeypatch):
     return model, calls
 
 
+@pytest.fixture(autouse=True)
+def uploads(monkeypatch):
+    """Record uploads instead of sending them to Supabase."""
+    sent = []
+
+    def upload_file(data, path, bucket=None):
+        sent.append((path, bucket, data))
+        return f"https://example.supabase.co/storage/v1/object/public/{bucket}/{path}"
+
+    monkeypatch.setattr(storage, "upload_file", upload_file)
+    monkeypatch.setattr(storage, "scans_bucket", lambda: "scans")
+    return sent
+
+
 def _load_glb(content: bytes) -> trimesh.Trimesh:
     return trimesh.load(io.BytesIO(content), file_type="glb", force="mesh")
 
@@ -91,6 +106,25 @@ def test_returns_the_scan_as_a_y_up_glb_in_meters(stored_scan):
     glb = _load_glb(response.content)
     assert np.allclose(glb.extents, [0.10, 0.20, 0.06])
     assert np.allclose(glb.bounds, load_mesh(model, require_density=False).bounds)
+
+
+def test_stores_the_glb_next_to_the_scan_once(stored_scan, uploads):
+    first = client.get(f"/scans/{SCAN_ID}/model.glb")
+    client.get(f"/scans/{SCAN_ID}/model.glb")
+
+    assert [(path, bucket) for path, bucket, _ in uploads] == [(f"coffee-maker-1/{SCAN_ID.upper()}/model.glb", "scans")]
+    assert uploads[0][2] == first.content
+
+
+def test_serves_the_glb_when_storing_it_fails(stored_scan, monkeypatch):
+    def fail(data, path, bucket=None):
+        raise UploadFailed("bucket refused")
+
+    monkeypatch.setattr(storage, "upload_file", fail)
+    response = client.get(f"/scans/{SCAN_ID}/model.glb")
+
+    assert response.status_code == 200
+    assert response.content[:4] == b"glTF"
 
 
 def test_converts_each_model_once(stored_scan, monkeypatch):

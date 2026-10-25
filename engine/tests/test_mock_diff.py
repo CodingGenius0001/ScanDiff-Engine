@@ -4,8 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.pipeline import inconclusive
 from app.schemas import DiffResponse
-from scandiff.errors import AlignmentFailed, ScaleMismatch, ScanNotFound, StorageNotConfigured, UploadFailed
+from scandiff.errors import ScanNotFound, StorageNotConfigured, UploadFailed
 
 client = TestClient(app)
 BODY = {"base_id": "scan_a", "new_id": "scan_b"}
@@ -49,22 +50,49 @@ def test_mock_query_param_returns_mock_response():
     assert response.json()["is_mock"] is True
 
 
+def _session() -> dict[str, str]:
+    return {"X-Session-ID": client.get("/health").json()["session_id"]}
+
+
+def test_real_diff_needs_a_session_from_health(monkeypatch):
+    monkeypatch.setattr("app.main.run_diff", lambda base_id, new_id: inconclusive("Test.", "d1"))
+
+    assert client.post("/diff", json=BODY).status_code == 401
+    assert client.post("/diff", json=BODY, headers={"X-Session-ID": "made-up"}).status_code == 401
+    session = _session()
+    assert client.post("/diff", json=BODY, headers=session).status_code == 200
+    # Each /health call starts a new session.
+    assert _session() != session
+
+
+def test_unusable_scans_come_back_inconclusive(monkeypatch):
+    monkeypatch.setattr(
+        "app.main.run_diff", lambda base_id, new_id: inconclusive("Alignment failed, please re-scan.", "d1")
+    )
+    response = client.post("/diff", json=BODY, headers=_session())
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["verdict"] == "inconclusive" and payload["triage"] == "inconclusive"
+    assert payload["verdict_reason"] == payload["reason"] == "Alignment failed, please re-scan."
+    assert payload["heatmap_url"] is None and payload["stats"] is None and payload["regions"] == []
+    DiffResponse.model_validate(payload)
+
+
 @pytest.mark.parametrize(
     "error, status",
     [
         (ScanNotFound("No scan folder named scan_a."), 404),
-        (AlignmentFailed("alignment failed, please re-scan"), 422),
-        (ScaleMismatch("different objects or units"), 422),
         (StorageNotConfigured("no Supabase"), 503),
         (UploadFailed("bucket refused"), 502),
     ],
 )
-def test_real_diff_turns_pipeline_errors_into_statuses(monkeypatch, error, status):
+def test_service_problems_stay_errors(monkeypatch, error, status):
     def fail(base_id, new_id):
         raise error
 
     monkeypatch.setattr("app.main.run_diff", fail)
-    response = client.post("/diff", json=BODY)
+    response = client.post("/diff", json=BODY, headers=_session())
 
     assert response.status_code == status
     assert response.json()["detail"] == str(error)

@@ -125,9 +125,14 @@ class ScanView:
 
     def first_hit(self, origin: np.ndarray, target: np.ndarray) -> float:
         """Distance from `origin` toward `target` to the first mesh surface; inf if none."""
-        direction = (target - origin) / np.linalg.norm(target - origin)
-        rays = o3d.core.Tensor(np.concatenate([origin, direction])[None].astype(np.float32))
-        return float(self._scene.cast_rays(rays)["t_hit"].numpy()[0])
+        return float(self.first_hits(origin, np.atleast_2d(target))[0])
+
+    def first_hits(self, origin: np.ndarray, targets: np.ndarray) -> np.ndarray:
+        """`first_hit` toward each of `targets`, in one batch."""
+        directions = targets - origin
+        directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+        rays = np.column_stack([np.broadcast_to(origin, directions.shape), directions]).astype(np.float32)
+        return self._scene.cast_rays(o3d.core.Tensor(rays))["t_hit"].numpy().astype(float)
 
 
 def best_view(region: RegionGeom, scan: ScanView) -> Photo | None:

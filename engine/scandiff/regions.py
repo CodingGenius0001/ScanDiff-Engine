@@ -103,6 +103,8 @@ def find_regions(
     d_signed: np.ndarray,
     d_reverse: np.ndarray,
     threshold_mm: float,
+    new_mask: np.ndarray | None = None,
+    base_mask: np.ndarray | None = None,
 ) -> list[RegionGeom]:
     """Changed regions between two aligned clouds, most severe (area x max depth) first.
 
@@ -117,12 +119,14 @@ def find_regions(
     outweigh its changed new surface MISSING_AREA_RATIO times, a part is gone:
     the base points become missing regions, and the new points are the scar
     where it was attached. Regions under MIN_REGION_CM2 are dropped.
+    `new_mask` and `base_mask` limit the candidates to points both scans
+    captured (see coverage.py).
     """
     threshold = threshold_mm * MM
     new = _surface(new_aligned, np.abs(d_signed))
     old = _surface(base, np.asarray(d_reverse))
-    changed = np.flatnonzero(new.depth > threshold)
-    unmatched = np.flatnonzero(old.depth > threshold)
+    changed = np.flatnonzero((new.depth > threshold) & (True if new_mask is None else new_mask))
+    unmatched = np.flatnonzero((old.depth > threshold) & (True if base_mask is None else base_mask))
     if len(changed) + len(unmatched) == 0:
         return []
 

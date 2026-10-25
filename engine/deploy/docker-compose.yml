@@ -1,0 +1,31 @@
+# The engine behind Caddy, which gets and renews the HTTPS certificate for ENGINE_HOST.
+# On the server: cd /srv/scandiff/deploy && sudo docker compose up -d --build
+services:
+  engine:
+    build: ..
+    env_file: ./engine.env
+    volumes:
+      # Downloaded scans and converted GLBs survive rebuilds.
+      - engine-data:/app/data
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    environment:
+      ENGINE_HOST: ${ENGINE_HOST:-engine.scandiff.us}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - engine
+    restart: unless-stopped
+
+volumes:
+  engine-data:
+  caddy-data:
+  caddy-config:
