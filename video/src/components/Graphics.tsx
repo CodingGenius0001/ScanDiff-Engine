@@ -230,14 +230,14 @@ const scramble = (seed: number, n: number) => {
 
 /**
  * Files of one upload (engine/UPLOAD_FORMAT.md) flowing into SHA-256, then the
- * app's ledger row (real values from the recording: version 1, c7a6fcb628b...).
+ * app's ledger row (real values from the recording: version 1, c746fcb620b0...).
  * `tamper` > 0: one byte of model.usdz changes, the hash no longer matches and
  * the engine rejects the upload, as it does for any model_sha256 mismatch.
  */
 export const HashGraphic: React.FC<{t: number; tamper: number}> = ({t, tamper}) => {
 	const frame = useCurrentFrame();
 	const files = ['model.usdz', 'photo_01.jpg', 'photo_02.jpg', 'photo_03.jpg', 'metadata.json'];
-	const real = 'c7a6fcb628b';
+	const real = 'c746fcb620b0';
 	const resolve = interpolate(t, [0.35, 0.7], [0, 1], clamp);
 	const shown = real
 		.split('')
