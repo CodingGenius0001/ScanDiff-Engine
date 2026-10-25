@@ -26,7 +26,7 @@ export default function DemoCardCheckout({
   onPay,
 }: {
   title: string;
-  seller: string;
+  seller?: string;
   priceCents: number;
   onPay: () => void;
 }) {
@@ -77,14 +77,14 @@ export default function DemoCardCheckout({
         </button>
         {paying && <div className="progress" />}
         <p className="text-xs text-ink-soft">
-          In this demo the payment is held until the buyer scans the item on arrival and approves the comparison.
+          The payment is held until the buyer scans the item on arrival and accepts the comparison.
         </p>
       </form>
 
       <aside className="order-first flex flex-col gap-2 self-start rounded-md sm:order-last border border-rule bg-paper-deep p-4 text-sm">
         <h3 className="caption">Order summary</h3>
         <p className="font-semibold">{title}</p>
-        <p className="text-xs text-ink-soft">Sold by {seller}</p>
+        {seller && <p className="text-xs text-ink-soft">Sold by {seller}</p>}
         <dl className="mt-2 flex flex-col gap-1">
           <SummaryRow label="Item" value={formatPrice(priceCents)} />
           <SummaryRow label="Shipping" value="Free" />
