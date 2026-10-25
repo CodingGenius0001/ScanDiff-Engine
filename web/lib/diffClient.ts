@@ -87,7 +87,8 @@ async function fetchDiff(base: string, baseId: string, newId: string): Promise<D
   // Expired session (or an engine restart): get a new one and try once more.
   if (res.status === 401) res = await post(true);
   if (!res.ok) throw new Error(`Diff request failed (${res.status})`);
-  const [raw, baseScan, newScan] = await Promise.all([res.json(), scanMeta(baseId), scanMeta(newId)]);
+  const [body, baseScan, newScan] = await Promise.all([res.json(), scanMeta(baseId), scanMeta(newId)]);
+  const raw = withContractNames(body);
   if ((raw as DiffResponse | null)?.verdict === "inconclusive") {
     throw new InconclusiveDiff((raw as DiffResponse).verdict_reason || "The engine could not compare these scans.");
   }
@@ -100,6 +101,42 @@ async function scanMeta(id: string): Promise<ScanMeta> {
   const scan = MOCK_SCANS[id] ?? (db ? await fetchScan(db, id) : undefined);
   if (!scan) throw new Error(`Unknown scan "${id}"`);
   return scan;
+}
+
+type Loose = Record<string, unknown>;
+const isObject = (value: unknown): value is Loose => typeof value === "object" && value !== null && !Array.isArray(value);
+const DAMAGE_TYPES = ["normal_wear", "scratch_scuff", "dent_damage", "missing_part"];
+
+/**
+ * The response with the contract's field names, filled in from the brief's
+ * names (contract/README.md) where only those came back. Responses recorded
+ * from the deployed engine on Oct 24 (ios/ScanDiff/ScanDiffTests/Fixtures) use
+ * them: `histogram` as a list with `histogram_edges_mm`, `confidence`,
+ * `reason`, `stats.max_mm`, and regions with `centroid`, `radius`, `max_mm`,
+ * `mean_mm` and the damage type in `label`. Contract fields always win.
+ */
+function withContractNames(body: unknown): unknown {
+  if (!isObject(body)) return body;
+  const r: Loose = { ...body, verdict_confidence: body.verdict_confidence ?? body.confidence, verdict_reason: body.verdict_reason ?? body.reason };
+  if (Array.isArray(body.histogram)) {
+    r.histogram = { bin_edges_mm: Array.isArray(body.histogram_edges_mm) ? body.histogram_edges_mm : [], counts: body.histogram };
+  }
+  if (isObject(body.stats)) r.stats = { ...body.stats, max_change_mm: body.stats.max_change_mm ?? body.stats.max_mm };
+  const placed = (g: Loose): Loose => ({ ...g, centroid_m: g.centroid_m ?? g.centroid, radius_m: g.radius_m ?? g.radius });
+  if (Array.isArray(body.regions)) {
+    r.regions = body.regions.filter(isObject).map((g) => {
+      const label = typeof g.label === "string" ? g.label : "";
+      return {
+        ...placed(g),
+        max_depth_mm: g.max_depth_mm ?? g.max_mm,
+        mean_depth_mm: g.mean_depth_mm ?? g.mean_mm,
+        damage_type: g.damage_type ?? (DAMAGE_TYPES.includes(label) ? label : undefined),
+        label: label === "normal_wear" ? "normal_wear" : "needs_review",
+      };
+    });
+  }
+  if (Array.isArray(body.uncovered_regions)) r.uncovered_regions = body.uncovered_regions.filter(isObject).map(placed);
+  return r;
 }
 
 const REQUIRED: (keyof DiffResponse)[] = [
