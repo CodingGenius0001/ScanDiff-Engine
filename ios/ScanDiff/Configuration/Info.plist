@@ -32,6 +32,10 @@
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>ScanDiff sends scans to the comparison engine running on your local network.</string>
+	<key>DemoAccount2Email</key>
+	<string>$(DEMO2_EMAIL)</string>
+	<key>DemoAccount2Password</key>
+	<string>$(DEMO2_PASSWORD)</string>
 	<key>EngineURL</key>
 	<string>$(ENGINE_URL)</string>
 	<key>EngineURLFallback</key>
