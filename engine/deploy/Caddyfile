@@ -1,0 +1,3 @@
+{$ENGINE_HOST} {
+	reverse_proxy engine:8000
+}

@@ -1,0 +1,7 @@
+# Only what the image needs; secrets come in at run time from deploy/engine.env.
+*
+!requirements.txt
+!app
+!scandiff
+!calibration.json
+**/__pycache__
