@@ -25,6 +25,13 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>ScanDiff sends scans to the comparison engine running on your local network.</string>
 	<key>EngineURL</key>
 	<string>$(ENGINE_URL)</string>
 	<key>GoogleIOSClientID</key>

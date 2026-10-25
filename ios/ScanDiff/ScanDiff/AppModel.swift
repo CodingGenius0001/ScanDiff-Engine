@@ -17,12 +17,13 @@ final class AppModel {
     }
 
     func start() async {
-        let trimmed = itemID.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard ItemID.isValid(trimmed) else {
+        let normalized = ItemID.normalize(itemID)
+        guard !normalized.isEmpty else {
             homeMessage = ScanError.invalidItemID.errorDescription
             return
         }
-        await begin(ScanRequest(itemID: trimmed, kind: kind))
+        itemID = normalized
+        await begin(ScanRequest(itemID: normalized, kind: kind))
     }
 
     /// Links that arrive before sign-in are held and replayed once signed in.

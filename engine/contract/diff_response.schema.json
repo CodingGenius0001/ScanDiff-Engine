@@ -376,6 +376,22 @@
     "diff_id": {
       "title": "Diff Id",
       "type": "string"
+    },
+    "compared_fraction": {
+      "anyOf": [
+        {
+          "description": "Unitless score from 0 to 1.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Fraction of the base surface both scans covered, from 0 to 1. Null until coverage is computed.",
+      "title": "Compared Fraction"
     }
   },
   "required": [

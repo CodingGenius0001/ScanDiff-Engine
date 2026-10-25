@@ -148,6 +148,10 @@ export type VerdictReason = string;
 export type BaseFingerprint = string;
 export type NewFingerprint = string;
 export type DiffId = string;
+/**
+ * Fraction of the base surface both scans covered, from 0 to 1. Null until coverage is computed.
+ */
+export type ComparedFraction = number | null;
 
 /**
  * Comparison of a new scan against a base scan, for the web viewer.
@@ -175,6 +179,7 @@ export interface DiffResponse {
   base_fingerprint: BaseFingerprint;
   new_fingerprint: NewFingerprint;
   diff_id: DiffId;
+  compared_fraction?: ComparedFraction;
 }
 /**
  * How to read vertex colors on the heatmap GLB.

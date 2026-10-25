@@ -103,6 +103,8 @@ struct ScanMetadata: Codable, Equatable {
     var created_by: String
     var created_at: String
     var device: String
+    var ios_version: String
+    var image_count: Int
     var model_file: String
     var model_sha256: String
     var obj_file: String
@@ -143,21 +145,6 @@ struct ScanQuality: Equatable {
     static let targetKeyPhotos = 10
 }
 
-struct DiffRegion: Equatable, Identifiable {
-    var id: String
-    var label: String
-    var score: Double?
-}
-
-struct DiffResult: Equatable {
-    var heatmapURL: URL?
-    var histogramBins: [Double]
-    var regions: [DiffRegion]
-    var verdict: String
-    var confidence: Double
-    var usedMock: Bool
-}
-
 struct UploadReceipt: Equatable {
     var scanID: UUID
     var modelURL: URL?
@@ -171,6 +158,7 @@ enum ScanStage {
     case processing
     case review
     case uploading
+    case comparing
     case saved
     case result
     case rejected(String)
@@ -196,7 +184,7 @@ enum ScanError: LocalizedError {
         case .unsupportedDevice:
             "Guided capture needs an iPhone 12 Pro or later with LiDAR, running iOS 17 or later."
         case .invalidItemID:
-            "Item id can use letters, numbers, dashes, and underscores."
+            "Item id needs at least one letter or number."
         case .folderCreationFailed:
             "ScanDiff could not create a folder for this scan."
         case .sessionFailed(let message):
@@ -222,9 +210,26 @@ enum ScanError: LocalizedError {
 }
 
 enum ItemID {
+    /// Lowercase kebab-case, so "Coffee Maker_1" and "coffee-maker-1" are the
+    /// same item: lowercased, every run of other characters becomes one "-",
+    /// and leading or trailing dashes are dropped.
+    static func normalize(_ value: String) -> String {
+        var result = ""
+        var pendingDash = false
+        for scalar in value.lowercased().unicodeScalars {
+            if ("a"..."z").contains(scalar) || ("0"..."9").contains(scalar) {
+                if pendingDash && !result.isEmpty { result.append("-") }
+                result.unicodeScalars.append(scalar)
+                pendingDash = false
+            } else {
+                pendingDash = true
+            }
+        }
+        return result
+    }
+
     static func isValid(_ value: String) -> Bool {
-        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
-        return !value.isEmpty && value.unicodeScalars.allSatisfy { allowed.contains($0) }
+        !normalize(value).isEmpty
     }
 }
 
@@ -238,18 +243,25 @@ enum Timestamps {
 }
 
 enum DeviceInfo {
-    static var description: String {
+    /// Hardware model, e.g. "iPhone18,2".
+    static var modelIdentifier: String {
         var system = utsname()
         uname(&system)
-        let machine = withUnsafePointer(to: &system.machine) {
+        return withUnsafePointer(to: &system.machine) {
             $0.withMemoryRebound(to: CChar.self, capacity: 1) {
                 String(cString: $0)
             }
         }
-        return "\(machine), \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)"
     }
 
-    static var createdBy: String {
-        UIDevice.current.name
+    static var systemVersion: String {
+        ProcessInfo.processInfo.operatingSystemVersionString
+            .replacingOccurrences(of: "Version ", with: "")
+            .components(separatedBy: " ")
+            .first ?? ""
+    }
+
+    static var description: String {
+        "\(modelIdentifier), iOS \(systemVersion)"
     }
 }
