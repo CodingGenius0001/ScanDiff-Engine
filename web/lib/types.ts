@@ -71,7 +71,7 @@ export interface UncoveredRegion {
   description: string;
 }
 
-export type Verdict = "accept" | "damage_likely" | "needs_review";
+export type Verdict = "accept" | "damage_likely" | "needs_review" | "inconclusive";
 
 export interface Histogram {
   /** Bin edges in `units`; length is counts.length + 1. */

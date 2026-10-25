@@ -82,16 +82,13 @@ const REQUIRED: (keyof DiffResponse)[] = [
 /** Engine positions are meters; the web app works in millimeters. */
 export const M_TO_MM = 1000;
 
-/**
- * The engine says accept | damage_likely | needs_review; the components use
- * match | minor_wear | needs_review. accept with regions means only normal wear.
- */
-export function toVerdict(verdict: DiffResponse["verdict"] | string, regionCount: number): DiffResult["verdict"] {
+/** The engine's verdict as it comes; anything unrecognized needs a person. */
+export function toVerdict(verdict: DiffResponse["verdict"] | string): DiffResult["verdict"] {
   switch (verdict) {
     case "accept":
-      return regionCount > 0 ? "minor_wear" : "match";
-    case "match":
-    case "minor_wear":
+    case "damage_likely":
+    case "needs_review":
+    case "inconclusive":
       return verdict;
     default:
       return "needs_review";
@@ -103,6 +100,10 @@ function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): Diff
   const missing = REQUIRED.filter((k) => !(k in raw));
   if (missing.length) throw new Error(`Diff response is missing ${missing.join(", ")}`);
   const r = raw as DiffResponse;
+  // An inconclusive comparison has no heat map, models or stats to show; its reason is the message.
+  if (!r.stats || !r.heatmap_legend || !r.heatmap_url || !r.base_model_url || !r.new_model_url) {
+    throw new Error(`Inconclusive: ${r.verdict_reason || "the engine could not compare these scans."}`);
+  }
   const mm = (p: [number, number, number]) => p.map((v) => v * M_TO_MM) as [number, number, number];
 
   return {
@@ -144,7 +145,7 @@ function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): Diff
       coveredBy: u.only_in === "base" ? "baseline_only" : "new_only",
       description: `About ${u.area_cm2.toFixed(1)} cm² of surface.`,
     })),
-    verdict: toVerdict(r.verdict, r.regions.length),
+    verdict: toVerdict(r.verdict),
     verdictConfidence: r.verdict_confidence,
     verdictReason: r.verdict_reason,
     summary: {

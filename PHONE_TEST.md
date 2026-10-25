@@ -6,7 +6,7 @@ Live checklist for the Cal Hacks demo (due Sun Oct 25, 9:00 AM PT). The overall 
 
 | Role | Value baked into the build | Status |
 |---|---|---|
-| Primary (`ENGINE_URL`) | `engine.scandiff.us` (https, Adi's AWS, Caddy) | **Down for iOS:** port 80 answers with a 308 redirect to HTTPS, but the TLS handshake fails ("tlsv1 alert internal error") and crt.sh shows no certificate ever issued for `scandiff.us`. Caddy hasn't obtained a certificate. Once it does, the app uses it with no rebuild. |
+| Primary (`ENGINE_URL`) | `engine.scandiff.us` (https, Adi's AWS, Caddy) | **Live (5:25 PM).** `/health` 200 with `session_id`; `/diff` without a session → 401; `coffee-maker-1` self-diff with session → `accept`, confidence 1.0, `compared_fraction` 0.865, 0 regions, `is_mock=false`, 9.5 s. App sends `X-Session-ID` and refreshes once on 401 (commit `7ad46b4`). |
 | Fallback (`ENGINE_URL_FALLBACK`) | `census-read-releases-recipes.trycloudflare.com` (https Cloudflare quick tunnel to `uvicorn` on this Mac) | `/health` 200; `coffee-maker-1` self-diff → `accept`, 0 regions, `is_mock=false`, 5.6 s. No hotspot needed. The address changes if `cloudflared` restarts (then update and rebuild). |
 
 The app checks `/health` on the primary, then the fallback (4 s timeout each), and sends `/diff` to the first that answers. Debug builds show `Engine: <host>` on the Result screen; `diagnostics.log` has `engine primary|fallback <host> answered /health` and `diff done … host=<host>`.
@@ -17,7 +17,7 @@ The app checks `/health` on the primary, then the fallback (4 s timeout each), a
 |---|---|---|---|
 | 1 | Untrack `-Xcc` index files | DONE | Commit `77c5f67` "chore: untrack Xcode index files" (3,032 files). `ios/.gitignore` has `**/*.xcodeproj/-Xcc/`. |
 | 2 | Minimum model size check | DONE | Commit `b98bf77`. Rejects only if largest side < 3 cm, smallest side < 0.3 cm, or triangles < 2,000 (`ModelSize.Limits`). Logs `model size box=… vertices=… triangles=… acceptable=…` for every scan. Capture is kept on reject. 26/26 XCTests pass (17 + 8 size + 1 failover). Generic iOS build: 0 errors. |
-| 3 | Point app at engine, rebuild, install | DONE (fallback) | Built for the iPhone 17 Pro Max with 0 errors and installed. `EngineURL=https://engine.scandiff.us`, `EngineURLFallback=https://census-read-releases-recipes.trycloudflare.com`. The primary is blocked on Adi's TLS certificate. |
+| 3 | Point app at engine, rebuild, install | DONE | Built for the iPhone 17 Pro Max with 0 errors and installed (with commit `7ad46b4`). `EngineURL=https://engine.scandiff.us` (live), `EngineURLFallback=https://census-read-releases-recipes.trycloudflare.com`. 30/30 XCTests. |
 | 4 | 9-step phone checklist | PENDING | Below |
 | 5 | Real diff on `mug-002` | PENDING | |
 | 6 | Accept / Dispute → `scans.decision` | PENDING | |
