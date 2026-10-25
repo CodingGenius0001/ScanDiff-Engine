@@ -11,14 +11,23 @@ final class ProcessingService {
 
     /// Builds model.usdz at reduced detail and returns the per-image camera poses
     /// that reconstruction solved, in the same coordinate frame as the model.
+    /// `highSensitivity` finds more features on plain, dark or shiny objects at
+    /// the cost of time; it is the retry when the normal pass can't solve the object.
     func process(
         imagesDirectory: URL,
         checkpointDirectory: URL,
         outputURL: URL,
+        highSensitivity: Bool = false,
         onProgress: @escaping (Double) -> Void
     ) async throws -> PhotogrammetrySession.Poses? {
         var configuration = PhotogrammetrySession.Configuration()
         configuration.checkpointDirectory = checkpointDirectory
+        // Object Capture takes photos in order around the object, so matching
+        // neighbours first is faster than treating them as unordered.
+        configuration.sampleOrdering = .sequential
+        if highSensitivity {
+            configuration.featureSensitivity = .high
+        }
         let session: PhotogrammetrySession
         do {
             session = try PhotogrammetrySession(input: imagesDirectory, configuration: configuration)
@@ -56,7 +65,7 @@ final class ProcessingService {
                 throw ScanError.cancelled
             case .processingComplete:
                 if let modelError {
-                    throw ScanError.sessionFailed(modelError.localizedDescription)
+                    throw ScanError.reconstructionFailed(modelError.localizedDescription)
                 }
                 guard FileManager.default.fileExists(atPath: outputURL.path) else {
                     throw ScanError.missingModel

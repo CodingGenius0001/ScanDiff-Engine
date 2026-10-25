@@ -5,3 +5,6 @@ ScanDiff/Configuration/Secrets.xcconfig
 **/*.xcuserstate
 DerivedData/
 build/
+
+# Local-only SQL with credentials (e.g. demo accounts).
+supabase/*.local.sql

@@ -328,6 +328,9 @@ class ScanMetadata(BaseModel):
     units: str = "m"
     textures: list[TextureFile] = Field(default_factory=list)
     files: list[FileRecord] = Field(default_factory=list)
+    # The textured OBJ the app exports beside the model (same frame as model_file); older scans have none.
+    obj_file: str | None = None
+    material_file: str | None = None
 
     @field_validator("textures", mode="before")
     @classmethod

@@ -128,11 +128,21 @@ struct LoginView: View {
             .disabled(!canSubmit)
 
             #if DEBUG
-            Button("Use demo account") {
-                email = DemoAccount.email
-                password = DemoAccount.password
-                mode = .signIn
-                errorMessage = nil
+            HStack(spacing: 20) {
+                Button("Use demo account") {
+                    email = DemoAccount.email
+                    password = DemoAccount.password
+                    mode = .signIn
+                    errorMessage = nil
+                }
+                if let buyer = AppSecrets.demoAccount2 {
+                    Button("Use demo buyer") {
+                        email = buyer.email
+                        password = buyer.password
+                        mode = .signIn
+                        errorMessage = nil
+                    }
+                }
             }
             .font(.footnote)
             .foregroundStyle(.secondary)

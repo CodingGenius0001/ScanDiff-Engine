@@ -104,12 +104,16 @@ function Model({ model, distances, threshold, colorMax, heat }: Props) {
   useEffect(() => () => geometry.dispose(), [geometry]);
 
   const hasColors = !!geometry.getAttribute("color");
+  const showHeat = heat && hasColors;
+  // The scan's own colors whenever the heat map is not drawn over it.
+  const texture = !showHeat && geometry.getAttribute("uv") ? model.texture : undefined;
   return (
     <mesh geometry={geometry}>
       <meshStandardMaterial
-        key={heat && hasColors ? "heat" : "plain"}
-        vertexColors={heat && hasColors}
-        color={heat && hasColors ? "#ffffff" : COLORS.neutral}
+        key={showHeat ? "heat" : texture ? "texture" : "plain"}
+        vertexColors={showHeat}
+        map={texture ?? null}
+        color={showHeat || texture ? "#ffffff" : COLORS.neutral}
         roughness={0.75}
         metalness={0}
         side={THREE.DoubleSide}

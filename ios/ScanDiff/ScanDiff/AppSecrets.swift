@@ -25,6 +25,15 @@ enum AppSecrets {
         nonempty(string(forInfoKey: "GoogleWebClientID"))
     }
 
+    /// Second demo account (buyer) from Secrets.xcconfig; nil when not configured.
+    static var demoAccount2: (email: String, password: String)? {
+        guard let email = nonempty(string(forInfoKey: "DemoAccount2Email")),
+              let password = nonempty(string(forInfoKey: "DemoAccount2Password")) else {
+            return nil
+        }
+        return (email, password)
+    }
+
     static var hasSupabase: Bool {
         supabaseURL != nil && supabaseAnonKey != nil
     }

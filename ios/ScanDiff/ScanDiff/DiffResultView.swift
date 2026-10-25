@@ -208,6 +208,45 @@ struct DiffResultView: View {
     }
 }
 
+struct ProcessingFailedView: View {
+    var message: String
+    var onRetry: () -> Void
+    var onClose: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Label("Couldn't build the model", systemImage: "cube.transparent")
+                    .font(.title3.bold())
+                Text(message)
+                Text("Your photos are kept. Try processing again, or re-scan with:")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Bright, even light (no harsh shadows)", systemImage: "sun.max")
+                    Label("A patterned mat or newspaper under the object", systemImage: "square.grid.3x3")
+                    Label("Slow, steady orbit; fill most of the frame", systemImage: "arrow.triangle.2.circlepath")
+                    Label("For black or shiny items: a little tape or a sticker adds detail", systemImage: "sparkles")
+                }
+                .font(.subheadline)
+                Button {
+                    onRetry()
+                } label: {
+                    Label("Try processing again", systemImage: "arrow.clockwise")
+                        .frame(maxWidth: .infinity, minHeight: 30)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                Button("Re-scan") { onClose() }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+            }
+            .padding()
+        }
+        .navigationTitle("Processing failed")
+    }
+}
+
 struct MessageScreen: View {
     var title: String
     var message: String
