@@ -43,7 +43,7 @@ def check(response: dict) -> list[str]:
 
     expected_triage = (
         "damage" if response.get("verdict") == "damage_likely"
-        else "inconclusive" if response.get("verdict") == "needs_review"
+        else "inconclusive" if response.get("verdict") in ("needs_review", "inconclusive")
         else "wear" if response.get("regions") else "no_change"
     )
     if response.get("triage") not in TRIAGE:

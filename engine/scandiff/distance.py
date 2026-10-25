@@ -69,8 +69,8 @@ def calibrate_noise_floor(
     Each pair is aligned (second onto first) and compared. Each pair's sigma
     comes from the median absolute deviation of its signed distances, so a few
     bad points don't inflate it; the overall sigma pools their variances. The
-    percentiles are over all distances. The threshold is THRESHOLD_SIGMAS
-    sigma, at least MIN_THRESHOLD_MM. Distances in the result are millimeters.
+    percentiles are over all distances. The threshold is their 95th
+    percentile, at least MIN_THRESHOLD_MM. Distances in the result are millimeters.
     """
     if not pairs:
         raise ValueError("calibration needs at least one pair of scans")
@@ -92,9 +92,8 @@ def calibrate_noise_floor(
     summary["sigma_mm"] = float(np.sqrt(np.average(variances, weights=points)))
     return {
         **summary,
-        "threshold_mm": max(config.MIN_THRESHOLD_MM, config.THRESHOLD_SIGMAS * summary["sigma_mm"]),
+        "threshold_mm": max(config.MIN_THRESHOLD_MM, summary["p95_mm"]),
         "min_threshold_mm": config.MIN_THRESHOLD_MM,
-        "threshold_sigmas": config.THRESHOLD_SIGMAS,
         "pairs": per_pair,
     }
 

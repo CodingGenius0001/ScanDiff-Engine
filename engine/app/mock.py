@@ -199,4 +199,5 @@ def mock_diff_response(heatmap_url: str, base_model_url: str, new_model_url: str
         base_fingerprint=_BASE_FINGERPRINT,
         new_fingerprint=_NEW_FINGERPRINT,
         diff_id="mock-diff-0001",
+        compared_fraction=0.94,
     )
