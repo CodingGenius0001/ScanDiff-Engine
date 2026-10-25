@@ -209,7 +209,7 @@ OPT-01: local normals via `eigh`. The function is 1.75× faster and a real compa
 ### (9) Must-dos before 9:00 AM PDT Sunday, in priority order
 
 1. **Adi, 10 min.** Find out what `engine.scandiff.us` runs (`ssh` to the server, `diff -r /srv/scandiff` against the repo) and commit it. Then, from a laptop, run `engine/.venv/bin/python scripts/check_contract.py --engine https://engine.scandiff.us --mock`; it now gets a session itself. This is a live call, so it is the team's decision, not mine.
-2. **Keshav, 15 min.** Merge `audit/full-audit` (or cherry-pick `26ea7db` for AUD-01 and `f705005` for AUD-03), redeploy Vercel, and rehearse the whole PITCH main path and dispute branch once on the deployed site with the real engine.
+2. **Keshav, 15 min.** Merge `audit/full-audit` into `main` (or cherry-pick `f705005` then `26ea7db`, in that order: `next build` type-checks `web/tests/`, which need the vitest added in `f705005`), redeploy Vercel, and rehearse the whole PITCH main path and dispute branch once on the deployed site with the real engine.
 3. **Adi, 20 min, only if a rehearsal fits afterwards.** Redeploy the engine from this branch with `deploy/deploy.sh`. That brings AUD-02, 05, 07, 19, 20 and OPT-01; the contract shape is unchanged. If there is no time to rehearse, skip it: the old engine has been working.
 4. **Pitch wording, 5 min.** Say "flags it for review" for geometric changes (AUD-16). Don't mention a hash chain (AUD-09). "Nessie refunds the mock mug dispute; the live checkout is a demo hold" (AUD-10). "Demo only, no real payment" (unchanged).
 5. **Adi, 2 min.** Confirm `VISION_API_KEY` is set in `deploy/engine.env` if you want real dents to read as "likely damage".
