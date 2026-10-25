@@ -6,24 +6,24 @@ import { fetchItemIds } from "@/lib/scans";
 import { currentUser, serverSupabase } from "@/lib/supabaseServer";
 
 const DEMOS = [
-  { href: "/sell", title: "List an item and run a real checkout", note: "Seller baseline, buyer check scan, comparison, then the payment is released or disputed. Uses the iPhone app." },
-  { href: "/checkout/mug-001", title: "Demo checkout", note: "Shipping and returns. Payment held until the buyer approves. Demo only, no real payment." },
-  { href: "/item/mug-001", title: "Handmade ceramic mug", note: "Seller scan before packing, buyer scan on arrival." },
-  { href: "/item/car-001", title: "Rental car", note: "Pickup scan and return scan." },
+  { href: "/sell", title: "Run a live handoff", note: "List an item, scan it with the iPhone app before and after, and watch the payment release or stay held." },
+  { href: "/checkout/mug-001", title: "Demo checkout: shipping and returns", note: "The payment is held until the buyer approves the arrival scan. Demo only, no real payment." },
+  { href: "/item/mug-001", title: "Ceramic mug: a dent and a broken handle", note: "Seller scan before packing against the buyer's scan on arrival." },
+  { href: "/item/car-001", title: "Rental car: a door dent and a missing mirror", note: "Pickup scan at the desk against the return scan." },
 ];
 
 const SPECS: [string, string][] = [
-  ["capture", "iPhone LiDAR, guided loop"],
-  ["compare", "aligned, point to surface"],
-  ["fingerprint", "SHA-256 on every file"],
-  ["decision", "accept or dispute"],
+  ["Capture", "LiDAR on an iPhone Pro, guided"],
+  ["Measure", "Shape change down to a few mm"],
+  ["Seal", "SHA-256 on every file"],
+  ["Settle", "Accept releases, dispute holds"],
 ];
 
 const STEPS: [string, string][] = [
-  ["Baseline at handoff", "Before packing or lending it, the seller scans the item with the ScanDiff iPhone app. Every file is fingerprinted and uploaded."],
-  ["Check-in on arrival", "The buyer or renter scans the same item when it arrives or comes back. A QR code opens the app on the right item."],
-  ["Comparison", "The engine aligns the two scans and measures how far the surface moved, region by region."],
-  ["Decision", "Accept releases the demo payment. A dispute keeps it held, with a printable evidence record for both sides."],
+  ["Scan before it leaves", "The seller scans the item with the ScanDiff iPhone app before it ships or is lent out. Every file is fingerprinted on the phone."],
+  ["Scan when it lands", "The buyer or renter scans it again on arrival. A QR code opens the app on the right item."],
+  ["See exactly what changed", "The engine aligns the two scans and measures how far every part of the surface moved. Dents light up; missing pieces show as a red ghost."],
+  ["Settle it", "Accept, and the payment is released. Dispute, and it stays held, with a printable evidence record both sides can check."],
 ];
 
 export default function Home() {
@@ -37,22 +37,25 @@ export default function Home() {
         {/* Clicks pass through the empty part of the hero to the mug, which can be dragged. */}
         <div className="pointer-events-none mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-end gap-8 px-4 pb-10 pt-[46vh] md:pt-24">
           <div className="pointer-events-auto max-w-xl">
-            <h1 className="display text-[56px] sm:text-[88px]">
-              every handoff,
+            <h1 className="display text-[60px] sm:text-[92px]">
+              measured,
               <br />
-              <span className="text-ink-soft">measured.</span>
+              <span className="text-ink-soft">not argued.</span>
             </h1>
-            <p className="mt-5 max-w-md text-[15px] leading-relaxed text-ink-soft">
-              ScanDiff compares a 3D scan taken before an item changes hands with one taken after, and shows exactly
-              where its shape changed. Tamper-evident evidence of condition at handoff. It does not verify that an item
-              is as advertised.
+            <p className="mt-6 max-w-md text-xl leading-snug">
+              Settle &ldquo;it arrived broken&rdquo; with millimeters, not photos.
+            </p>
+            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink-soft">
+              Scan the item with an iPhone before it changes hands and again when it arrives. ScanDiff aligns the two 3D
+              scans, shows exactly where the shape changed, and fingerprints every file, so any later edit to the record
+              shows. Tamper-evident evidence of condition at handoff; it does not verify that an item is as advertised.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link href="/sell" className="key min-h-12 bg-ink px-6 font-medium text-paper">
                 List an item
               </Link>
               <Link href="/item/mug-001" className="flex min-h-12 items-center rounded-md border border-rule px-5 text-ink-soft transition-colors hover:border-ink-faint hover:text-ink">
-                See a comparison →
+                See it catch a dent →
               </Link>
             </div>
           </div>
@@ -77,7 +80,7 @@ export default function Home() {
         <dl className="grid grid-cols-2 overflow-hidden rounded-md border border-rule md:grid-cols-4">
           {SPECS.map(([k, v], i) => (
             <div key={k} className={`flex flex-col gap-1 bg-[var(--panel)] p-4 ${i % 2 ? "border-l border-rule" : ""} ${i > 1 ? "border-t border-rule md:border-t-0" : ""} ${i === 2 ? "md:border-l" : ""}`}>
-              <dt className="font-mono text-[11px] text-ink-faint">{String(i + 1).padStart(2, "0")} · {k}</dt>
+              <dt className="text-xs text-ink-faint">{k}</dt>
               <dd className="text-[15px]">{v}</dd>
             </div>
           ))}
@@ -85,17 +88,17 @@ export default function Home() {
 
         <section className="grid gap-10 md:grid-cols-[1fr_1.4fr]">
           <div>
-            <p className="caption">The problem</p>
-            <h2 className="display mt-2 text-4xl sm:text-5xl">Condition disputes come down to one word against another.</h2>
+            <h2 className="display text-4xl sm:text-5xl">Photos can&apos;t settle a condition dispute.</h2>
             <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
-              Resale, rentals and returns all ask someone to trust the other side about an item&apos;s condition. The
-              usual evidence is a few photos: angles someone chose, depth flattened so a small dent can vanish under the
-              wrong light, and nothing tying them to the moment of handoff.
+              Resale, rentals and returns all run on trust about an item&apos;s condition. When something breaks, both
+              sides hold a few photos: angles they chose, depth flattened so a dent can vanish under the wrong light, and
+              nothing tying them to the moment the item changed hands. It comes down to one word against another, and
+              someone eats the loss.
             </p>
           </div>
           <div>
-            <p className="caption">What ScanDiff does</p>
-            <ol className="mt-3 flex flex-col">
+            <h2 className="display text-4xl sm:text-5xl">ScanDiff measures it instead.</h2>
+            <ol className="mt-5 flex flex-col">
               {STEPS.map(([title, text], i) => (
                 <li key={title} className="grid grid-cols-[2.5rem_1fr] gap-x-3 border-t border-rule py-4">
                   <span className="font-mono text-xs text-stamp">{String(i + 1).padStart(2, "0")}</span>
@@ -118,8 +121,8 @@ export default function Home() {
         </Suspense>
 
         <Index title="Demonstrations" note={process.env.NEXT_PUBLIC_DIFF_API_URL ? "Item names, prices and timestamps are demo data." : "All data on this site is mock data."}>
-          {DEMOS.map((d, i) => (
-            <Row key={d.href} n={i + 1} href={d.href} title={d.title} note={d.note} />
+          {DEMOS.map((d) => (
+            <Row key={d.href} href={d.href} title={d.title} note={d.note} />
           ))}
         </Index>
       </div>
@@ -139,14 +142,13 @@ function Index({ title, note, children }: { title: string; note?: string; childr
   );
 }
 
-function Row({ n, href, title, note }: { n: number; href: string; title: string; note?: string }) {
+function Row({ href, title, note }: { href: string; title: string; note?: string }) {
   return (
     <li className="border-t border-rule first:border-t-0">
       <Link
         href={href}
-        className="group grid grid-cols-[2.5rem_1fr_auto] items-center gap-x-3 bg-[var(--panel)] px-4 py-4 transition-colors hover:bg-paper-deep"
+        className="group grid grid-cols-[1fr_auto] items-center gap-x-4 bg-[var(--panel)] px-4 py-4 transition-colors hover:bg-paper-deep"
       >
-        <span className="font-mono text-xs text-ink-faint">{String(n).padStart(3, "0")}</span>
         <span className="min-w-0">
           <span className="block text-xl font-light transition-colors group-hover:text-ink sm:text-2xl">{title}</span>
           {note && <span className="mt-0.5 block text-sm text-ink-soft">{note}</span>}
@@ -192,8 +194,8 @@ async function ScannedItems() {
   }
   return (
     <Index title="Your case files" note="Items you listed or scanned, and items shared with you.">
-      {ids.map((id, i) => (
-        <Row key={id} n={i + 1} href={`/item/${encodeURIComponent(id)}`} title={id} />
+      {ids.map((id) => (
+        <Row key={id} href={`/item/${encodeURIComponent(id)}`} title={id} />
       ))}
     </Index>
   );
