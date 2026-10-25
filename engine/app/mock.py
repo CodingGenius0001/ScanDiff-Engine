@@ -6,7 +6,7 @@ import numpy as np
 import trimesh
 
 from app.schemas import COLORMAP, DiffResponse, HeatmapLegend, Histogram, Region, Stats, UncoveredRegion
-from scandiff.heatmap import diverging_colors
+from scandiff.heatmap import diverging_colors, to_linear
 from scandiff.regions import measure_region
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -83,9 +83,10 @@ def build_aligned_new_mesh() -> trimesh.Trimesh:
 
 
 def build_sample_mesh() -> trimesh.Trimesh:
-    """Base surface in the base frame, meters, with the legend's colors applied."""
+    """Base surface in the base frame, meters, with the legend's colors applied (stored linear, as glTF requires)."""
     mesh = build_base_mesh()
-    mesh.visual = trimesh.visual.ColorVisuals(mesh, vertex_colors=_diverging_colors(_signed_change_mm(mesh.vertices)))
+    colors = to_linear(_diverging_colors(_signed_change_mm(mesh.vertices)))
+    mesh.visual = trimesh.visual.ColorVisuals(mesh, vertex_colors=colors)
     return mesh
 
 

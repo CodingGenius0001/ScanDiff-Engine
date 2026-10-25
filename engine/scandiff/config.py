@@ -162,5 +162,11 @@ UPLOAD_TIMEOUT_S = 60
 SESSION_TTL_S = 12 * 3600
 
 # Heat map: colors saturate at this many thresholds; bigger meshes are decimated for the browser.
-HEATMAP_SATURATION_THRESHOLDS = 5.0
+# 2.5 thresholds (7.5 mm at a 3 mm threshold) so a few-millimetre bump on a palm-sized item
+# reads as a clear color instead of a faint tint.
+HEATMAP_SATURATION_THRESHOLDS = 2.5
 HEATMAP_MAX_FACES = 100_000
+# Coarser meshes are subdivided (shape unchanged) until their edges average under this, so the
+# colors, which are sampled at vertices, keep more of the comparison's resolution. The phone's
+# reduced-detail mesh has edges of about 3 mm on a small item.
+HEATMAP_MAX_EDGE_MM = 1.0
