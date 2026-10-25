@@ -17,6 +17,11 @@ const serveUrl = await bundle({entryPoint: path.resolve('src/index.ts'), publicD
 const composition = await selectComposition({serveUrl, id: 'ScanDiffDemo', browserExecutable});
 for (const frame of frames) {
   const output = path.join(outDir, `f${String(frame).padStart(5, '0')}.jpg`);
-  await renderStill({serveUrl, composition, frame, output, imageFormat: 'jpeg', jpegQuality: 85, scale, browserExecutable});
+  try {
+    await renderStill({serveUrl, composition, frame, output, imageFormat: 'jpeg', jpegQuality: 85, scale, browserExecutable, timeoutInMilliseconds: 60000});
+  } catch (e) {
+    console.log('FAILED', frame, String(e).slice(0, 300));
+    continue;
+  }
   console.log('rendered', frame);
 }

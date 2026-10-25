@@ -36,3 +36,29 @@ cam IMG_6526.MOV 184 196 cam6526_recon 1440 2560 "hflip,vflip"
 cam IMG_6525.MOV 0 7 cam6525_list 1920 1080 "transpose=2"
 cam IMG_6525.MOV 12 40 cam6525_scan 1920 1080 "transpose=2"
 ls -la $OUT
+
+# ---- Phone-screen clips, smooth version ----
+# The screen recording writes the ~30 fps camera feed into a 60 fps file at uneven
+# times, so a plain 60->30 conversion keeps some frames twice and skips others.
+# mpdecimate drops the repeats first; sped-up shots are pre-rendered with frame
+# blending instead of being sped up in Remotion. Everything is scaled down with
+# Lanczos to 728 px wide (about 2x its size on screen) so the UI text doesn't shimmer.
+PHONE_SCALE="scale=728:-2:flags=lanczos"
+smooth() { # start dur speed name
+  [[ -f $OUT/$4.mp4 ]] && { echo "skip $4"; return; }
+  echo "encode $4"
+  # framerate= blends the two nearest source frames by their real timestamps, so
+  # irregular camera updates come out as even motion (no text-warping interpolation).
+  ffmpeg -v error -threads 4 -y -ss $1 -t 20 -i media/VDMJ2492.MP4 \
+    -vf "$PHONE_SCALE,mpdecimate,setpts=(PTS-STARTPTS)/$3,framerate=fps=30:scene=100" \
+    -t $2 $X264 $OUT/$4.mp4
+}
+smooth 20 6 1 phone_lidar_orbit
+smooth 68 5 1.5 phone_guided_orbit
+smooth 134 8 2 phone_photos_orbit
+[[ -f $OUT/phone_recon_tl.mp4 ]] || ffmpeg -v error -threads 4 -y -i $OUT/scr_recon_tl.mp4 -vf "$PHONE_SCALE,framerate=fps=30:scene=100" $X264 $OUT/phone_recon_tl.mp4
+
+mkdir -p video/public/app_s
+for f in video/public/app/*.png; do
+  b=$(basename $f); [[ -f video/public/app_s/$b ]] || ffmpeg -v error -y -i $f -vf "$PHONE_SCALE" video/public/app_s/$b
+done

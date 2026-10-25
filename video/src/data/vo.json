@@ -1,3569 +1,3569 @@
 {
- "lines": [
-  {
-   "id": "L01",
-   "speaker": "Adithya",
-   "src": "vo/L01.wav",
-   "duration": 17.41,
-   "words": [
+  "lines": [
     {
-     "text": "Every",
-     "start": 0.19,
-     "end": 0.34
+      "id": "L01",
+      "speaker": "Adithya",
+      "src": "vo/L01.wav",
+      "duration": 17.41,
+      "words": [
+        {
+          "text": "Every",
+          "start": 0.19,
+          "end": 0.34
+        },
+        {
+          "text": "time",
+          "start": 0.34,
+          "end": 0.61
+        },
+        {
+          "text": "an",
+          "start": 0.61,
+          "end": 0.74
+        },
+        {
+          "text": "item",
+          "start": 0.74,
+          "end": 1.01
+        },
+        {
+          "text": "changes",
+          "start": 1.01,
+          "end": 1.48
+        },
+        {
+          "text": "hands,",
+          "start": 1.48,
+          "end": 1.93
+        },
+        {
+          "text": "whether",
+          "start": 1.93,
+          "end": 2.32
+        },
+        {
+          "text": "it's",
+          "start": 2.32,
+          "end": 2.45
+        },
+        {
+          "text": "a",
+          "start": 2.45,
+          "end": 2.5
+        },
+        {
+          "text": "marketplace",
+          "start": 2.5,
+          "end": 3.04
+        },
+        {
+          "text": "sale,",
+          "start": 3.04,
+          "end": 3.41
+        },
+        {
+          "text": "a",
+          "start": 3.41,
+          "end": 3.47
+        },
+        {
+          "text": "return,",
+          "start": 3.47,
+          "end": 4.0
+        },
+        {
+          "text": "a",
+          "start": 4.0,
+          "end": 4.14
+        },
+        {
+          "text": "rental,",
+          "start": 4.14,
+          "end": 4.89
+        },
+        {
+          "text": "there's",
+          "start": 4.89,
+          "end": 4.96
+        },
+        {
+          "text": "one",
+          "start": 4.96,
+          "end": 5.28
+        },
+        {
+          "text": "big",
+          "start": 5.28,
+          "end": 5.47
+        },
+        {
+          "text": "question.",
+          "start": 5.47,
+          "end": 6.19
+        },
+        {
+          "text": "What",
+          "start": 6.19,
+          "end": 6.45
+        },
+        {
+          "text": "condition",
+          "start": 6.45,
+          "end": 7.04
+        },
+        {
+          "text": "was",
+          "start": 7.04,
+          "end": 7.29
+        },
+        {
+          "text": "it",
+          "start": 7.29,
+          "end": 7.36
+        },
+        {
+          "text": "in?",
+          "start": 7.36,
+          "end": 7.68
+        },
+        {
+          "text": "Usually,",
+          "start": 7.68,
+          "end": 8.29
+        },
+        {
+          "text": "all",
+          "start": 8.29,
+          "end": 8.46
+        },
+        {
+          "text": "we",
+          "start": 8.46,
+          "end": 8.59
+        },
+        {
+          "text": "have",
+          "start": 8.59,
+          "end": 8.85
+        },
+        {
+          "text": "are",
+          "start": 8.85,
+          "end": 9.04
+        },
+        {
+          "text": "a",
+          "start": 9.04,
+          "end": 9.1
+        },
+        {
+          "text": "few",
+          "start": 9.1,
+          "end": 9.29
+        },
+        {
+          "text": "photos.",
+          "start": 9.29,
+          "end": 10.12
+        },
+        {
+          "text": "A",
+          "start": 10.12,
+          "end": 10.17
+        },
+        {
+          "text": "tiny",
+          "start": 10.17,
+          "end": 10.64
+        },
+        {
+          "text": "3mm",
+          "start": 10.64,
+          "end": 11.34
+        },
+        {
+          "text": "dent",
+          "start": 11.34,
+          "end": 11.92
+        },
+        {
+          "text": "can",
+          "start": 11.92,
+          "end": 12.11
+        },
+        {
+          "text": "disappear",
+          "start": 12.11,
+          "end": 12.53
+        },
+        {
+          "text": "under",
+          "start": 12.53,
+          "end": 12.78
+        },
+        {
+          "text": "the",
+          "start": 12.78,
+          "end": 12.93
+        },
+        {
+          "text": "wrong",
+          "start": 12.93,
+          "end": 13.18
+        },
+        {
+          "text": "lighting.",
+          "start": 13.18,
+          "end": 13.74
+        },
+        {
+          "text": "And",
+          "start": 13.74,
+          "end": 13.93
+        },
+        {
+          "text": "comparing",
+          "start": 13.93,
+          "end": 14.35
+        },
+        {
+          "text": "photos",
+          "start": 14.35,
+          "end": 14.68
+        },
+        {
+          "text": "taken",
+          "start": 14.68,
+          "end": 14.93
+        },
+        {
+          "text": "at",
+          "start": 14.93,
+          "end": 15.0
+        },
+        {
+          "text": "different",
+          "start": 15.0,
+          "end": 15.57
+        },
+        {
+          "text": "times,",
+          "start": 15.57,
+          "end": 16.08
+        },
+        {
+          "text": "that's",
+          "start": 16.08,
+          "end": 16.39
+        },
+        {
+          "text": "mostly",
+          "start": 16.39,
+          "end": 16.71
+        },
+        {
+          "text": "guesswork.",
+          "start": 16.71,
+          "end": 17.2
+        }
+      ],
+      "cards": [
+        {
+          "text": "Every time an item changes hands,",
+          "start": 0.14,
+          "end": 1.93
+        },
+        {
+          "text": "whether it's a marketplace sale, a return, a rental,",
+          "start": 1.88,
+          "end": 4.89
+        },
+        {
+          "text": "there's one big question: what condition was it in?",
+          "start": 4.84,
+          "end": 7.68
+        },
+        {
+          "text": "Usually, all we have are a few photos.",
+          "start": 7.63,
+          "end": 10.12
+        },
+        {
+          "text": "A tiny 3 mm dent can disappear under the wrong lighting.",
+          "start": 10.07,
+          "end": 13.74
+        },
+        {
+          "text": "And comparing photos taken at different times?",
+          "start": 13.69,
+          "end": 16.08
+        },
+        {
+          "text": "That's mostly guesswork.",
+          "start": 16.03,
+          "end": 17.41
+        }
+      ]
     },
     {
-     "text": "time",
-     "start": 0.34,
-     "end": 0.61
+      "id": "L02",
+      "speaker": "Adithya",
+      "src": "vo/L02.wav",
+      "duration": 2.8,
+      "words": [
+        {
+          "text": "And",
+          "start": 0.16,
+          "end": 0.22
+        },
+        {
+          "text": "now",
+          "start": 0.22,
+          "end": 0.32
+        },
+        {
+          "text": "that's",
+          "start": 0.32,
+          "end": 0.65
+        },
+        {
+          "text": "where",
+          "start": 0.65,
+          "end": 0.93
+        },
+        {
+          "text": "our",
+          "start": 0.93,
+          "end": 1.09
+        },
+        {
+          "text": "product,",
+          "start": 1.09,
+          "end": 1.59
+        },
+        {
+          "text": "ScanDitch,",
+          "start": 1.59,
+          "end": 2.22
+        },
+        {
+          "text": "comes",
+          "start": 2.22,
+          "end": 2.47
+        },
+        {
+          "text": "in.",
+          "start": 2.47,
+          "end": 2.64
+        }
+      ],
+      "cards": [
+        {
+          "text": "And now, that's where our product, ScanDiff, comes in.",
+          "start": 0.11,
+          "end": 2.8
+        }
+      ]
     },
     {
-     "text": "an",
-     "start": 0.61,
-     "end": 0.74
+      "id": "L03",
+      "speaker": "Adithya",
+      "src": "vo/L03.wav",
+      "duration": 4.15,
+      "words": [
+        {
+          "text": "We're",
+          "start": 0.16,
+          "end": 0.4
+        },
+        {
+          "text": "turning",
+          "start": 0.4,
+          "end": 1.09
+        },
+        {
+          "text": "just",
+          "start": 1.09,
+          "end": 1.29
+        },
+        {
+          "text": "trust",
+          "start": 1.29,
+          "end": 1.72
+        },
+        {
+          "text": "me",
+          "start": 1.72,
+          "end": 1.86
+        },
+        {
+          "text": "into",
+          "start": 1.86,
+          "end": 2.17
+        },
+        {
+          "text": "real",
+          "start": 2.17,
+          "end": 2.49
+        },
+        {
+          "text": "measurable",
+          "start": 2.49,
+          "end": 3.3
+        },
+        {
+          "text": "evidence.",
+          "start": 3.3,
+          "end": 4.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "We're turning “just trust me” into real, measurable evidence.",
+          "start": 0.11,
+          "end": 4.15
+        }
+      ]
     },
     {
-     "text": "item",
-     "start": 0.74,
-     "end": 1.01
+      "id": "L04",
+      "speaker": "Adithya",
+      "src": "vo/L04.wav",
+      "duration": 8.18,
+      "words": [
+        {
+          "text": "scan",
+          "start": 0.19,
+          "end": 0.47
+        },
+        {
+          "text": "diff",
+          "start": 0.47,
+          "end": 1.13
+        },
+        {
+          "text": "compares",
+          "start": 1.13,
+          "end": 1.89
+        },
+        {
+          "text": "three-dimensional",
+          "start": 1.89,
+          "end": 3.92
+        },
+        {
+          "text": "three-dimensional",
+          "start": 1.89,
+          "end": 3.92
+        },
+        {
+          "text": "scans",
+          "start": 3.92,
+          "end": 3.92
+        },
+        {
+          "text": "of",
+          "start": 3.92,
+          "end": 3.92
+        },
+        {
+          "text": "physical",
+          "start": 3.92,
+          "end": 3.92
+        },
+        {
+          "text": "items",
+          "start": 3.92,
+          "end": 3.92
+        },
+        {
+          "text": "to",
+          "start": 3.92,
+          "end": 3.92
+        },
+        {
+          "text": "detect",
+          "start": 3.92,
+          "end": 3.92
+        },
+        {
+          "text": "changes",
+          "start": 3.92,
+          "end": 4.35
+        },
+        {
+          "text": "in",
+          "start": 4.35,
+          "end": 4.53
+        },
+        {
+          "text": "their",
+          "start": 4.53,
+          "end": 4.78
+        },
+        {
+          "text": "condition",
+          "start": 4.78,
+          "end": 5.36
+        },
+        {
+          "text": "with",
+          "start": 5.36,
+          "end": 5.55
+        },
+        {
+          "text": "the",
+          "start": 5.55,
+          "end": 5.69
+        },
+        {
+          "text": "marketplace",
+          "start": 5.69,
+          "end": 6.22
+        },
+        {
+          "text": "checkout",
+          "start": 6.22,
+          "end": 6.67
+        },
+        {
+          "text": "built",
+          "start": 6.67,
+          "end": 6.88
+        },
+        {
+          "text": "right",
+          "start": 6.88,
+          "end": 7.2
+        },
+        {
+          "text": "into",
+          "start": 7.2,
+          "end": 7.44
+        },
+        {
+          "text": "the",
+          "start": 7.44,
+          "end": 7.62
+        },
+        {
+          "text": "app",
+          "start": 7.62,
+          "end": 8.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "ScanDiff compares three-dimensional scans of physical items",
+          "start": 1.08,
+          "end": 3.92
+        },
+        {
+          "text": "to detect changes in their condition,",
+          "start": 3.87,
+          "end": 5.36
+        },
+        {
+          "text": "with the marketplace checkout built right into the app.",
+          "start": 5.31,
+          "end": 8.18
+        }
+      ]
     },
     {
-     "text": "changes",
-     "start": 1.01,
-     "end": 1.48
+      "id": "L05",
+      "speaker": "Koushik",
+      "src": "vo/L05.wav",
+      "duration": 2.68,
+      "words": [
+        {
+          "text": "Let's",
+          "start": 0.2,
+          "end": 0.35
+        },
+        {
+          "text": "start",
+          "start": 0.35,
+          "end": 0.72
+        },
+        {
+          "text": "with",
+          "start": 0.72,
+          "end": 0.98
+        },
+        {
+          "text": "a",
+          "start": 0.98,
+          "end": 1.05
+        },
+        {
+          "text": "simple",
+          "start": 1.05,
+          "end": 1.47
+        },
+        {
+          "text": "example,",
+          "start": 1.47,
+          "end": 2.18
+        },
+        {
+          "text": "a",
+          "start": 2.18,
+          "end": 2.27
+        },
+        {
+          "text": "mug.",
+          "start": 2.27,
+          "end": 2.6
+        }
+      ],
+      "cards": [
+        {
+          "text": "Let's start with a simple example: a mug.",
+          "start": 0.15,
+          "end": 2.68
+        }
+      ]
     },
     {
-     "text": "hands,",
-     "start": 1.48,
-     "end": 1.93
+      "id": "L06",
+      "speaker": "Koushik",
+      "src": "vo/L06.wav",
+      "duration": 10.74,
+      "words": [
+        {
+          "text": "The",
+          "start": 0.23,
+          "end": 0.26
+        },
+        {
+          "text": "seller",
+          "start": 0.26,
+          "end": 0.79
+        },
+        {
+          "text": "sells",
+          "start": 0.79,
+          "end": 1.23
+        },
+        {
+          "text": "a",
+          "start": 1.23,
+          "end": 1.31
+        },
+        {
+          "text": "mug",
+          "start": 1.31,
+          "end": 1.74
+        },
+        {
+          "text": "and",
+          "start": 1.74,
+          "end": 1.82
+        },
+        {
+          "text": "Skandiff",
+          "start": 1.82,
+          "end": 2.46
+        },
+        {
+          "text": "generates",
+          "start": 2.46,
+          "end": 3.06
+        },
+        {
+          "text": "a",
+          "start": 3.06,
+          "end": 3.12
+        },
+        {
+          "text": "unique",
+          "start": 3.12,
+          "end": 3.76
+        },
+        {
+          "text": "item",
+          "start": 3.76,
+          "end": 4.18
+        },
+        {
+          "text": "ID",
+          "start": 4.18,
+          "end": 4.6
+        },
+        {
+          "text": "and",
+          "start": 4.6,
+          "end": 4.84
+        },
+        {
+          "text": "two",
+          "start": 4.84,
+          "end": 5.23
+        },
+        {
+          "text": "QR",
+          "start": 5.23,
+          "end": 5.57
+        },
+        {
+          "text": "codes,",
+          "start": 5.57,
+          "end": 6.24
+        },
+        {
+          "text": "one",
+          "start": 6.24,
+          "end": 6.49
+        },
+        {
+          "text": "for",
+          "start": 6.49,
+          "end": 6.74
+        },
+        {
+          "text": "its",
+          "start": 6.74,
+          "end": 6.99
+        },
+        {
+          "text": "original",
+          "start": 6.99,
+          "end": 7.68
+        },
+        {
+          "text": "scan",
+          "start": 7.68,
+          "end": 8.02
+        },
+        {
+          "text": "and",
+          "start": 8.02,
+          "end": 8.28
+        },
+        {
+          "text": "one",
+          "start": 8.28,
+          "end": 8.52
+        },
+        {
+          "text": "is",
+          "start": 8.52,
+          "end": 8.7
+        },
+        {
+          "text": "for",
+          "start": 8.7,
+          "end": 8.94
+        },
+        {
+          "text": "the",
+          "start": 8.94,
+          "end": 9.19
+        },
+        {
+          "text": "buyer's",
+          "start": 9.19,
+          "end": 9.8
+        },
+        {
+          "text": "check-in.",
+          "start": 9.8,
+          "end": 10.56
+        },
+        {
+          "text": "check-in.",
+          "start": 9.8,
+          "end": 10.56
+        }
+      ],
+      "cards": [
+        {
+          "text": "The seller sells a mug, and ScanDiff generates a unique item ID",
+          "start": 0.18,
+          "end": 4.6
+        },
+        {
+          "text": "and two QR codes:",
+          "start": 4.55,
+          "end": 6.24
+        },
+        {
+          "text": "one for its original scan, and one is for the buyer's check-in.",
+          "start": 6.19,
+          "end": 10.74
+        }
+      ]
     },
     {
-     "text": "whether",
-     "start": 1.93,
-     "end": 2.32
+      "id": "L07",
+      "speaker": "Koushik",
+      "src": "vo/L07.wav",
+      "duration": 4.84,
+      "words": [
+        {
+          "text": "Before",
+          "start": 0.2,
+          "end": 0.65
+        },
+        {
+          "text": "shipping,",
+          "start": 0.65,
+          "end": 1.31
+        },
+        {
+          "text": "the",
+          "start": 1.31,
+          "end": 1.68
+        },
+        {
+          "text": "seller",
+          "start": 1.68,
+          "end": 2.05
+        },
+        {
+          "text": "scans",
+          "start": 2.05,
+          "end": 2.46
+        },
+        {
+          "text": "the",
+          "start": 2.46,
+          "end": 2.71
+        },
+        {
+          "text": "mug",
+          "start": 2.71,
+          "end": 3.09
+        },
+        {
+          "text": "using",
+          "start": 3.09,
+          "end": 3.35
+        },
+        {
+          "text": "their",
+          "start": 3.35,
+          "end": 3.7
+        },
+        {
+          "text": "iPhone",
+          "start": 3.7,
+          "end": 4.12
+        },
+        {
+          "text": "LIDAR.",
+          "start": 4.12,
+          "end": 4.7
+        }
+      ],
+      "cards": [
+        {
+          "text": "Before shipping, the seller scans the mug",
+          "start": 0.15,
+          "end": 3.09
+        },
+        {
+          "text": "using their iPhone LiDAR.",
+          "start": 3.04,
+          "end": 4.84
+        }
+      ]
     },
     {
-     "text": "it's",
-     "start": 2.32,
-     "end": 2.45
+      "id": "L08",
+      "speaker": "Koushik",
+      "src": "vo/L08.wav",
+      "duration": 17.86,
+      "words": [
+        {
+          "text": "The",
+          "start": 0.19,
+          "end": 0.68
+        },
+        {
+          "text": "app",
+          "start": 0.68,
+          "end": 0.72
+        },
+        {
+          "text": "guides",
+          "start": 0.72,
+          "end": 1.36
+        },
+        {
+          "text": "the",
+          "start": 1.36,
+          "end": 1.71
+        },
+        {
+          "text": "capture,",
+          "start": 1.71,
+          "end": 2.82
+        },
+        {
+          "text": "builds",
+          "start": 2.82,
+          "end": 3.29
+        },
+        {
+          "text": "textured",
+          "start": 3.29,
+          "end": 4.0
+        },
+        {
+          "text": "three-dimensional",
+          "start": 4.0,
+          "end": 4.74
+        },
+        {
+          "text": "three-dimensional",
+          "start": 4.0,
+          "end": 4.74
+        },
+        {
+          "text": "model,",
+          "start": 4.74,
+          "end": 5.43
+        },
+        {
+          "text": "and",
+          "start": 5.43,
+          "end": 5.55
+        },
+        {
+          "text": "saves",
+          "start": 5.55,
+          "end": 5.88
+        },
+        {
+          "text": "photos",
+          "start": 5.88,
+          "end": 6.4
+        },
+        {
+          "text": "along",
+          "start": 6.4,
+          "end": 6.99
+        },
+        {
+          "text": "with",
+          "start": 6.99,
+          "end": 7.76
+        },
+        {
+          "text": "their",
+          "start": 7.76,
+          "end": 8.01
+        },
+        {
+          "text": "camera",
+          "start": 8.01,
+          "end": 8.32
+        },
+        {
+          "text": "positions",
+          "start": 8.32,
+          "end": 9.26
+        },
+        {
+          "text": "before",
+          "start": 9.26,
+          "end": 9.4
+        },
+        {
+          "text": "uploading",
+          "start": 9.4,
+          "end": 10.0
+        },
+        {
+          "text": "every",
+          "start": 10.0,
+          "end": 10.5
+        },
+        {
+          "text": "file,",
+          "start": 10.5,
+          "end": 11.35
+        },
+        {
+          "text": "which",
+          "start": 11.35,
+          "end": 11.56
+        },
+        {
+          "text": "gets",
+          "start": 11.56,
+          "end": 11.96
+        },
+        {
+          "text": "a",
+          "start": 11.96,
+          "end": 11.97
+        },
+        {
+          "text": "unique",
+          "start": 11.97,
+          "end": 12.45
+        },
+        {
+          "text": "Shaw",
+          "start": 12.45,
+          "end": 12.76
+        },
+        {
+          "text": "256",
+          "start": 12.76,
+          "end": 13.49
+        },
+        {
+          "text": "fingerprint",
+          "start": 13.49,
+          "end": 14.37
+        },
+        {
+          "text": "to",
+          "start": 14.37,
+          "end": 14.59
+        },
+        {
+          "text": "help",
+          "start": 14.59,
+          "end": 14.86
+        },
+        {
+          "text": "detect",
+          "start": 14.86,
+          "end": 15.37
+        },
+        {
+          "text": "whether",
+          "start": 15.37,
+          "end": 15.9
+        },
+        {
+          "text": "the",
+          "start": 15.9,
+          "end": 16.14
+        },
+        {
+          "text": "evidence",
+          "start": 16.14,
+          "end": 16.79
+        },
+        {
+          "text": "has",
+          "start": 16.79,
+          "end": 17.03
+        },
+        {
+          "text": "been",
+          "start": 17.03,
+          "end": 17.35
+        },
+        {
+          "text": "altered.",
+          "start": 17.35,
+          "end": 18.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "The app guides the capture,",
+          "start": 0.14,
+          "end": 2.82
+        },
+        {
+          "text": "builds textured three-dimensional model,",
+          "start": 2.77,
+          "end": 5.43
+        },
+        {
+          "text": "and saves photos along with their camera positions",
+          "start": 5.38,
+          "end": 9.26
+        },
+        {
+          "text": "before uploading every file, which gets a unique SHA-256 fingerprint",
+          "start": 9.21,
+          "end": 14.37
+        },
+        {
+          "text": "to help detect whether the evidence has been altered.",
+          "start": 14.32,
+          "end": 17.86
+        }
+      ]
     },
     {
-     "text": "a",
-     "start": 2.45,
-     "end": 2.5
+      "id": "L09",
+      "speaker": "Koushik",
+      "src": "vo/L09.wav",
+      "duration": 13.71,
+      "words": [
+        {
+          "text": "Now,",
+          "start": 0.2,
+          "end": 0.42
+        },
+        {
+          "text": "the",
+          "start": 0.42,
+          "end": 0.67
+        },
+        {
+          "text": "buyer",
+          "start": 0.67,
+          "end": 1.09
+        },
+        {
+          "text": "checks",
+          "start": 1.09,
+          "end": 1.6
+        },
+        {
+          "text": "out",
+          "start": 1.6,
+          "end": 1.85
+        },
+        {
+          "text": "using",
+          "start": 1.85,
+          "end": 2.27
+        },
+        {
+          "text": "our",
+          "start": 2.27,
+          "end": 2.69
+        },
+        {
+          "text": "demo",
+          "start": 2.69,
+          "end": 3.07
+        },
+        {
+          "text": "Visa",
+          "start": 3.07,
+          "end": 3.58
+        },
+        {
+          "text": "payment",
+          "start": 3.58,
+          "end": 4.53
+        },
+        {
+          "text": "flow,",
+          "start": 4.53,
+          "end": 5.17
+        },
+        {
+          "text": "but",
+          "start": 5.17,
+          "end": 5.3
+        },
+        {
+          "text": "the",
+          "start": 5.3,
+          "end": 5.48
+        },
+        {
+          "text": "money",
+          "start": 5.48,
+          "end": 5.88
+        },
+        {
+          "text": "isn't",
+          "start": 5.88,
+          "end": 6.15
+        },
+        {
+          "text": "released",
+          "start": 6.15,
+          "end": 6.68
+        },
+        {
+          "text": "yet.",
+          "start": 6.68,
+          "end": 7.68
+        },
+        {
+          "text": "It",
+          "start": 7.68,
+          "end": 7.88
+        },
+        {
+          "text": "is",
+          "start": 7.88,
+          "end": 7.98
+        },
+        {
+          "text": "still",
+          "start": 7.98,
+          "end": 8.36
+        },
+        {
+          "text": "held",
+          "start": 8.36,
+          "end": 8.66
+        },
+        {
+          "text": "until",
+          "start": 8.66,
+          "end": 9.04
+        },
+        {
+          "text": "the",
+          "start": 9.04,
+          "end": 9.27
+        },
+        {
+          "text": "buyer",
+          "start": 9.27,
+          "end": 9.65
+        },
+        {
+          "text": "checks",
+          "start": 9.65,
+          "end": 10.33
+        },
+        {
+          "text": "the",
+          "start": 10.33,
+          "end": 10.37
+        },
+        {
+          "text": "item's",
+          "start": 10.37,
+          "end": 10.78
+        },
+        {
+          "text": "condition",
+          "start": 10.78,
+          "end": 11.46
+        },
+        {
+          "text": "on",
+          "start": 11.46,
+          "end": 11.71
+        },
+        {
+          "text": "arrival.",
+          "start": 11.71,
+          "end": 12.2
+        }
+      ],
+      "cards": [
+        {
+          "text": "Now, the buyer checks out using our demo Visa payment flow,",
+          "start": 0.15,
+          "end": 5.17
+        },
+        {
+          "text": "but the money isn't released yet.",
+          "start": 5.12,
+          "end": 7.68
+        },
+        {
+          "text": "It is still held until the buyer",
+          "start": 7.63,
+          "end": 9.65
+        },
+        {
+          "text": "checks the item's condition on arrival.",
+          "start": 9.6,
+          "end": 12.55
+        }
+      ]
     },
     {
-     "text": "marketplace",
-     "start": 2.5,
-     "end": 3.04
+      "id": "L10",
+      "speaker": "Adithya",
+      "src": "vo/L10.wav",
+      "duration": 3.18,
+      "words": [
+        {
+          "text": "Once",
+          "start": 0.1,
+          "end": 0.3
+        },
+        {
+          "text": "the",
+          "start": 0.3,
+          "end": 0.72
+        },
+        {
+          "text": "mug",
+          "start": 0.72,
+          "end": 0.76
+        },
+        {
+          "text": "arrives,",
+          "start": 0.76,
+          "end": 1.44
+        },
+        {
+          "text": "the",
+          "start": 1.44,
+          "end": 1.67
+        },
+        {
+          "text": "buyer",
+          "start": 1.67,
+          "end": 2.05
+        },
+        {
+          "text": "scans",
+          "start": 2.05,
+          "end": 2.43
+        },
+        {
+          "text": "it",
+          "start": 2.43,
+          "end": 2.62
+        },
+        {
+          "text": "again.",
+          "start": 2.62,
+          "end": 3.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "Once the mug arrives, the buyer scans it again.",
+          "start": 0.05,
+          "end": 3.18
+        }
+      ]
     },
     {
-     "text": "sale,",
-     "start": 3.04,
-     "end": 3.41
+      "id": "L11",
+      "speaker": "Adithya",
+      "src": "vo/L11.wav",
+      "duration": 8.38,
+      "words": [
+        {
+          "text": "scan_diff",
+          "start": 0.16,
+          "end": 0.56
+        },
+        {
+          "text": "aligns",
+          "start": 0.56,
+          "end": 0.93
+        },
+        {
+          "text": "both",
+          "start": 0.93,
+          "end": 1.21
+        },
+        {
+          "text": "three-dimensional",
+          "start": 1.21,
+          "end": 2.23
+        },
+        {
+          "text": "three-dimensional",
+          "start": 1.21,
+          "end": 2.23
+        },
+        {
+          "text": "models",
+          "start": 2.23,
+          "end": 2.86
+        },
+        {
+          "text": "first",
+          "start": 2.86,
+          "end": 3.15
+        },
+        {
+          "text": "globally",
+          "start": 3.15,
+          "end": 3.76
+        },
+        {
+          "text": "and",
+          "start": 3.76,
+          "end": 4.02
+        },
+        {
+          "text": "then",
+          "start": 4.02,
+          "end": 4.52
+        },
+        {
+          "text": "using",
+          "start": 4.52,
+          "end": 4.8
+        },
+        {
+          "text": "a",
+          "start": 4.8,
+          "end": 5.41
+        },
+        {
+          "text": "technique",
+          "start": 5.41,
+          "end": 5.68
+        },
+        {
+          "text": "called",
+          "start": 5.68,
+          "end": 6.0
+        },
+        {
+          "text": "ICP",
+          "start": 6.0,
+          "end": 6.33
+        },
+        {
+          "text": "to",
+          "start": 6.33,
+          "end": 6.55
+        },
+        {
+          "text": "refine",
+          "start": 6.55,
+          "end": 7.23
+        },
+        {
+          "text": "the",
+          "start": 7.23,
+          "end": 7.57
+        },
+        {
+          "text": "match.",
+          "start": 7.57,
+          "end": 8.16
+        }
+      ],
+      "cards": [
+        {
+          "text": "ScanDiff aligns both three-dimensional models,",
+          "start": 0.11,
+          "end": 2.86
+        },
+        {
+          "text": "first globally, and then using a technique called ICP",
+          "start": 2.81,
+          "end": 6.33
+        },
+        {
+          "text": "to refine the match.",
+          "start": 6.28,
+          "end": 8.38
+        }
+      ]
     },
     {
-     "text": "a",
-     "start": 3.41,
-     "end": 3.47
+      "id": "L12",
+      "speaker": "Adithya",
+      "src": "vo/L12.wav",
+      "duration": 12.15,
+      "words": [
+        {
+          "text": "Then,",
+          "start": 0.05,
+          "end": 0.53
+        },
+        {
+          "text": "it",
+          "start": 0.53,
+          "end": 0.55
+        },
+        {
+          "text": "measures",
+          "start": 0.55,
+          "end": 1.08
+        },
+        {
+          "text": "how",
+          "start": 1.08,
+          "end": 1.28
+        },
+        {
+          "text": "much",
+          "start": 1.28,
+          "end": 1.55
+        },
+        {
+          "text": "the",
+          "start": 1.55,
+          "end": 1.75
+        },
+        {
+          "text": "surface",
+          "start": 1.75,
+          "end": 2.23
+        },
+        {
+          "text": "has",
+          "start": 2.23,
+          "end": 2.43
+        },
+        {
+          "text": "changed,",
+          "start": 2.43,
+          "end": 3.13
+        },
+        {
+          "text": "down",
+          "start": 3.13,
+          "end": 3.39
+        },
+        {
+          "text": "to",
+          "start": 3.39,
+          "end": 3.52
+        },
+        {
+          "text": "a",
+          "start": 3.52,
+          "end": 3.58
+        },
+        {
+          "text": "few",
+          "start": 3.58,
+          "end": 3.77
+        },
+        {
+          "text": "millimeters.",
+          "start": 3.77,
+          "end": 4.76
+        },
+        {
+          "text": "Instead",
+          "start": 4.76,
+          "end": 5.26
+        },
+        {
+          "text": "of",
+          "start": 5.26,
+          "end": 5.31
+        },
+        {
+          "text": "guessing",
+          "start": 5.31,
+          "end": 5.7
+        },
+        {
+          "text": "what",
+          "start": 5.7,
+          "end": 5.92
+        },
+        {
+          "text": "counts",
+          "start": 5.92,
+          "end": 6.25
+        },
+        {
+          "text": "as",
+          "start": 6.25,
+          "end": 6.36
+        },
+        {
+          "text": "damaged,",
+          "start": 6.36,
+          "end": 6.88
+        },
+        {
+          "text": "we",
+          "start": 6.88,
+          "end": 7.02
+        },
+        {
+          "text": "estimate",
+          "start": 7.02,
+          "end": 7.57
+        },
+        {
+          "text": "the",
+          "start": 7.57,
+          "end": 7.87
+        },
+        {
+          "text": "scan's",
+          "start": 7.87,
+          "end": 8.22
+        },
+        {
+          "text": "own",
+          "start": 8.22,
+          "end": 8.4
+        },
+        {
+          "text": "noise",
+          "start": 8.4,
+          "end": 8.73
+        },
+        {
+          "text": "level,",
+          "start": 8.73,
+          "end": 9.5
+        },
+        {
+          "text": "helping",
+          "start": 9.5,
+          "end": 9.56
+        },
+        {
+          "text": "distinguish",
+          "start": 9.56,
+          "end": 10.15
+        },
+        {
+          "text": "real",
+          "start": 10.15,
+          "end": 10.36
+        },
+        {
+          "text": "changes",
+          "start": 10.36,
+          "end": 10.73
+        },
+        {
+          "text": "from",
+          "start": 10.73,
+          "end": 10.94
+        },
+        {
+          "text": "measurement",
+          "start": 10.94,
+          "end": 11.53
+        },
+        {
+          "text": "noise.",
+          "start": 11.53,
+          "end": 12.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "Then, it measures how much the surface has changed,",
+          "start": 0.0,
+          "end": 3.13
+        },
+        {
+          "text": "down to a few millimeters.",
+          "start": 3.08,
+          "end": 4.76
+        },
+        {
+          "text": "Instead of guessing what counts as damage,",
+          "start": 4.71,
+          "end": 6.88
+        },
+        {
+          "text": "we estimate the scan's own noise level,",
+          "start": 6.83,
+          "end": 9.5
+        },
+        {
+          "text": "helping distinguish real changes from measurement noise.",
+          "start": 9.45,
+          "end": 12.15
+        }
+      ]
     },
     {
-     "text": "return,",
-     "start": 3.47,
-     "end": 4.0
+      "id": "L13",
+      "speaker": "Adithya",
+      "src": "vo/L13.wav",
+      "duration": 11.71,
+      "words": [
+        {
+          "text": "Next,",
+          "start": 0.2,
+          "end": 0.39
+        },
+        {
+          "text": "we",
+          "start": 0.39,
+          "end": 0.52
+        },
+        {
+          "text": "group",
+          "start": 0.52,
+          "end": 0.91
+        },
+        {
+          "text": "the",
+          "start": 0.91,
+          "end": 1.03
+        },
+        {
+          "text": "changes",
+          "start": 1.03,
+          "end": 1.5
+        },
+        {
+          "text": "into",
+          "start": 1.5,
+          "end": 1.75
+        },
+        {
+          "text": "individual",
+          "start": 1.75,
+          "end": 2.38
+        },
+        {
+          "text": "regions.",
+          "start": 2.38,
+          "end": 3.04
+        },
+        {
+          "text": "For",
+          "start": 3.04,
+          "end": 3.2
+        },
+        {
+          "text": "each",
+          "start": 3.2,
+          "end": 3.42
+        },
+        {
+          "text": "region,",
+          "start": 3.42,
+          "end": 3.93
+        },
+        {
+          "text": "Claude",
+          "start": 3.93,
+          "end": 4.12
+        },
+        {
+          "text": "compares",
+          "start": 4.12,
+          "end": 4.56
+        },
+        {
+          "text": "the",
+          "start": 4.56,
+          "end": 4.76
+        },
+        {
+          "text": "before",
+          "start": 4.76,
+          "end": 5.14
+        },
+        {
+          "text": "and",
+          "start": 5.14,
+          "end": 5.33
+        },
+        {
+          "text": "after",
+          "start": 5.33,
+          "end": 5.66
+        },
+        {
+          "text": "photo",
+          "start": 5.66,
+          "end": 5.98
+        },
+        {
+          "text": "crops",
+          "start": 5.98,
+          "end": 6.32
+        },
+        {
+          "text": "and",
+          "start": 6.32,
+          "end": 6.51
+        },
+        {
+          "text": "classifies",
+          "start": 6.51,
+          "end": 7.17
+        },
+        {
+          "text": "the",
+          "start": 7.17,
+          "end": 7.36
+        },
+        {
+          "text": "change.",
+          "start": 7.36,
+          "end": 8.0
+        },
+        {
+          "text": "It",
+          "start": 8.0,
+          "end": 8.1
+        },
+        {
+          "text": "might",
+          "start": 8.1,
+          "end": 8.44
+        },
+        {
+          "text": "be",
+          "start": 8.44,
+          "end": 8.49
+        },
+        {
+          "text": "a",
+          "start": 8.49,
+          "end": 8.49
+        },
+        {
+          "text": "dent,",
+          "start": 8.49,
+          "end": 8.79
+        },
+        {
+          "text": "a",
+          "start": 8.79,
+          "end": 8.86
+        },
+        {
+          "text": "missing",
+          "start": 8.86,
+          "end": 9.28
+        },
+        {
+          "text": "part,",
+          "start": 9.28,
+          "end": 9.67
+        },
+        {
+          "text": "a",
+          "start": 9.67,
+          "end": 9.67
+        },
+        {
+          "text": "scuff,",
+          "start": 9.67,
+          "end": 10.06
+        },
+        {
+          "text": "or",
+          "start": 10.06,
+          "end": 10.19
+        },
+        {
+          "text": "just",
+          "start": 10.19,
+          "end": 10.4
+        },
+        {
+          "text": "normal",
+          "start": 10.4,
+          "end": 10.78
+        },
+        {
+          "text": "wear",
+          "start": 10.78,
+          "end": 11.03
+        },
+        {
+          "text": "and",
+          "start": 11.03,
+          "end": 11.15
+        },
+        {
+          "text": "tear.",
+          "start": 11.15,
+          "end": 11.64
+        }
+      ],
+      "cards": [
+        {
+          "text": "Next, we group the changes into individual regions.",
+          "start": 0.15,
+          "end": 3.04
+        },
+        {
+          "text": "For each region, Claude compares the before-and-after photo crops",
+          "start": 2.99,
+          "end": 6.32
+        },
+        {
+          "text": "and classifies the change.",
+          "start": 6.27,
+          "end": 8.0
+        },
+        {
+          "text": "It might be a dent, a missing part, a scuff,",
+          "start": 7.95,
+          "end": 10.06
+        },
+        {
+          "text": "or just normal wear and tear.",
+          "start": 10.01,
+          "end": 11.71
+        }
+      ]
     },
     {
-     "text": "a",
-     "start": 4.0,
-     "end": 4.14
+      "id": "L14",
+      "speaker": "Adithya",
+      "src": "vo/L14.wav",
+      "duration": 7.07,
+      "words": [
+        {
+          "text": "And",
+          "start": 0.19,
+          "end": 0.2
+        },
+        {
+          "text": "if",
+          "start": 0.2,
+          "end": 0.32
+        },
+        {
+          "text": "one",
+          "start": 0.32,
+          "end": 0.51
+        },
+        {
+          "text": "scan",
+          "start": 0.51,
+          "end": 0.77
+        },
+        {
+          "text": "can't",
+          "start": 0.77,
+          "end": 1.09
+        },
+        {
+          "text": "see",
+          "start": 1.09,
+          "end": 1.29
+        },
+        {
+          "text": "a",
+          "start": 1.29,
+          "end": 1.34
+        },
+        {
+          "text": "particular",
+          "start": 1.34,
+          "end": 1.99
+        },
+        {
+          "text": "surface,",
+          "start": 1.99,
+          "end": 2.61
+        },
+        {
+          "text": "we",
+          "start": 2.61,
+          "end": 2.66
+        },
+        {
+          "text": "mark",
+          "start": 2.66,
+          "end": 2.85
+        },
+        {
+          "text": "it",
+          "start": 2.85,
+          "end": 2.96
+        },
+        {
+          "text": "as",
+          "start": 2.96,
+          "end": 3.12
+        },
+        {
+          "text": "no",
+          "start": 3.12,
+          "end": 3.38
+        },
+        {
+          "text": "data",
+          "start": 3.38,
+          "end": 4.04
+        },
+        {
+          "text": "rather",
+          "start": 4.04,
+          "end": 4.08
+        },
+        {
+          "text": "than",
+          "start": 4.08,
+          "end": 4.4
+        },
+        {
+          "text": "incorrectly",
+          "start": 4.4,
+          "end": 5.71
+        },
+        {
+          "text": "calling",
+          "start": 5.71,
+          "end": 5.91
+        },
+        {
+          "text": "it",
+          "start": 5.91,
+          "end": 6.0
+        },
+        {
+          "text": "damage.",
+          "start": 6.0,
+          "end": 7.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "And if one scan can't see a particular surface,",
+          "start": 0.14,
+          "end": 2.61
+        },
+        {
+          "text": "we mark it as “no data” rather than incorrectly calling it damage.",
+          "start": 2.56,
+          "end": 7.07
+        }
+      ]
     },
     {
-     "text": "rental,",
-     "start": 4.14,
-     "end": 4.89
+      "id": "L15",
+      "speaker": "Koushik",
+      "src": "vo/L15.wav",
+      "duration": 5.22,
+      "words": [
+        {
+          "text": "So,",
+          "start": 0.2,
+          "end": 0.61
+        },
+        {
+          "text": "what",
+          "start": 0.61,
+          "end": 0.88
+        },
+        {
+          "text": "happens",
+          "start": 0.88,
+          "end": 1.65
+        },
+        {
+          "text": "next?",
+          "start": 1.65,
+          "end": 2.44
+        },
+        {
+          "text": "The",
+          "start": 2.44,
+          "end": 2.62
+        },
+        {
+          "text": "buyer",
+          "start": 2.62,
+          "end": 2.96
+        },
+        {
+          "text": "reviews",
+          "start": 2.96,
+          "end": 3.38
+        },
+        {
+          "text": "the",
+          "start": 3.38,
+          "end": 3.56
+        },
+        {
+          "text": "results",
+          "start": 3.56,
+          "end": 4.0
+        },
+        {
+          "text": "and",
+          "start": 4.0,
+          "end": 4.13
+        },
+        {
+          "text": "accepts",
+          "start": 4.13,
+          "end": 4.44
+        },
+        {
+          "text": "the",
+          "start": 4.44,
+          "end": 4.56
+        },
+        {
+          "text": "item.",
+          "start": 4.56,
+          "end": 5.08
+        }
+      ],
+      "cards": [
+        {
+          "text": "So, what happens next?",
+          "start": 0.15,
+          "end": 2.44
+        },
+        {
+          "text": "The buyer reviews the result and accepts the item.",
+          "start": 2.39,
+          "end": 5.22
+        }
+      ]
     },
     {
-     "text": "there's",
-     "start": 4.89,
-     "end": 4.96
+      "id": "L16",
+      "speaker": "Koushik",
+      "src": "vo/L16.wav",
+      "duration": 6.48,
+      "words": [
+        {
+          "text": "Through",
+          "start": 0.23,
+          "end": 0.47
+        },
+        {
+          "text": "Superbase",
+          "start": 0.47,
+          "end": 1.08
+        },
+        {
+          "text": "Realtime,",
+          "start": 1.08,
+          "end": 1.75
+        },
+        {
+          "text": "that",
+          "start": 1.75,
+          "end": 2.02
+        },
+        {
+          "text": "decision",
+          "start": 2.02,
+          "end": 2.43
+        },
+        {
+          "text": "immediately",
+          "start": 2.43,
+          "end": 3.05
+        },
+        {
+          "text": "updates",
+          "start": 3.05,
+          "end": 3.67
+        },
+        {
+          "text": "the",
+          "start": 3.67,
+          "end": 3.76
+        },
+        {
+          "text": "checkout",
+          "start": 3.76,
+          "end": 4.42
+        },
+        {
+          "text": "and",
+          "start": 4.42,
+          "end": 4.5
+        },
+        {
+          "text": "the",
+          "start": 4.5,
+          "end": 4.56
+        },
+        {
+          "text": "payment",
+          "start": 4.56,
+          "end": 5.03
+        },
+        {
+          "text": "held",
+          "start": 5.03,
+          "end": 5.4
+        },
+        {
+          "text": "is",
+          "start": 5.4,
+          "end": 5.62
+        },
+        {
+          "text": "released.",
+          "start": 5.62,
+          "end": 6.44
+        }
+      ],
+      "cards": [
+        {
+          "text": "Through Supabase Realtime,",
+          "start": 0.18,
+          "end": 1.75
+        },
+        {
+          "text": "that decision immediately updates the checkout",
+          "start": 1.7,
+          "end": 4.42
+        },
+        {
+          "text": "and the payment held is released.",
+          "start": 4.37,
+          "end": 6.48
+        }
+      ]
     },
     {
-     "text": "one",
-     "start": 4.96,
-     "end": 5.28
+      "id": "L17",
+      "speaker": "Koushik",
+      "src": "vo/L17.wav",
+      "duration": 18.32,
+      "words": [
+        {
+          "text": "But",
+          "start": 0.19,
+          "end": 0.21
+        },
+        {
+          "text": "what",
+          "start": 0.21,
+          "end": 0.53
+        },
+        {
+          "text": "if",
+          "start": 0.53,
+          "end": 0.56
+        },
+        {
+          "text": "something",
+          "start": 0.56,
+          "end": 1.13
+        },
+        {
+          "text": "went",
+          "start": 1.13,
+          "end": 1.38
+        },
+        {
+          "text": "wrong",
+          "start": 1.38,
+          "end": 1.7
+        },
+        {
+          "text": "during",
+          "start": 1.7,
+          "end": 2.08
+        },
+        {
+          "text": "shipping?",
+          "start": 2.08,
+          "end": 2.81
+        },
+        {
+          "text": "The",
+          "start": 2.81,
+          "end": 2.98
+        },
+        {
+          "text": "buyer",
+          "start": 2.98,
+          "end": 3.26
+        },
+        {
+          "text": "can",
+          "start": 3.26,
+          "end": 3.43
+        },
+        {
+          "text": "dispute",
+          "start": 3.43,
+          "end": 3.88
+        },
+        {
+          "text": "the",
+          "start": 3.88,
+          "end": 3.91
+        },
+        {
+          "text": "transaction,",
+          "start": 3.91,
+          "end": 4.9
+        },
+        {
+          "text": "the",
+          "start": 4.9,
+          "end": 5.0
+        },
+        {
+          "text": "payment",
+          "start": 5.0,
+          "end": 5.32
+        },
+        {
+          "text": "stays",
+          "start": 5.32,
+          "end": 5.67
+        },
+        {
+          "text": "held,",
+          "start": 5.67,
+          "end": 6.12
+        },
+        {
+          "text": "and",
+          "start": 6.12,
+          "end": 6.12
+        },
+        {
+          "text": "the",
+          "start": 6.12,
+          "end": 6.32
+        },
+        {
+          "text": "refund",
+          "start": 6.32,
+          "end": 6.6
+        },
+        {
+          "text": "process",
+          "start": 6.6,
+          "end": 7.03
+        },
+        {
+          "text": "runs",
+          "start": 7.03,
+          "end": 7.35
+        },
+        {
+          "text": "through",
+          "start": 7.35,
+          "end": 7.96
+        },
+        {
+          "text": "Capital",
+          "start": 7.96,
+          "end": 8.57
+        },
+        {
+          "text": "One's",
+          "start": 8.57,
+          "end": 9.04
+        },
+        {
+          "text": "NSSE",
+          "start": 9.04,
+          "end": 9.34
+        },
+        {
+          "text": "sandbox.",
+          "start": 9.34,
+          "end": 10.0
+        },
+        {
+          "text": "Both",
+          "start": 10.0,
+          "end": 10.53
+        },
+        {
+          "text": "sides",
+          "start": 10.53,
+          "end": 10.67
+        },
+        {
+          "text": "also",
+          "start": 10.67,
+          "end": 10.88
+        },
+        {
+          "text": "get",
+          "start": 10.88,
+          "end": 11.08
+        },
+        {
+          "text": "the",
+          "start": 11.08,
+          "end": 11.28
+        },
+        {
+          "text": "same",
+          "start": 11.28,
+          "end": 11.55
+        },
+        {
+          "text": "Printable",
+          "start": 11.55,
+          "end": 12.16
+        },
+        {
+          "text": "Evidence",
+          "start": 12.16,
+          "end": 12.78
+        },
+        {
+          "text": "page",
+          "start": 12.78,
+          "end": 12.98
+        },
+        {
+          "text": "complete",
+          "start": 12.98,
+          "end": 13.53
+        },
+        {
+          "text": "with",
+          "start": 13.53,
+          "end": 13.88
+        },
+        {
+          "text": "the",
+          "start": 13.88,
+          "end": 14.0
+        },
+        {
+          "text": "original",
+          "start": 14.0,
+          "end": 14.54
+        },
+        {
+          "text": "exhibits,",
+          "start": 14.54,
+          "end": 15.23
+        },
+        {
+          "text": "file",
+          "start": 15.23,
+          "end": 15.5
+        },
+        {
+          "text": "fingerprints,",
+          "start": 15.5,
+          "end": 16.46
+        },
+        {
+          "text": "and",
+          "start": 16.46,
+          "end": 16.77
+        },
+        {
+          "text": "flagged",
+          "start": 16.77,
+          "end": 17.14
+        },
+        {
+          "text": "regions.",
+          "start": 17.14,
+          "end": 18.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "But what if something went wrong during shipping?",
+          "start": 0.14,
+          "end": 2.81
+        },
+        {
+          "text": "The buyer can dispute the transaction,",
+          "start": 2.76,
+          "end": 4.9
+        },
+        {
+          "text": "the payment stays held,",
+          "start": 4.85,
+          "end": 6.12
+        },
+        {
+          "text": "and the refund process runs through Capital One's Nessie sandbox.",
+          "start": 6.07,
+          "end": 10.0
+        },
+        {
+          "text": "Both sides also get the same printable evidence page,",
+          "start": 9.95,
+          "end": 12.98
+        },
+        {
+          "text": "complete with the original exhibits,",
+          "start": 12.93,
+          "end": 15.23
+        },
+        {
+          "text": "file fingerprints, and flagged regions.",
+          "start": 15.18,
+          "end": 18.32
+        }
+      ]
     },
     {
-     "text": "big",
-     "start": 5.28,
-     "end": 5.47
+      "id": "L18",
+      "speaker": "Adithya",
+      "src": "vo/L18.wav",
+      "duration": 16.15,
+      "words": [
+        {
+          "text": "That",
+          "start": 0.2,
+          "end": 0.27
+        },
+        {
+          "text": "brings",
+          "start": 0.27,
+          "end": 0.68
+        },
+        {
+          "text": "us",
+          "start": 0.68,
+          "end": 0.81
+        },
+        {
+          "text": "to",
+          "start": 0.81,
+          "end": 0.94
+        },
+        {
+          "text": "an",
+          "start": 0.94,
+          "end": 1.07
+        },
+        {
+          "text": "important",
+          "start": 1.07,
+          "end": 1.68
+        },
+        {
+          "text": "distinction.",
+          "start": 1.68,
+          "end": 2.56
+        },
+        {
+          "text": "Scandiff",
+          "start": 2.56,
+          "end": 3.07
+        },
+        {
+          "text": "provides",
+          "start": 3.07,
+          "end": 3.6
+        },
+        {
+          "text": "tamper",
+          "start": 3.6,
+          "end": 4.08
+        },
+        {
+          "text": "evidence",
+          "start": 4.08,
+          "end": 4.56
+        },
+        {
+          "text": "of",
+          "start": 4.56,
+          "end": 6.32
+        },
+        {
+          "text": "an",
+          "start": 6.32,
+          "end": 6.72
+        },
+        {
+          "text": "item's",
+          "start": 6.72,
+          "end": 6.96
+        },
+        {
+          "text": "condition",
+          "start": 6.96,
+          "end": 7.68
+        },
+        {
+          "text": "at",
+          "start": 7.68,
+          "end": 7.88
+        },
+        {
+          "text": "handoff.",
+          "start": 7.88,
+          "end": 8.64
+        },
+        {
+          "text": "It",
+          "start": 8.64,
+          "end": 8.8
+        },
+        {
+          "text": "doesn't",
+          "start": 8.8,
+          "end": 9.36
+        },
+        {
+          "text": "prove",
+          "start": 9.36,
+          "end": 9.76
+        },
+        {
+          "text": "that",
+          "start": 9.76,
+          "end": 10.08
+        },
+        {
+          "text": "the",
+          "start": 10.08,
+          "end": 10.34
+        },
+        {
+          "text": "item",
+          "start": 10.34,
+          "end": 10.66
+        },
+        {
+          "text": "was",
+          "start": 10.66,
+          "end": 10.94
+        },
+        {
+          "text": "originally",
+          "start": 10.94,
+          "end": 11.69
+        },
+        {
+          "text": "advertised",
+          "start": 11.69,
+          "end": 12.72
+        },
+        {
+          "text": "accurately,",
+          "start": 12.72,
+          "end": 13.04
+        },
+        {
+          "text": "and",
+          "start": 13.04,
+          "end": 13.24
+        },
+        {
+          "text": "our",
+          "start": 13.24,
+          "end": 13.4
+        },
+        {
+          "text": "payment",
+          "start": 13.4,
+          "end": 13.82
+        },
+        {
+          "text": "flow",
+          "start": 13.82,
+          "end": 14.06
+        },
+        {
+          "text": "is",
+          "start": 14.06,
+          "end": 14.18
+        },
+        {
+          "text": "for",
+          "start": 14.18,
+          "end": 14.36
+        },
+        {
+          "text": "demonstration",
+          "start": 14.36,
+          "end": 15.16
+        },
+        {
+          "text": "purposes",
+          "start": 15.16,
+          "end": 15.67
+        },
+        {
+          "text": "only.",
+          "start": 15.67,
+          "end": 15.92
+        }
+      ],
+      "cards": [
+        {
+          "text": "That brings us to an important distinction.",
+          "start": 0.15,
+          "end": 2.56
+        },
+        {
+          "text": "ScanDiff provides tamper evidence of an item's condition at handoff.",
+          "start": 2.51,
+          "end": 8.64
+        },
+        {
+          "text": "It doesn't prove that the item was originally advertised accurately,",
+          "start": 8.59,
+          "end": 13.04
+        },
+        {
+          "text": "and our payment flow is for demonstration purposes only.",
+          "start": 12.99,
+          "end": 16.15
+        }
+      ]
     },
     {
-     "text": "question.",
-     "start": 5.47,
-     "end": 6.19
+      "id": "L19",
+      "speaker": "Adithya",
+      "src": "vo/L19.wav",
+      "duration": 38.123,
+      "words": [
+        {
+          "text": "Today,",
+          "start": 0.26,
+          "end": 0.5
+        },
+        {
+          "text": "anyone",
+          "start": 0.5,
+          "end": 0.94
+        },
+        {
+          "text": "can",
+          "start": 0.94,
+          "end": 1.16
+        },
+        {
+          "text": "generate",
+          "start": 1.16,
+          "end": 1.74
+        },
+        {
+          "text": "a",
+          "start": 1.74,
+          "end": 1.81
+        },
+        {
+          "text": "photo",
+          "start": 1.81,
+          "end": 2.17
+        },
+        {
+          "text": "of",
+          "start": 2.17,
+          "end": 2.31
+        },
+        {
+          "text": "damage",
+          "start": 2.31,
+          "end": 2.8
+        },
+        {
+          "text": "that",
+          "start": 2.8,
+          "end": 3.02
+        },
+        {
+          "text": "never",
+          "start": 3.02,
+          "end": 3.3
+        },
+        {
+          "text": "happened.",
+          "start": 3.3,
+          "end": 3.76
+        },
+        {
+          "text": "So",
+          "start": 3.76,
+          "end": 4.0
+        },
+        {
+          "text": "a",
+          "start": 4.0,
+          "end": 4.02
+        },
+        {
+          "text": "photo",
+          "start": 4.02,
+          "end": 4.55
+        },
+        {
+          "text": "is",
+          "start": 4.55,
+          "end": 4.63
+        },
+        {
+          "text": "no",
+          "start": 4.63,
+          "end": 4.71
+        },
+        {
+          "text": "longer",
+          "start": 4.71,
+          "end": 5.18
+        },
+        {
+          "text": "proof.",
+          "start": 5.18,
+          "end": 5.6
+        },
+        {
+          "text": "Scan",
+          "start": 5.6,
+          "end": 5.86
+        },
+        {
+          "text": "diff",
+          "start": 5.86,
+          "end": 6.08
+        },
+        {
+          "text": "works",
+          "start": 6.08,
+          "end": 6.47
+        },
+        {
+          "text": "like",
+          "start": 6.47,
+          "end": 6.63
+        },
+        {
+          "text": "two-factor",
+          "start": 6.63,
+          "end": 7.24
+        },
+        {
+          "text": "two-factor",
+          "start": 6.63,
+          "end": 7.24
+        },
+        {
+          "text": "authentication",
+          "start": 7.24,
+          "end": 8.1
+        },
+        {
+          "text": "for",
+          "start": 8.1,
+          "end": 8.28
+        },
+        {
+          "text": "physical",
+          "start": 8.28,
+          "end": 8.77
+        },
+        {
+          "text": "things.",
+          "start": 8.77,
+          "end": 9.2
+        },
+        {
+          "text": "One",
+          "start": 9.2,
+          "end": 9.46
+        },
+        {
+          "text": "scan",
+          "start": 9.46,
+          "end": 9.67
+        },
+        {
+          "text": "when",
+          "start": 9.67,
+          "end": 10.07
+        },
+        {
+          "text": "you",
+          "start": 10.07,
+          "end": 10.14
+        },
+        {
+          "text": "take",
+          "start": 10.14,
+          "end": 10.41
+        },
+        {
+          "text": "something",
+          "start": 10.41,
+          "end": 11.04
+        },
+        {
+          "text": "and",
+          "start": 11.04,
+          "end": 11.31
+        },
+        {
+          "text": "another",
+          "start": 11.31,
+          "end": 11.68
+        },
+        {
+          "text": "when",
+          "start": 11.68,
+          "end": 11.86
+        },
+        {
+          "text": "you",
+          "start": 11.86,
+          "end": 12.0
+        },
+        {
+          "text": "hand",
+          "start": 12.0,
+          "end": 12.35
+        },
+        {
+          "text": "it",
+          "start": 12.35,
+          "end": 12.52
+        },
+        {
+          "text": "back.",
+          "start": 12.52,
+          "end": 12.88
+        },
+        {
+          "text": "And",
+          "start": 12.88,
+          "end": 13.14
+        },
+        {
+          "text": "both",
+          "start": 13.14,
+          "end": 13.37
+        },
+        {
+          "text": "have",
+          "start": 13.37,
+          "end": 13.75
+        },
+        {
+          "text": "to",
+          "start": 13.75,
+          "end": 13.79
+        },
+        {
+          "text": "match",
+          "start": 13.79,
+          "end": 14.25
+        },
+        {
+          "text": "before",
+          "start": 14.25,
+          "end": 14.56
+        },
+        {
+          "text": "money",
+          "start": 14.56,
+          "end": 14.99
+        },
+        {
+          "text": "moves.",
+          "start": 14.99,
+          "end": 15.28
+        },
+        {
+          "text": "Think",
+          "start": 15.28,
+          "end": 15.59
+        },
+        {
+          "text": "of",
+          "start": 15.59,
+          "end": 15.71
+        },
+        {
+          "text": "everything",
+          "start": 15.71,
+          "end": 16.34
+        },
+        {
+          "text": "we",
+          "start": 16.34,
+          "end": 16.46
+        },
+        {
+          "text": "share.",
+          "start": 16.46,
+          "end": 16.8
+        },
+        {
+          "text": "Rental",
+          "start": 16.8,
+          "end": 17.11
+        },
+        {
+          "text": "cars",
+          "start": 17.11,
+          "end": 17.32
+        },
+        {
+          "text": "where",
+          "start": 17.32,
+          "end": 17.67
+        },
+        {
+          "text": "you",
+          "start": 17.67,
+          "end": 17.74
+        },
+        {
+          "text": "get",
+          "start": 17.74,
+          "end": 17.9
+        },
+        {
+          "text": "billed",
+          "start": 17.9,
+          "end": 18.21
+        },
+        {
+          "text": "for",
+          "start": 18.21,
+          "end": 18.37
+        },
+        {
+          "text": "a",
+          "start": 18.37,
+          "end": 18.42
+        },
+        {
+          "text": "scratch",
+          "start": 18.42,
+          "end": 18.91
+        },
+        {
+          "text": "you",
+          "start": 18.91,
+          "end": 18.95
+        },
+        {
+          "text": "didn't",
+          "start": 18.95,
+          "end": 19.26
+        },
+        {
+          "text": "make.",
+          "start": 19.26,
+          "end": 19.52
+        },
+        {
+          "text": "Or",
+          "start": 19.52,
+          "end": 19.76
+        },
+        {
+          "text": "hotel",
+          "start": 19.76,
+          "end": 20.39
+        },
+        {
+          "text": "rooms",
+          "start": 20.39,
+          "end": 20.98
+        },
+        {
+          "text": "and",
+          "start": 20.98,
+          "end": 21.36
+        },
+        {
+          "text": "apartments",
+          "start": 21.36,
+          "end": 22.08
+        },
+        {
+          "text": "where",
+          "start": 22.08,
+          "end": 22.32
+        },
+        {
+          "text": "a",
+          "start": 22.32,
+          "end": 22.44
+        },
+        {
+          "text": "security",
+          "start": 22.44,
+          "end": 23.43
+        },
+        {
+          "text": "deposit",
+          "start": 23.43,
+          "end": 23.78
+        },
+        {
+          "text": "comes",
+          "start": 23.78,
+          "end": 24.0
+        },
+        {
+          "text": "down",
+          "start": 24.0,
+          "end": 24.16
+        },
+        {
+          "text": "to",
+          "start": 24.16,
+          "end": 24.32
+        },
+        {
+          "text": "a",
+          "start": 24.32,
+          "end": 24.48
+        },
+        {
+          "text": "landlord's",
+          "start": 24.48,
+          "end": 25.3
+        },
+        {
+          "text": "photos",
+          "start": 25.3,
+          "end": 25.68
+        },
+        {
+          "text": "at",
+          "start": 25.68,
+          "end": 25.98
+        },
+        {
+          "text": "move",
+          "start": 25.98,
+          "end": 26.16
+        },
+        {
+          "text": "out.",
+          "start": 26.16,
+          "end": 26.72
+        },
+        {
+          "text": "Equipment",
+          "start": 26.96,
+          "end": 27.59
+        },
+        {
+          "text": "rentals,",
+          "start": 27.59,
+          "end": 27.93
+        },
+        {
+          "text": "shared",
+          "start": 27.93,
+          "end": 28.33
+        },
+        {
+          "text": "scooters,",
+          "start": 28.33,
+          "end": 28.99
+        },
+        {
+          "text": "borrowed",
+          "start": 28.99,
+          "end": 29.53
+        },
+        {
+          "text": "gear,",
+          "start": 29.53,
+          "end": 29.94
+        },
+        {
+          "text": "returns",
+          "start": 29.94,
+          "end": 30.6
+        },
+        {
+          "text": "and",
+          "start": 30.6,
+          "end": 30.63
+        },
+        {
+          "text": "insurance",
+          "start": 30.63,
+          "end": 31.21
+        },
+        {
+          "text": "claims.",
+          "start": 31.21,
+          "end": 31.68
+        },
+        {
+          "text": "With",
+          "start": 31.68,
+          "end": 32.22
+        },
+        {
+          "text": "RSDK,",
+          "start": 32.22,
+          "end": 33.05
+        },
+        {
+          "text": "any",
+          "start": 33.05,
+          "end": 33.26
+        },
+        {
+          "text": "of",
+          "start": 33.26,
+          "end": 33.41
+        },
+        {
+          "text": "those",
+          "start": 33.41,
+          "end": 33.79
+        },
+        {
+          "text": "companies",
+          "start": 33.79,
+          "end": 34.47
+        },
+        {
+          "text": "can",
+          "start": 34.47,
+          "end": 34.72
+        },
+        {
+          "text": "bill",
+          "start": 34.72,
+          "end": 34.96
+        },
+        {
+          "text": "scan",
+          "start": 34.96,
+          "end": 35.33
+        },
+        {
+          "text": "in",
+          "start": 35.33,
+          "end": 35.59
+        },
+        {
+          "text": "and",
+          "start": 35.59,
+          "end": 35.72
+        },
+        {
+          "text": "scan",
+          "start": 35.72,
+          "end": 35.99
+        },
+        {
+          "text": "out",
+          "start": 35.99,
+          "end": 36.19
+        },
+        {
+          "text": "checks",
+          "start": 36.19,
+          "end": 36.6
+        },
+        {
+          "text": "into",
+          "start": 36.6,
+          "end": 36.87
+        },
+        {
+          "text": "their",
+          "start": 36.87,
+          "end": 37.21
+        },
+        {
+          "text": "own",
+          "start": 37.21,
+          "end": 37.46
+        },
+        {
+          "text": "app.",
+          "start": 37.46,
+          "end": 37.68
+        }
+      ],
+      "cards": [
+        {
+          "text": "Today, anyone can generate a photo of damage that never happened.",
+          "start": 0.21,
+          "end": 3.76
+        },
+        {
+          "text": "So a photo is no longer proof.",
+          "start": 3.71,
+          "end": 6.08
+        },
+        {
+          "text": "ScanDiff works like two-factor authentication for physical things.",
+          "start": 6.03,
+          "end": 9.2
+        },
+        {
+          "text": "One scan when you take something, and another when you hand it back,",
+          "start": 9.15,
+          "end": 12.88
+        },
+        {
+          "text": "and both have to match before money moves.",
+          "start": 12.83,
+          "end": 15.28
+        },
+        {
+          "text": "Think of everything we share.",
+          "start": 15.23,
+          "end": 16.8
+        },
+        {
+          "text": "Rental cars, where you get billed for a scratch you didn't make,",
+          "start": 16.75,
+          "end": 19.52
+        },
+        {
+          "text": "or hotel rooms and apartments,",
+          "start": 19.47,
+          "end": 22.08
+        },
+        {
+          "text": "where a security deposit comes down to a landlord's photos at move-out.",
+          "start": 22.03,
+          "end": 26.96
+        },
+        {
+          "text": "Equipment rentals, shared scooters, borrowed gear,",
+          "start": 26.91,
+          "end": 29.94
+        },
+        {
+          "text": "returns and insurance claims.",
+          "start": 29.89,
+          "end": 31.68
+        },
+        {
+          "text": "With our SDK, any of those companies can build",
+          "start": 31.63,
+          "end": 34.96
+        },
+        {
+          "text": "scan-in and scan-out checks into their own app.",
+          "start": 34.91,
+          "end": 38.03
+        }
+      ]
     },
     {
-     "text": "What",
-     "start": 6.19,
-     "end": 6.45
+      "id": "L20",
+      "speaker": "Adithya",
+      "src": "vo/L20.wav",
+      "duration": 12.39,
+      "words": [
+        {
+          "text": "Looking",
+          "start": 0.21,
+          "end": 0.5
+        },
+        {
+          "text": "ahead,",
+          "start": 0.5,
+          "end": 1.01
+        },
+        {
+          "text": "we're",
+          "start": 1.01,
+          "end": 1.32
+        },
+        {
+          "text": "expanding",
+          "start": 1.32,
+          "end": 1.9
+        },
+        {
+          "text": "ScanDiff",
+          "start": 1.9,
+          "end": 2.45
+        },
+        {
+          "text": "into",
+          "start": 2.45,
+          "end": 2.72
+        },
+        {
+          "text": "use",
+          "start": 2.72,
+          "end": 2.93
+        },
+        {
+          "text": "cases",
+          "start": 2.93,
+          "end": 3.27
+        },
+        {
+          "text": "like",
+          "start": 3.27,
+          "end": 3.74
+        },
+        {
+          "text": "rental",
+          "start": 3.74,
+          "end": 4.04
+        },
+        {
+          "text": "cars,",
+          "start": 4.04,
+          "end": 4.4
+        },
+        {
+          "text": "hotel",
+          "start": 4.4,
+          "end": 4.8
+        },
+        {
+          "text": "rooms,",
+          "start": 4.8,
+          "end": 5.39
+        },
+        {
+          "text": "while",
+          "start": 5.39,
+          "end": 6.08
+        },
+        {
+          "text": "building",
+          "start": 6.08,
+          "end": 6.4
+        },
+        {
+          "text": "an",
+          "start": 6.4,
+          "end": 6.55
+        },
+        {
+          "text": "SDK",
+          "start": 6.55,
+          "end": 7.04
+        },
+        {
+          "text": "that",
+          "start": 7.04,
+          "end": 7.36
+        },
+        {
+          "text": "lets",
+          "start": 7.36,
+          "end": 7.68
+        },
+        {
+          "text": "marketplaces",
+          "start": 7.68,
+          "end": 8.4
+        },
+        {
+          "text": "and",
+          "start": 8.4,
+          "end": 8.48
+        },
+        {
+          "text": "shipping",
+          "start": 8.48,
+          "end": 9.01
+        },
+        {
+          "text": "platforms",
+          "start": 9.01,
+          "end": 9.61
+        },
+        {
+          "text": "integrate",
+          "start": 9.61,
+          "end": 10.21
+        },
+        {
+          "text": "scan-based",
+          "start": 10.21,
+          "end": 11.04
+        },
+        {
+          "text": "scan-based",
+          "start": 10.21,
+          "end": 11.04
+        },
+        {
+          "text": "payments",
+          "start": 11.04,
+          "end": 11.39
+        },
+        {
+          "text": "and",
+          "start": 11.39,
+          "end": 11.59
+        },
+        {
+          "text": "returns.",
+          "start": 11.59,
+          "end": 12.32
+        }
+      ],
+      "cards": [
+        {
+          "text": "Looking ahead, we're expanding ScanDiff into use cases",
+          "start": 0.16,
+          "end": 3.27
+        },
+        {
+          "text": "like rental cars, hotel rooms,",
+          "start": 3.22,
+          "end": 5.39
+        },
+        {
+          "text": "while building an SDK that lets marketplaces and shipping platforms",
+          "start": 5.34,
+          "end": 9.61
+        },
+        {
+          "text": "integrate scan-based payments and returns.",
+          "start": 9.56,
+          "end": 12.39
+        }
+      ]
     },
     {
-     "text": "condition",
-     "start": 6.45,
-     "end": 7.04
+      "id": "L21",
+      "speaker": "Adithya",
+      "src": "vo/L21.wav",
+      "duration": 1.6,
+      "words": [
+        {
+          "text": "Where's",
+          "start": 0.1,
+          "end": 0.59
+        },
+        {
+          "text": "scan",
+          "start": 0.59,
+          "end": 0.91
+        },
+        {
+          "text": "diff?",
+          "start": 0.91,
+          "end": 1.52
+        }
+      ],
+      "cards": [
+        {
+          "text": "We're ScanDiff.",
+          "start": 0.05,
+          "end": 0.94
+        }
+      ]
     },
     {
-     "text": "was",
-     "start": 7.04,
-     "end": 7.29
-    },
-    {
-     "text": "it",
-     "start": 7.29,
-     "end": 7.36
-    },
-    {
-     "text": "in?",
-     "start": 7.36,
-     "end": 7.68
-    },
-    {
-     "text": "Usually,",
-     "start": 7.68,
-     "end": 8.29
-    },
-    {
-     "text": "all",
-     "start": 8.29,
-     "end": 8.46
-    },
-    {
-     "text": "we",
-     "start": 8.46,
-     "end": 8.59
-    },
-    {
-     "text": "have",
-     "start": 8.59,
-     "end": 8.85
-    },
-    {
-     "text": "are",
-     "start": 8.85,
-     "end": 9.04
-    },
-    {
-     "text": "a",
-     "start": 9.04,
-     "end": 9.1
-    },
-    {
-     "text": "few",
-     "start": 9.1,
-     "end": 9.29
-    },
-    {
-     "text": "photos.",
-     "start": 9.29,
-     "end": 10.12
-    },
-    {
-     "text": "A",
-     "start": 10.12,
-     "end": 10.17
-    },
-    {
-     "text": "tiny",
-     "start": 10.17,
-     "end": 10.64
-    },
-    {
-     "text": "3mm",
-     "start": 10.64,
-     "end": 11.34
-    },
-    {
-     "text": "dent",
-     "start": 11.34,
-     "end": 11.92
-    },
-    {
-     "text": "can",
-     "start": 11.92,
-     "end": 12.11
-    },
-    {
-     "text": "disappear",
-     "start": 12.11,
-     "end": 12.53
-    },
-    {
-     "text": "under",
-     "start": 12.53,
-     "end": 12.78
-    },
-    {
-     "text": "the",
-     "start": 12.78,
-     "end": 12.93
-    },
-    {
-     "text": "wrong",
-     "start": 12.93,
-     "end": 13.18
-    },
-    {
-     "text": "lighting.",
-     "start": 13.18,
-     "end": 13.74
-    },
-    {
-     "text": "And",
-     "start": 13.74,
-     "end": 13.93
-    },
-    {
-     "text": "comparing",
-     "start": 13.93,
-     "end": 14.35
-    },
-    {
-     "text": "photos",
-     "start": 14.35,
-     "end": 14.68
-    },
-    {
-     "text": "taken",
-     "start": 14.68,
-     "end": 14.93
-    },
-    {
-     "text": "at",
-     "start": 14.93,
-     "end": 15.0
-    },
-    {
-     "text": "different",
-     "start": 15.0,
-     "end": 15.57
-    },
-    {
-     "text": "times,",
-     "start": 15.57,
-     "end": 16.08
-    },
-    {
-     "text": "that's",
-     "start": 16.08,
-     "end": 16.39
-    },
-    {
-     "text": "mostly",
-     "start": 16.39,
-     "end": 16.71
-    },
-    {
-     "text": "guesswork.",
-     "start": 16.71,
-     "end": 17.2
+      "id": "L22",
+      "speaker": "Adithya",
+      "src": "vo/L22.wav",
+      "duration": 1.68,
+      "words": [
+        {
+          "text": "Measured.",
+          "start": 0.18,
+          "end": 1.0
+        },
+        {
+          "text": "Not",
+          "start": 1.0,
+          "end": 1.32
+        },
+        {
+          "text": "argued.",
+          "start": 1.32,
+          "end": 2.0
+        }
+      ],
+      "cards": [
+        {
+          "text": "Measured, not argued.",
+          "start": 0.13,
+          "end": 1.68
+        }
+      ]
     }
-   ],
-   "cards": [
-    {
-     "text": "Every time an item changes hands,",
-     "start": 0.14,
-     "end": 1.93
-    },
-    {
-     "text": "whether it's a marketplace sale, a return, a rental,",
-     "start": 1.88,
-     "end": 4.89
-    },
-    {
-     "text": "there's one big question: what condition was it in?",
-     "start": 4.84,
-     "end": 7.68
-    },
-    {
-     "text": "Usually, all we have are a few photos.",
-     "start": 7.63,
-     "end": 10.12
-    },
-    {
-     "text": "A tiny 3 mm dent can disappear under the wrong lighting.",
-     "start": 10.07,
-     "end": 13.74
-    },
-    {
-     "text": "And comparing photos taken at different times?",
-     "start": 13.69,
-     "end": 16.08
-    },
-    {
-     "text": "That's mostly guesswork.",
-     "start": 16.03,
-     "end": 17.41
-    }
-   ]
-  },
-  {
-   "id": "L02",
-   "speaker": "Adithya",
-   "src": "vo/L02.wav",
-   "duration": 2.8,
-   "words": [
-    {
-     "text": "And",
-     "start": 0.16,
-     "end": 0.22
-    },
-    {
-     "text": "now",
-     "start": 0.22,
-     "end": 0.32
-    },
-    {
-     "text": "that's",
-     "start": 0.32,
-     "end": 0.65
-    },
-    {
-     "text": "where",
-     "start": 0.65,
-     "end": 0.93
-    },
-    {
-     "text": "our",
-     "start": 0.93,
-     "end": 1.09
-    },
-    {
-     "text": "product,",
-     "start": 1.09,
-     "end": 1.59
-    },
-    {
-     "text": "ScanDitch,",
-     "start": 1.59,
-     "end": 2.22
-    },
-    {
-     "text": "comes",
-     "start": 2.22,
-     "end": 2.47
-    },
-    {
-     "text": "in.",
-     "start": 2.47,
-     "end": 2.64
-    }
-   ],
-   "cards": [
-    {
-     "text": "And now, that's where our product, ScanDiff, comes in.",
-     "start": 0.11,
-     "end": 2.8
-    }
-   ]
-  },
-  {
-   "id": "L03",
-   "speaker": "Adithya",
-   "src": "vo/L03.wav",
-   "duration": 4.15,
-   "words": [
-    {
-     "text": "We're",
-     "start": 0.16,
-     "end": 0.4
-    },
-    {
-     "text": "turning",
-     "start": 0.4,
-     "end": 1.09
-    },
-    {
-     "text": "just",
-     "start": 1.09,
-     "end": 1.29
-    },
-    {
-     "text": "trust",
-     "start": 1.29,
-     "end": 1.72
-    },
-    {
-     "text": "me",
-     "start": 1.72,
-     "end": 1.86
-    },
-    {
-     "text": "into",
-     "start": 1.86,
-     "end": 2.17
-    },
-    {
-     "text": "real",
-     "start": 2.17,
-     "end": 2.49
-    },
-    {
-     "text": "measurable",
-     "start": 2.49,
-     "end": 3.3
-    },
-    {
-     "text": "evidence.",
-     "start": 3.3,
-     "end": 4.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "We're turning “just trust me” into real, measurable evidence.",
-     "start": 0.11,
-     "end": 4.15
-    }
-   ]
-  },
-  {
-   "id": "L04",
-   "speaker": "Adithya",
-   "src": "vo/L04.wav",
-   "duration": 8.18,
-   "words": [
-    {
-     "text": "scan",
-     "start": 0.19,
-     "end": 0.47
-    },
-    {
-     "text": "diff",
-     "start": 0.47,
-     "end": 1.13
-    },
-    {
-     "text": "compares",
-     "start": 1.13,
-     "end": 1.89
-    },
-    {
-     "text": "three-dimensional",
-     "start": 1.89,
-     "end": 3.92
-    },
-    {
-     "text": "three-dimensional",
-     "start": 1.89,
-     "end": 3.92
-    },
-    {
-     "text": "scans",
-     "start": 3.92,
-     "end": 3.92
-    },
-    {
-     "text": "of",
-     "start": 3.92,
-     "end": 3.92
-    },
-    {
-     "text": "physical",
-     "start": 3.92,
-     "end": 3.92
-    },
-    {
-     "text": "items",
-     "start": 3.92,
-     "end": 3.92
-    },
-    {
-     "text": "to",
-     "start": 3.92,
-     "end": 3.92
-    },
-    {
-     "text": "detect",
-     "start": 3.92,
-     "end": 3.92
-    },
-    {
-     "text": "changes",
-     "start": 3.92,
-     "end": 4.35
-    },
-    {
-     "text": "in",
-     "start": 4.35,
-     "end": 4.53
-    },
-    {
-     "text": "their",
-     "start": 4.53,
-     "end": 4.78
-    },
-    {
-     "text": "condition",
-     "start": 4.78,
-     "end": 5.36
-    },
-    {
-     "text": "with",
-     "start": 5.36,
-     "end": 5.55
-    },
-    {
-     "text": "the",
-     "start": 5.55,
-     "end": 5.69
-    },
-    {
-     "text": "marketplace",
-     "start": 5.69,
-     "end": 6.22
-    },
-    {
-     "text": "checkout",
-     "start": 6.22,
-     "end": 6.67
-    },
-    {
-     "text": "built",
-     "start": 6.67,
-     "end": 6.88
-    },
-    {
-     "text": "right",
-     "start": 6.88,
-     "end": 7.2
-    },
-    {
-     "text": "into",
-     "start": 7.2,
-     "end": 7.44
-    },
-    {
-     "text": "the",
-     "start": 7.44,
-     "end": 7.62
-    },
-    {
-     "text": "app",
-     "start": 7.62,
-     "end": 8.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "ScanDiff compares three-dimensional scans of physical items",
-     "start": 1.08,
-     "end": 3.92
-    },
-    {
-     "text": "to detect changes in their condition,",
-     "start": 3.87,
-     "end": 5.36
-    },
-    {
-     "text": "with the marketplace checkout built right into the app.",
-     "start": 5.31,
-     "end": 8.18
-    }
-   ]
-  },
-  {
-   "id": "L05",
-   "speaker": "Koushik",
-   "src": "vo/L05.wav",
-   "duration": 2.68,
-   "words": [
-    {
-     "text": "Let's",
-     "start": 0.2,
-     "end": 0.35
-    },
-    {
-     "text": "start",
-     "start": 0.35,
-     "end": 0.72
-    },
-    {
-     "text": "with",
-     "start": 0.72,
-     "end": 0.98
-    },
-    {
-     "text": "a",
-     "start": 0.98,
-     "end": 1.05
-    },
-    {
-     "text": "simple",
-     "start": 1.05,
-     "end": 1.47
-    },
-    {
-     "text": "example,",
-     "start": 1.47,
-     "end": 2.18
-    },
-    {
-     "text": "a",
-     "start": 2.18,
-     "end": 2.27
-    },
-    {
-     "text": "mug.",
-     "start": 2.27,
-     "end": 2.6
-    }
-   ],
-   "cards": [
-    {
-     "text": "Let's start with a simple example: a mug.",
-     "start": 0.15,
-     "end": 2.68
-    }
-   ]
-  },
-  {
-   "id": "L06",
-   "speaker": "Koushik",
-   "src": "vo/L06.wav",
-   "duration": 10.74,
-   "words": [
-    {
-     "text": "The",
-     "start": 0.23,
-     "end": 0.26
-    },
-    {
-     "text": "seller",
-     "start": 0.26,
-     "end": 0.79
-    },
-    {
-     "text": "sells",
-     "start": 0.79,
-     "end": 1.23
-    },
-    {
-     "text": "a",
-     "start": 1.23,
-     "end": 1.31
-    },
-    {
-     "text": "mug",
-     "start": 1.31,
-     "end": 1.74
-    },
-    {
-     "text": "and",
-     "start": 1.74,
-     "end": 1.82
-    },
-    {
-     "text": "Skandiff",
-     "start": 1.82,
-     "end": 2.46
-    },
-    {
-     "text": "generates",
-     "start": 2.46,
-     "end": 3.06
-    },
-    {
-     "text": "a",
-     "start": 3.06,
-     "end": 3.12
-    },
-    {
-     "text": "unique",
-     "start": 3.12,
-     "end": 3.76
-    },
-    {
-     "text": "item",
-     "start": 3.76,
-     "end": 4.18
-    },
-    {
-     "text": "ID",
-     "start": 4.18,
-     "end": 4.6
-    },
-    {
-     "text": "and",
-     "start": 4.6,
-     "end": 4.84
-    },
-    {
-     "text": "two",
-     "start": 4.84,
-     "end": 5.23
-    },
-    {
-     "text": "QR",
-     "start": 5.23,
-     "end": 5.57
-    },
-    {
-     "text": "codes,",
-     "start": 5.57,
-     "end": 6.24
-    },
-    {
-     "text": "one",
-     "start": 6.24,
-     "end": 6.49
-    },
-    {
-     "text": "for",
-     "start": 6.49,
-     "end": 6.74
-    },
-    {
-     "text": "its",
-     "start": 6.74,
-     "end": 6.99
-    },
-    {
-     "text": "original",
-     "start": 6.99,
-     "end": 7.68
-    },
-    {
-     "text": "scan",
-     "start": 7.68,
-     "end": 8.02
-    },
-    {
-     "text": "and",
-     "start": 8.02,
-     "end": 8.28
-    },
-    {
-     "text": "one",
-     "start": 8.28,
-     "end": 8.52
-    },
-    {
-     "text": "is",
-     "start": 8.52,
-     "end": 8.7
-    },
-    {
-     "text": "for",
-     "start": 8.7,
-     "end": 8.94
-    },
-    {
-     "text": "the",
-     "start": 8.94,
-     "end": 9.19
-    },
-    {
-     "text": "buyer's",
-     "start": 9.19,
-     "end": 9.8
-    },
-    {
-     "text": "check-in.",
-     "start": 9.8,
-     "end": 10.56
-    },
-    {
-     "text": "check-in.",
-     "start": 9.8,
-     "end": 10.56
-    }
-   ],
-   "cards": [
-    {
-     "text": "The seller sells a mug, and ScanDiff generates a unique item ID",
-     "start": 0.18,
-     "end": 4.6
-    },
-    {
-     "text": "and two QR codes:",
-     "start": 4.55,
-     "end": 6.24
-    },
-    {
-     "text": "one for its original scan, and one is for the buyer's check-in.",
-     "start": 6.19,
-     "end": 10.74
-    }
-   ]
-  },
-  {
-   "id": "L07",
-   "speaker": "Koushik",
-   "src": "vo/L07.wav",
-   "duration": 4.84,
-   "words": [
-    {
-     "text": "Before",
-     "start": 0.2,
-     "end": 0.65
-    },
-    {
-     "text": "shipping,",
-     "start": 0.65,
-     "end": 1.31
-    },
-    {
-     "text": "the",
-     "start": 1.31,
-     "end": 1.68
-    },
-    {
-     "text": "seller",
-     "start": 1.68,
-     "end": 2.05
-    },
-    {
-     "text": "scans",
-     "start": 2.05,
-     "end": 2.46
-    },
-    {
-     "text": "the",
-     "start": 2.46,
-     "end": 2.71
-    },
-    {
-     "text": "mug",
-     "start": 2.71,
-     "end": 3.09
-    },
-    {
-     "text": "using",
-     "start": 3.09,
-     "end": 3.35
-    },
-    {
-     "text": "their",
-     "start": 3.35,
-     "end": 3.7
-    },
-    {
-     "text": "iPhone",
-     "start": 3.7,
-     "end": 4.12
-    },
-    {
-     "text": "LIDAR.",
-     "start": 4.12,
-     "end": 4.7
-    }
-   ],
-   "cards": [
-    {
-     "text": "Before shipping, the seller scans the mug",
-     "start": 0.15,
-     "end": 3.09
-    },
-    {
-     "text": "using their iPhone LiDAR.",
-     "start": 3.04,
-     "end": 4.84
-    }
-   ]
-  },
-  {
-   "id": "L08",
-   "speaker": "Koushik",
-   "src": "vo/L08.wav",
-   "duration": 17.86,
-   "words": [
-    {
-     "text": "The",
-     "start": 0.19,
-     "end": 0.68
-    },
-    {
-     "text": "app",
-     "start": 0.68,
-     "end": 0.72
-    },
-    {
-     "text": "guides",
-     "start": 0.72,
-     "end": 1.36
-    },
-    {
-     "text": "the",
-     "start": 1.36,
-     "end": 1.71
-    },
-    {
-     "text": "capture,",
-     "start": 1.71,
-     "end": 2.82
-    },
-    {
-     "text": "builds",
-     "start": 2.82,
-     "end": 3.29
-    },
-    {
-     "text": "textured",
-     "start": 3.29,
-     "end": 4.0
-    },
-    {
-     "text": "three-dimensional",
-     "start": 4.0,
-     "end": 4.74
-    },
-    {
-     "text": "three-dimensional",
-     "start": 4.0,
-     "end": 4.74
-    },
-    {
-     "text": "model,",
-     "start": 4.74,
-     "end": 5.43
-    },
-    {
-     "text": "and",
-     "start": 5.43,
-     "end": 5.55
-    },
-    {
-     "text": "saves",
-     "start": 5.55,
-     "end": 5.88
-    },
-    {
-     "text": "photos",
-     "start": 5.88,
-     "end": 6.4
-    },
-    {
-     "text": "along",
-     "start": 6.4,
-     "end": 6.99
-    },
-    {
-     "text": "with",
-     "start": 6.99,
-     "end": 7.76
-    },
-    {
-     "text": "their",
-     "start": 7.76,
-     "end": 8.01
-    },
-    {
-     "text": "camera",
-     "start": 8.01,
-     "end": 8.32
-    },
-    {
-     "text": "positions",
-     "start": 8.32,
-     "end": 9.26
-    },
-    {
-     "text": "before",
-     "start": 9.26,
-     "end": 9.4
-    },
-    {
-     "text": "uploading",
-     "start": 9.4,
-     "end": 10.0
-    },
-    {
-     "text": "every",
-     "start": 10.0,
-     "end": 10.5
-    },
-    {
-     "text": "file,",
-     "start": 10.5,
-     "end": 11.35
-    },
-    {
-     "text": "which",
-     "start": 11.35,
-     "end": 11.56
-    },
-    {
-     "text": "gets",
-     "start": 11.56,
-     "end": 11.96
-    },
-    {
-     "text": "a",
-     "start": 11.96,
-     "end": 11.97
-    },
-    {
-     "text": "unique",
-     "start": 11.97,
-     "end": 12.45
-    },
-    {
-     "text": "Shaw",
-     "start": 12.45,
-     "end": 12.76
-    },
-    {
-     "text": "256",
-     "start": 12.76,
-     "end": 13.49
-    },
-    {
-     "text": "fingerprint",
-     "start": 13.49,
-     "end": 14.37
-    },
-    {
-     "text": "to",
-     "start": 14.37,
-     "end": 14.59
-    },
-    {
-     "text": "help",
-     "start": 14.59,
-     "end": 14.86
-    },
-    {
-     "text": "detect",
-     "start": 14.86,
-     "end": 15.37
-    },
-    {
-     "text": "whether",
-     "start": 15.37,
-     "end": 15.9
-    },
-    {
-     "text": "the",
-     "start": 15.9,
-     "end": 16.14
-    },
-    {
-     "text": "evidence",
-     "start": 16.14,
-     "end": 16.79
-    },
-    {
-     "text": "has",
-     "start": 16.79,
-     "end": 17.03
-    },
-    {
-     "text": "been",
-     "start": 17.03,
-     "end": 17.35
-    },
-    {
-     "text": "altered.",
-     "start": 17.35,
-     "end": 18.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "The app guides the capture,",
-     "start": 0.14,
-     "end": 2.82
-    },
-    {
-     "text": "builds textured three-dimensional model,",
-     "start": 2.77,
-     "end": 5.43
-    },
-    {
-     "text": "and saves photos along with their camera positions",
-     "start": 5.38,
-     "end": 9.26
-    },
-    {
-     "text": "before uploading every file, which gets a unique SHA-256 fingerprint",
-     "start": 9.21,
-     "end": 14.37
-    },
-    {
-     "text": "to help detect whether the evidence has been altered.",
-     "start": 14.32,
-     "end": 17.86
-    }
-   ]
-  },
-  {
-   "id": "L09",
-   "speaker": "Koushik",
-   "src": "vo/L09.wav",
-   "duration": 13.71,
-   "words": [
-    {
-     "text": "Now,",
-     "start": 0.2,
-     "end": 0.42
-    },
-    {
-     "text": "the",
-     "start": 0.42,
-     "end": 0.67
-    },
-    {
-     "text": "buyer",
-     "start": 0.67,
-     "end": 1.09
-    },
-    {
-     "text": "checks",
-     "start": 1.09,
-     "end": 1.6
-    },
-    {
-     "text": "out",
-     "start": 1.6,
-     "end": 1.85
-    },
-    {
-     "text": "using",
-     "start": 1.85,
-     "end": 2.27
-    },
-    {
-     "text": "our",
-     "start": 2.27,
-     "end": 2.69
-    },
-    {
-     "text": "demo",
-     "start": 2.69,
-     "end": 3.07
-    },
-    {
-     "text": "Visa",
-     "start": 3.07,
-     "end": 3.58
-    },
-    {
-     "text": "payment",
-     "start": 3.58,
-     "end": 4.53
-    },
-    {
-     "text": "flow,",
-     "start": 4.53,
-     "end": 5.17
-    },
-    {
-     "text": "but",
-     "start": 5.17,
-     "end": 5.3
-    },
-    {
-     "text": "the",
-     "start": 5.3,
-     "end": 5.48
-    },
-    {
-     "text": "money",
-     "start": 5.48,
-     "end": 5.88
-    },
-    {
-     "text": "isn't",
-     "start": 5.88,
-     "end": 6.15
-    },
-    {
-     "text": "released",
-     "start": 6.15,
-     "end": 6.68
-    },
-    {
-     "text": "yet.",
-     "start": 6.68,
-     "end": 7.68
-    },
-    {
-     "text": "It",
-     "start": 7.68,
-     "end": 7.88
-    },
-    {
-     "text": "is",
-     "start": 7.88,
-     "end": 7.98
-    },
-    {
-     "text": "still",
-     "start": 7.98,
-     "end": 8.36
-    },
-    {
-     "text": "held",
-     "start": 8.36,
-     "end": 8.66
-    },
-    {
-     "text": "until",
-     "start": 8.66,
-     "end": 9.04
-    },
-    {
-     "text": "the",
-     "start": 9.04,
-     "end": 9.27
-    },
-    {
-     "text": "buyer",
-     "start": 9.27,
-     "end": 9.65
-    },
-    {
-     "text": "checks",
-     "start": 9.65,
-     "end": 10.33
-    },
-    {
-     "text": "the",
-     "start": 10.33,
-     "end": 10.37
-    },
-    {
-     "text": "item's",
-     "start": 10.37,
-     "end": 10.78
-    },
-    {
-     "text": "condition",
-     "start": 10.78,
-     "end": 11.46
-    },
-    {
-     "text": "on",
-     "start": 11.46,
-     "end": 11.71
-    },
-    {
-     "text": "arrival.",
-     "start": 11.71,
-     "end": 12.2
-    }
-   ],
-   "cards": [
-    {
-     "text": "Now, the buyer checks out using our demo Visa payment flow,",
-     "start": 0.15,
-     "end": 5.17
-    },
-    {
-     "text": "but the money isn't released yet.",
-     "start": 5.12,
-     "end": 7.68
-    },
-    {
-     "text": "It is still held until the buyer",
-     "start": 7.63,
-     "end": 9.65
-    },
-    {
-     "text": "checks the item's condition on arrival.",
-     "start": 9.6,
-     "end": 12.55
-    }
-   ]
-  },
-  {
-   "id": "L10",
-   "speaker": "Adithya",
-   "src": "vo/L10.wav",
-   "duration": 3.18,
-   "words": [
-    {
-     "text": "Once",
-     "start": 0.1,
-     "end": 0.3
-    },
-    {
-     "text": "the",
-     "start": 0.3,
-     "end": 0.72
-    },
-    {
-     "text": "mug",
-     "start": 0.72,
-     "end": 0.76
-    },
-    {
-     "text": "arrives,",
-     "start": 0.76,
-     "end": 1.44
-    },
-    {
-     "text": "the",
-     "start": 1.44,
-     "end": 1.67
-    },
-    {
-     "text": "buyer",
-     "start": 1.67,
-     "end": 2.05
-    },
-    {
-     "text": "scans",
-     "start": 2.05,
-     "end": 2.43
-    },
-    {
-     "text": "it",
-     "start": 2.43,
-     "end": 2.62
-    },
-    {
-     "text": "again.",
-     "start": 2.62,
-     "end": 3.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "Once the mug arrives, the buyer scans it again.",
-     "start": 0.05,
-     "end": 3.18
-    }
-   ]
-  },
-  {
-   "id": "L11",
-   "speaker": "Adithya",
-   "src": "vo/L11.wav",
-   "duration": 8.38,
-   "words": [
-    {
-     "text": "scan_diff",
-     "start": 0.16,
-     "end": 0.56
-    },
-    {
-     "text": "aligns",
-     "start": 0.56,
-     "end": 0.93
-    },
-    {
-     "text": "both",
-     "start": 0.93,
-     "end": 1.21
-    },
-    {
-     "text": "three-dimensional",
-     "start": 1.21,
-     "end": 2.23
-    },
-    {
-     "text": "three-dimensional",
-     "start": 1.21,
-     "end": 2.23
-    },
-    {
-     "text": "models",
-     "start": 2.23,
-     "end": 2.86
-    },
-    {
-     "text": "first",
-     "start": 2.86,
-     "end": 3.15
-    },
-    {
-     "text": "globally",
-     "start": 3.15,
-     "end": 3.76
-    },
-    {
-     "text": "and",
-     "start": 3.76,
-     "end": 4.02
-    },
-    {
-     "text": "then",
-     "start": 4.02,
-     "end": 4.52
-    },
-    {
-     "text": "using",
-     "start": 4.52,
-     "end": 4.8
-    },
-    {
-     "text": "a",
-     "start": 4.8,
-     "end": 5.41
-    },
-    {
-     "text": "technique",
-     "start": 5.41,
-     "end": 5.68
-    },
-    {
-     "text": "called",
-     "start": 5.68,
-     "end": 6.0
-    },
-    {
-     "text": "ICP",
-     "start": 6.0,
-     "end": 6.33
-    },
-    {
-     "text": "to",
-     "start": 6.33,
-     "end": 6.55
-    },
-    {
-     "text": "refine",
-     "start": 6.55,
-     "end": 7.23
-    },
-    {
-     "text": "the",
-     "start": 7.23,
-     "end": 7.57
-    },
-    {
-     "text": "match.",
-     "start": 7.57,
-     "end": 8.16
-    }
-   ],
-   "cards": [
-    {
-     "text": "ScanDiff aligns both three-dimensional models,",
-     "start": 0.11,
-     "end": 2.86
-    },
-    {
-     "text": "first globally, and then using a technique called ICP",
-     "start": 2.81,
-     "end": 6.33
-    },
-    {
-     "text": "to refine the match.",
-     "start": 6.28,
-     "end": 8.38
-    }
-   ]
-  },
-  {
-   "id": "L12",
-   "speaker": "Adithya",
-   "src": "vo/L12.wav",
-   "duration": 12.15,
-   "words": [
-    {
-     "text": "Then,",
-     "start": 0.05,
-     "end": 0.53
-    },
-    {
-     "text": "it",
-     "start": 0.53,
-     "end": 0.55
-    },
-    {
-     "text": "measures",
-     "start": 0.55,
-     "end": 1.08
-    },
-    {
-     "text": "how",
-     "start": 1.08,
-     "end": 1.28
-    },
-    {
-     "text": "much",
-     "start": 1.28,
-     "end": 1.55
-    },
-    {
-     "text": "the",
-     "start": 1.55,
-     "end": 1.75
-    },
-    {
-     "text": "surface",
-     "start": 1.75,
-     "end": 2.23
-    },
-    {
-     "text": "has",
-     "start": 2.23,
-     "end": 2.43
-    },
-    {
-     "text": "changed,",
-     "start": 2.43,
-     "end": 3.13
-    },
-    {
-     "text": "down",
-     "start": 3.13,
-     "end": 3.39
-    },
-    {
-     "text": "to",
-     "start": 3.39,
-     "end": 3.52
-    },
-    {
-     "text": "a",
-     "start": 3.52,
-     "end": 3.58
-    },
-    {
-     "text": "few",
-     "start": 3.58,
-     "end": 3.77
-    },
-    {
-     "text": "millimeters.",
-     "start": 3.77,
-     "end": 4.76
-    },
-    {
-     "text": "Instead",
-     "start": 4.76,
-     "end": 5.26
-    },
-    {
-     "text": "of",
-     "start": 5.26,
-     "end": 5.31
-    },
-    {
-     "text": "guessing",
-     "start": 5.31,
-     "end": 5.7
-    },
-    {
-     "text": "what",
-     "start": 5.7,
-     "end": 5.92
-    },
-    {
-     "text": "counts",
-     "start": 5.92,
-     "end": 6.25
-    },
-    {
-     "text": "as",
-     "start": 6.25,
-     "end": 6.36
-    },
-    {
-     "text": "damaged,",
-     "start": 6.36,
-     "end": 6.88
-    },
-    {
-     "text": "we",
-     "start": 6.88,
-     "end": 7.02
-    },
-    {
-     "text": "estimate",
-     "start": 7.02,
-     "end": 7.57
-    },
-    {
-     "text": "the",
-     "start": 7.57,
-     "end": 7.87
-    },
-    {
-     "text": "scan's",
-     "start": 7.87,
-     "end": 8.22
-    },
-    {
-     "text": "own",
-     "start": 8.22,
-     "end": 8.4
-    },
-    {
-     "text": "noise",
-     "start": 8.4,
-     "end": 8.73
-    },
-    {
-     "text": "level,",
-     "start": 8.73,
-     "end": 9.5
-    },
-    {
-     "text": "helping",
-     "start": 9.5,
-     "end": 9.56
-    },
-    {
-     "text": "distinguish",
-     "start": 9.56,
-     "end": 10.15
-    },
-    {
-     "text": "real",
-     "start": 10.15,
-     "end": 10.36
-    },
-    {
-     "text": "changes",
-     "start": 10.36,
-     "end": 10.73
-    },
-    {
-     "text": "from",
-     "start": 10.73,
-     "end": 10.94
-    },
-    {
-     "text": "measurement",
-     "start": 10.94,
-     "end": 11.53
-    },
-    {
-     "text": "noise.",
-     "start": 11.53,
-     "end": 12.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "Then, it measures how much the surface has changed,",
-     "start": 0.0,
-     "end": 3.13
-    },
-    {
-     "text": "down to a few millimeters.",
-     "start": 3.08,
-     "end": 4.76
-    },
-    {
-     "text": "Instead of guessing what counts as damage,",
-     "start": 4.71,
-     "end": 6.88
-    },
-    {
-     "text": "we estimate the scan's own noise level,",
-     "start": 6.83,
-     "end": 9.5
-    },
-    {
-     "text": "helping distinguish real changes from measurement noise.",
-     "start": 9.45,
-     "end": 12.15
-    }
-   ]
-  },
-  {
-   "id": "L13",
-   "speaker": "Adithya",
-   "src": "vo/L13.wav",
-   "duration": 11.71,
-   "words": [
-    {
-     "text": "Next,",
-     "start": 0.2,
-     "end": 0.39
-    },
-    {
-     "text": "we",
-     "start": 0.39,
-     "end": 0.52
-    },
-    {
-     "text": "group",
-     "start": 0.52,
-     "end": 0.91
-    },
-    {
-     "text": "the",
-     "start": 0.91,
-     "end": 1.03
-    },
-    {
-     "text": "changes",
-     "start": 1.03,
-     "end": 1.5
-    },
-    {
-     "text": "into",
-     "start": 1.5,
-     "end": 1.75
-    },
-    {
-     "text": "individual",
-     "start": 1.75,
-     "end": 2.38
-    },
-    {
-     "text": "regions.",
-     "start": 2.38,
-     "end": 3.04
-    },
-    {
-     "text": "For",
-     "start": 3.04,
-     "end": 3.2
-    },
-    {
-     "text": "each",
-     "start": 3.2,
-     "end": 3.42
-    },
-    {
-     "text": "region,",
-     "start": 3.42,
-     "end": 3.93
-    },
-    {
-     "text": "Claude",
-     "start": 3.93,
-     "end": 4.12
-    },
-    {
-     "text": "compares",
-     "start": 4.12,
-     "end": 4.56
-    },
-    {
-     "text": "the",
-     "start": 4.56,
-     "end": 4.76
-    },
-    {
-     "text": "before",
-     "start": 4.76,
-     "end": 5.14
-    },
-    {
-     "text": "and",
-     "start": 5.14,
-     "end": 5.33
-    },
-    {
-     "text": "after",
-     "start": 5.33,
-     "end": 5.66
-    },
-    {
-     "text": "photo",
-     "start": 5.66,
-     "end": 5.98
-    },
-    {
-     "text": "crops",
-     "start": 5.98,
-     "end": 6.32
-    },
-    {
-     "text": "and",
-     "start": 6.32,
-     "end": 6.51
-    },
-    {
-     "text": "classifies",
-     "start": 6.51,
-     "end": 7.17
-    },
-    {
-     "text": "the",
-     "start": 7.17,
-     "end": 7.36
-    },
-    {
-     "text": "change.",
-     "start": 7.36,
-     "end": 8.0
-    },
-    {
-     "text": "It",
-     "start": 8.0,
-     "end": 8.1
-    },
-    {
-     "text": "might",
-     "start": 8.1,
-     "end": 8.44
-    },
-    {
-     "text": "be",
-     "start": 8.44,
-     "end": 8.49
-    },
-    {
-     "text": "a",
-     "start": 8.49,
-     "end": 8.49
-    },
-    {
-     "text": "dent,",
-     "start": 8.49,
-     "end": 8.79
-    },
-    {
-     "text": "a",
-     "start": 8.79,
-     "end": 8.86
-    },
-    {
-     "text": "missing",
-     "start": 8.86,
-     "end": 9.28
-    },
-    {
-     "text": "part,",
-     "start": 9.28,
-     "end": 9.67
-    },
-    {
-     "text": "a",
-     "start": 9.67,
-     "end": 9.67
-    },
-    {
-     "text": "scuff,",
-     "start": 9.67,
-     "end": 10.06
-    },
-    {
-     "text": "or",
-     "start": 10.06,
-     "end": 10.19
-    },
-    {
-     "text": "just",
-     "start": 10.19,
-     "end": 10.4
-    },
-    {
-     "text": "normal",
-     "start": 10.4,
-     "end": 10.78
-    },
-    {
-     "text": "wear",
-     "start": 10.78,
-     "end": 11.03
-    },
-    {
-     "text": "and",
-     "start": 11.03,
-     "end": 11.15
-    },
-    {
-     "text": "tear.",
-     "start": 11.15,
-     "end": 11.64
-    }
-   ],
-   "cards": [
-    {
-     "text": "Next, we group the changes into individual regions.",
-     "start": 0.15,
-     "end": 3.04
-    },
-    {
-     "text": "For each region, Claude compares the before-and-after photo crops",
-     "start": 2.99,
-     "end": 6.32
-    },
-    {
-     "text": "and classifies the change.",
-     "start": 6.27,
-     "end": 8.0
-    },
-    {
-     "text": "It might be a dent, a missing part, a scuff,",
-     "start": 7.95,
-     "end": 10.06
-    },
-    {
-     "text": "or just normal wear and tear.",
-     "start": 10.01,
-     "end": 11.71
-    }
-   ]
-  },
-  {
-   "id": "L14",
-   "speaker": "Adithya",
-   "src": "vo/L14.wav",
-   "duration": 7.07,
-   "words": [
-    {
-     "text": "And",
-     "start": 0.19,
-     "end": 0.2
-    },
-    {
-     "text": "if",
-     "start": 0.2,
-     "end": 0.32
-    },
-    {
-     "text": "one",
-     "start": 0.32,
-     "end": 0.51
-    },
-    {
-     "text": "scan",
-     "start": 0.51,
-     "end": 0.77
-    },
-    {
-     "text": "can't",
-     "start": 0.77,
-     "end": 1.09
-    },
-    {
-     "text": "see",
-     "start": 1.09,
-     "end": 1.29
-    },
-    {
-     "text": "a",
-     "start": 1.29,
-     "end": 1.34
-    },
-    {
-     "text": "particular",
-     "start": 1.34,
-     "end": 1.99
-    },
-    {
-     "text": "surface,",
-     "start": 1.99,
-     "end": 2.61
-    },
-    {
-     "text": "we",
-     "start": 2.61,
-     "end": 2.66
-    },
-    {
-     "text": "mark",
-     "start": 2.66,
-     "end": 2.85
-    },
-    {
-     "text": "it",
-     "start": 2.85,
-     "end": 2.96
-    },
-    {
-     "text": "as",
-     "start": 2.96,
-     "end": 3.12
-    },
-    {
-     "text": "no",
-     "start": 3.12,
-     "end": 3.38
-    },
-    {
-     "text": "data",
-     "start": 3.38,
-     "end": 4.04
-    },
-    {
-     "text": "rather",
-     "start": 4.04,
-     "end": 4.08
-    },
-    {
-     "text": "than",
-     "start": 4.08,
-     "end": 4.4
-    },
-    {
-     "text": "incorrectly",
-     "start": 4.4,
-     "end": 5.71
-    },
-    {
-     "text": "calling",
-     "start": 5.71,
-     "end": 5.91
-    },
-    {
-     "text": "it",
-     "start": 5.91,
-     "end": 6.0
-    },
-    {
-     "text": "damage.",
-     "start": 6.0,
-     "end": 7.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "And if one scan can't see a particular surface,",
-     "start": 0.14,
-     "end": 2.61
-    },
-    {
-     "text": "we mark it as “no data” rather than incorrectly calling it damage.",
-     "start": 2.56,
-     "end": 7.07
-    }
-   ]
-  },
-  {
-   "id": "L15",
-   "speaker": "Koushik",
-   "src": "vo/L15.wav",
-   "duration": 5.22,
-   "words": [
-    {
-     "text": "So,",
-     "start": 0.2,
-     "end": 0.61
-    },
-    {
-     "text": "what",
-     "start": 0.61,
-     "end": 0.88
-    },
-    {
-     "text": "happens",
-     "start": 0.88,
-     "end": 1.65
-    },
-    {
-     "text": "next?",
-     "start": 1.65,
-     "end": 2.44
-    },
-    {
-     "text": "The",
-     "start": 2.44,
-     "end": 2.62
-    },
-    {
-     "text": "buyer",
-     "start": 2.62,
-     "end": 2.96
-    },
-    {
-     "text": "reviews",
-     "start": 2.96,
-     "end": 3.38
-    },
-    {
-     "text": "the",
-     "start": 3.38,
-     "end": 3.56
-    },
-    {
-     "text": "results",
-     "start": 3.56,
-     "end": 4.0
-    },
-    {
-     "text": "and",
-     "start": 4.0,
-     "end": 4.13
-    },
-    {
-     "text": "accepts",
-     "start": 4.13,
-     "end": 4.44
-    },
-    {
-     "text": "the",
-     "start": 4.44,
-     "end": 4.56
-    },
-    {
-     "text": "item.",
-     "start": 4.56,
-     "end": 5.08
-    }
-   ],
-   "cards": [
-    {
-     "text": "So, what happens next?",
-     "start": 0.15,
-     "end": 2.44
-    },
-    {
-     "text": "The buyer reviews the result and accepts the item.",
-     "start": 2.39,
-     "end": 5.22
-    }
-   ]
-  },
-  {
-   "id": "L16",
-   "speaker": "Koushik",
-   "src": "vo/L16.wav",
-   "duration": 6.48,
-   "words": [
-    {
-     "text": "Through",
-     "start": 0.23,
-     "end": 0.47
-    },
-    {
-     "text": "Superbase",
-     "start": 0.47,
-     "end": 1.08
-    },
-    {
-     "text": "Realtime,",
-     "start": 1.08,
-     "end": 1.75
-    },
-    {
-     "text": "that",
-     "start": 1.75,
-     "end": 2.02
-    },
-    {
-     "text": "decision",
-     "start": 2.02,
-     "end": 2.43
-    },
-    {
-     "text": "immediately",
-     "start": 2.43,
-     "end": 3.05
-    },
-    {
-     "text": "updates",
-     "start": 3.05,
-     "end": 3.67
-    },
-    {
-     "text": "the",
-     "start": 3.67,
-     "end": 3.76
-    },
-    {
-     "text": "checkout",
-     "start": 3.76,
-     "end": 4.42
-    },
-    {
-     "text": "and",
-     "start": 4.42,
-     "end": 4.5
-    },
-    {
-     "text": "the",
-     "start": 4.5,
-     "end": 4.56
-    },
-    {
-     "text": "payment",
-     "start": 4.56,
-     "end": 5.03
-    },
-    {
-     "text": "held",
-     "start": 5.03,
-     "end": 5.4
-    },
-    {
-     "text": "is",
-     "start": 5.4,
-     "end": 5.62
-    },
-    {
-     "text": "released.",
-     "start": 5.62,
-     "end": 6.44
-    }
-   ],
-   "cards": [
-    {
-     "text": "Through Supabase Realtime,",
-     "start": 0.18,
-     "end": 1.75
-    },
-    {
-     "text": "that decision immediately updates the checkout",
-     "start": 1.7,
-     "end": 4.42
-    },
-    {
-     "text": "and the payment held is released.",
-     "start": 4.37,
-     "end": 6.48
-    }
-   ]
-  },
-  {
-   "id": "L17",
-   "speaker": "Koushik",
-   "src": "vo/L17.wav",
-   "duration": 18.32,
-   "words": [
-    {
-     "text": "But",
-     "start": 0.19,
-     "end": 0.21
-    },
-    {
-     "text": "what",
-     "start": 0.21,
-     "end": 0.53
-    },
-    {
-     "text": "if",
-     "start": 0.53,
-     "end": 0.56
-    },
-    {
-     "text": "something",
-     "start": 0.56,
-     "end": 1.13
-    },
-    {
-     "text": "went",
-     "start": 1.13,
-     "end": 1.38
-    },
-    {
-     "text": "wrong",
-     "start": 1.38,
-     "end": 1.7
-    },
-    {
-     "text": "during",
-     "start": 1.7,
-     "end": 2.08
-    },
-    {
-     "text": "shipping?",
-     "start": 2.08,
-     "end": 2.81
-    },
-    {
-     "text": "The",
-     "start": 2.81,
-     "end": 2.98
-    },
-    {
-     "text": "buyer",
-     "start": 2.98,
-     "end": 3.26
-    },
-    {
-     "text": "can",
-     "start": 3.26,
-     "end": 3.43
-    },
-    {
-     "text": "dispute",
-     "start": 3.43,
-     "end": 3.88
-    },
-    {
-     "text": "the",
-     "start": 3.88,
-     "end": 3.91
-    },
-    {
-     "text": "transaction,",
-     "start": 3.91,
-     "end": 4.9
-    },
-    {
-     "text": "the",
-     "start": 4.9,
-     "end": 5.0
-    },
-    {
-     "text": "payment",
-     "start": 5.0,
-     "end": 5.32
-    },
-    {
-     "text": "stays",
-     "start": 5.32,
-     "end": 5.67
-    },
-    {
-     "text": "held,",
-     "start": 5.67,
-     "end": 6.12
-    },
-    {
-     "text": "and",
-     "start": 6.12,
-     "end": 6.12
-    },
-    {
-     "text": "the",
-     "start": 6.12,
-     "end": 6.32
-    },
-    {
-     "text": "refund",
-     "start": 6.32,
-     "end": 6.6
-    },
-    {
-     "text": "process",
-     "start": 6.6,
-     "end": 7.03
-    },
-    {
-     "text": "runs",
-     "start": 7.03,
-     "end": 7.35
-    },
-    {
-     "text": "through",
-     "start": 7.35,
-     "end": 7.96
-    },
-    {
-     "text": "Capital",
-     "start": 7.96,
-     "end": 8.57
-    },
-    {
-     "text": "One's",
-     "start": 8.57,
-     "end": 9.04
-    },
-    {
-     "text": "NSSE",
-     "start": 9.04,
-     "end": 9.34
-    },
-    {
-     "text": "sandbox.",
-     "start": 9.34,
-     "end": 10.0
-    },
-    {
-     "text": "Both",
-     "start": 10.0,
-     "end": 10.53
-    },
-    {
-     "text": "sides",
-     "start": 10.53,
-     "end": 10.67
-    },
-    {
-     "text": "also",
-     "start": 10.67,
-     "end": 10.88
-    },
-    {
-     "text": "get",
-     "start": 10.88,
-     "end": 11.08
-    },
-    {
-     "text": "the",
-     "start": 11.08,
-     "end": 11.28
-    },
-    {
-     "text": "same",
-     "start": 11.28,
-     "end": 11.55
-    },
-    {
-     "text": "Printable",
-     "start": 11.55,
-     "end": 12.16
-    },
-    {
-     "text": "Evidence",
-     "start": 12.16,
-     "end": 12.78
-    },
-    {
-     "text": "page",
-     "start": 12.78,
-     "end": 12.98
-    },
-    {
-     "text": "complete",
-     "start": 12.98,
-     "end": 13.53
-    },
-    {
-     "text": "with",
-     "start": 13.53,
-     "end": 13.88
-    },
-    {
-     "text": "the",
-     "start": 13.88,
-     "end": 14.0
-    },
-    {
-     "text": "original",
-     "start": 14.0,
-     "end": 14.54
-    },
-    {
-     "text": "exhibits,",
-     "start": 14.54,
-     "end": 15.23
-    },
-    {
-     "text": "file",
-     "start": 15.23,
-     "end": 15.5
-    },
-    {
-     "text": "fingerprints,",
-     "start": 15.5,
-     "end": 16.46
-    },
-    {
-     "text": "and",
-     "start": 16.46,
-     "end": 16.77
-    },
-    {
-     "text": "flagged",
-     "start": 16.77,
-     "end": 17.14
-    },
-    {
-     "text": "regions.",
-     "start": 17.14,
-     "end": 18.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "But what if something went wrong during shipping?",
-     "start": 0.14,
-     "end": 2.81
-    },
-    {
-     "text": "The buyer can dispute the transaction,",
-     "start": 2.76,
-     "end": 4.9
-    },
-    {
-     "text": "the payment stays held,",
-     "start": 4.85,
-     "end": 6.12
-    },
-    {
-     "text": "and the refund process runs through Capital One's Nessie sandbox.",
-     "start": 6.07,
-     "end": 10.0
-    },
-    {
-     "text": "Both sides also get the same printable evidence page,",
-     "start": 9.95,
-     "end": 12.98
-    },
-    {
-     "text": "complete with the original exhibits,",
-     "start": 12.93,
-     "end": 15.23
-    },
-    {
-     "text": "file fingerprints, and flagged regions.",
-     "start": 15.18,
-     "end": 18.32
-    }
-   ]
-  },
-  {
-   "id": "L18",
-   "speaker": "Adithya",
-   "src": "vo/L18.wav",
-   "duration": 16.15,
-   "words": [
-    {
-     "text": "That",
-     "start": 0.2,
-     "end": 0.27
-    },
-    {
-     "text": "brings",
-     "start": 0.27,
-     "end": 0.68
-    },
-    {
-     "text": "us",
-     "start": 0.68,
-     "end": 0.81
-    },
-    {
-     "text": "to",
-     "start": 0.81,
-     "end": 0.94
-    },
-    {
-     "text": "an",
-     "start": 0.94,
-     "end": 1.07
-    },
-    {
-     "text": "important",
-     "start": 1.07,
-     "end": 1.68
-    },
-    {
-     "text": "distinction.",
-     "start": 1.68,
-     "end": 2.56
-    },
-    {
-     "text": "Scandiff",
-     "start": 2.56,
-     "end": 3.07
-    },
-    {
-     "text": "provides",
-     "start": 3.07,
-     "end": 3.6
-    },
-    {
-     "text": "tamper",
-     "start": 3.6,
-     "end": 4.08
-    },
-    {
-     "text": "evidence",
-     "start": 4.08,
-     "end": 4.56
-    },
-    {
-     "text": "of",
-     "start": 4.56,
-     "end": 6.32
-    },
-    {
-     "text": "an",
-     "start": 6.32,
-     "end": 6.72
-    },
-    {
-     "text": "item's",
-     "start": 6.72,
-     "end": 6.96
-    },
-    {
-     "text": "condition",
-     "start": 6.96,
-     "end": 7.68
-    },
-    {
-     "text": "at",
-     "start": 7.68,
-     "end": 7.88
-    },
-    {
-     "text": "handoff.",
-     "start": 7.88,
-     "end": 8.64
-    },
-    {
-     "text": "It",
-     "start": 8.64,
-     "end": 8.8
-    },
-    {
-     "text": "doesn't",
-     "start": 8.8,
-     "end": 9.36
-    },
-    {
-     "text": "prove",
-     "start": 9.36,
-     "end": 9.76
-    },
-    {
-     "text": "that",
-     "start": 9.76,
-     "end": 10.08
-    },
-    {
-     "text": "the",
-     "start": 10.08,
-     "end": 10.34
-    },
-    {
-     "text": "item",
-     "start": 10.34,
-     "end": 10.66
-    },
-    {
-     "text": "was",
-     "start": 10.66,
-     "end": 10.94
-    },
-    {
-     "text": "originally",
-     "start": 10.94,
-     "end": 11.69
-    },
-    {
-     "text": "advertised",
-     "start": 11.69,
-     "end": 12.72
-    },
-    {
-     "text": "accurately,",
-     "start": 12.72,
-     "end": 13.04
-    },
-    {
-     "text": "and",
-     "start": 13.04,
-     "end": 13.24
-    },
-    {
-     "text": "our",
-     "start": 13.24,
-     "end": 13.4
-    },
-    {
-     "text": "payment",
-     "start": 13.4,
-     "end": 13.82
-    },
-    {
-     "text": "flow",
-     "start": 13.82,
-     "end": 14.06
-    },
-    {
-     "text": "is",
-     "start": 14.06,
-     "end": 14.18
-    },
-    {
-     "text": "for",
-     "start": 14.18,
-     "end": 14.36
-    },
-    {
-     "text": "demonstration",
-     "start": 14.36,
-     "end": 15.16
-    },
-    {
-     "text": "purposes",
-     "start": 15.16,
-     "end": 15.67
-    },
-    {
-     "text": "only.",
-     "start": 15.67,
-     "end": 15.92
-    }
-   ],
-   "cards": [
-    {
-     "text": "That brings us to an important distinction.",
-     "start": 0.15,
-     "end": 2.56
-    },
-    {
-     "text": "ScanDiff provides tamper evidence of an item's condition at handoff.",
-     "start": 2.51,
-     "end": 8.64
-    },
-    {
-     "text": "It doesn't prove that the item was originally advertised accurately,",
-     "start": 8.59,
-     "end": 13.04
-    },
-    {
-     "text": "and our payment flow is for demonstration purposes only.",
-     "start": 12.99,
-     "end": 16.15
-    }
-   ]
-  },
-  {
-   "id": "L19",
-   "speaker": "Adithya",
-   "src": "vo/L19.wav",
-   "duration": 38.123,
-   "words": [
-    {
-     "text": "Today,",
-     "start": 0.26,
-     "end": 0.5
-    },
-    {
-     "text": "anyone",
-     "start": 0.5,
-     "end": 0.94
-    },
-    {
-     "text": "can",
-     "start": 0.94,
-     "end": 1.16
-    },
-    {
-     "text": "generate",
-     "start": 1.16,
-     "end": 1.74
-    },
-    {
-     "text": "a",
-     "start": 1.74,
-     "end": 1.81
-    },
-    {
-     "text": "photo",
-     "start": 1.81,
-     "end": 2.17
-    },
-    {
-     "text": "of",
-     "start": 2.17,
-     "end": 2.31
-    },
-    {
-     "text": "damage",
-     "start": 2.31,
-     "end": 2.8
-    },
-    {
-     "text": "that",
-     "start": 2.8,
-     "end": 3.02
-    },
-    {
-     "text": "never",
-     "start": 3.02,
-     "end": 3.3
-    },
-    {
-     "text": "happened.",
-     "start": 3.3,
-     "end": 3.76
-    },
-    {
-     "text": "So",
-     "start": 3.76,
-     "end": 4.0
-    },
-    {
-     "text": "a",
-     "start": 4.0,
-     "end": 4.02
-    },
-    {
-     "text": "photo",
-     "start": 4.02,
-     "end": 4.55
-    },
-    {
-     "text": "is",
-     "start": 4.55,
-     "end": 4.63
-    },
-    {
-     "text": "no",
-     "start": 4.63,
-     "end": 4.71
-    },
-    {
-     "text": "longer",
-     "start": 4.71,
-     "end": 5.18
-    },
-    {
-     "text": "proof.",
-     "start": 5.18,
-     "end": 5.6
-    },
-    {
-     "text": "Scan",
-     "start": 5.6,
-     "end": 5.86
-    },
-    {
-     "text": "diff",
-     "start": 5.86,
-     "end": 6.08
-    },
-    {
-     "text": "works",
-     "start": 6.08,
-     "end": 6.47
-    },
-    {
-     "text": "like",
-     "start": 6.47,
-     "end": 6.63
-    },
-    {
-     "text": "two-factor",
-     "start": 6.63,
-     "end": 7.24
-    },
-    {
-     "text": "two-factor",
-     "start": 6.63,
-     "end": 7.24
-    },
-    {
-     "text": "authentication",
-     "start": 7.24,
-     "end": 8.1
-    },
-    {
-     "text": "for",
-     "start": 8.1,
-     "end": 8.28
-    },
-    {
-     "text": "physical",
-     "start": 8.28,
-     "end": 8.77
-    },
-    {
-     "text": "things.",
-     "start": 8.77,
-     "end": 9.2
-    },
-    {
-     "text": "One",
-     "start": 9.2,
-     "end": 9.46
-    },
-    {
-     "text": "scan",
-     "start": 9.46,
-     "end": 9.67
-    },
-    {
-     "text": "when",
-     "start": 9.67,
-     "end": 10.07
-    },
-    {
-     "text": "you",
-     "start": 10.07,
-     "end": 10.14
-    },
-    {
-     "text": "take",
-     "start": 10.14,
-     "end": 10.41
-    },
-    {
-     "text": "something",
-     "start": 10.41,
-     "end": 11.04
-    },
-    {
-     "text": "and",
-     "start": 11.04,
-     "end": 11.31
-    },
-    {
-     "text": "another",
-     "start": 11.31,
-     "end": 11.68
-    },
-    {
-     "text": "when",
-     "start": 11.68,
-     "end": 11.86
-    },
-    {
-     "text": "you",
-     "start": 11.86,
-     "end": 12.0
-    },
-    {
-     "text": "hand",
-     "start": 12.0,
-     "end": 12.35
-    },
-    {
-     "text": "it",
-     "start": 12.35,
-     "end": 12.52
-    },
-    {
-     "text": "back.",
-     "start": 12.52,
-     "end": 12.88
-    },
-    {
-     "text": "And",
-     "start": 12.88,
-     "end": 13.14
-    },
-    {
-     "text": "both",
-     "start": 13.14,
-     "end": 13.37
-    },
-    {
-     "text": "have",
-     "start": 13.37,
-     "end": 13.75
-    },
-    {
-     "text": "to",
-     "start": 13.75,
-     "end": 13.79
-    },
-    {
-     "text": "match",
-     "start": 13.79,
-     "end": 14.25
-    },
-    {
-     "text": "before",
-     "start": 14.25,
-     "end": 14.56
-    },
-    {
-     "text": "money",
-     "start": 14.56,
-     "end": 14.99
-    },
-    {
-     "text": "moves.",
-     "start": 14.99,
-     "end": 15.28
-    },
-    {
-     "text": "Think",
-     "start": 15.28,
-     "end": 15.59
-    },
-    {
-     "text": "of",
-     "start": 15.59,
-     "end": 15.71
-    },
-    {
-     "text": "everything",
-     "start": 15.71,
-     "end": 16.34
-    },
-    {
-     "text": "we",
-     "start": 16.34,
-     "end": 16.46
-    },
-    {
-     "text": "share.",
-     "start": 16.46,
-     "end": 16.8
-    },
-    {
-     "text": "Rental",
-     "start": 16.8,
-     "end": 17.11
-    },
-    {
-     "text": "cars",
-     "start": 17.11,
-     "end": 17.32
-    },
-    {
-     "text": "where",
-     "start": 17.32,
-     "end": 17.67
-    },
-    {
-     "text": "you",
-     "start": 17.67,
-     "end": 17.74
-    },
-    {
-     "text": "get",
-     "start": 17.74,
-     "end": 17.9
-    },
-    {
-     "text": "billed",
-     "start": 17.9,
-     "end": 18.21
-    },
-    {
-     "text": "for",
-     "start": 18.21,
-     "end": 18.37
-    },
-    {
-     "text": "a",
-     "start": 18.37,
-     "end": 18.42
-    },
-    {
-     "text": "scratch",
-     "start": 18.42,
-     "end": 18.91
-    },
-    {
-     "text": "you",
-     "start": 18.91,
-     "end": 18.95
-    },
-    {
-     "text": "didn't",
-     "start": 18.95,
-     "end": 19.26
-    },
-    {
-     "text": "make.",
-     "start": 19.26,
-     "end": 19.52
-    },
-    {
-     "text": "Or",
-     "start": 19.52,
-     "end": 19.76
-    },
-    {
-     "text": "hotel",
-     "start": 19.76,
-     "end": 20.39
-    },
-    {
-     "text": "rooms",
-     "start": 20.39,
-     "end": 20.98
-    },
-    {
-     "text": "and",
-     "start": 20.98,
-     "end": 21.36
-    },
-    {
-     "text": "apartments",
-     "start": 21.36,
-     "end": 22.08
-    },
-    {
-     "text": "where",
-     "start": 22.08,
-     "end": 22.32
-    },
-    {
-     "text": "a",
-     "start": 22.32,
-     "end": 22.44
-    },
-    {
-     "text": "security",
-     "start": 22.44,
-     "end": 23.43
-    },
-    {
-     "text": "deposit",
-     "start": 23.43,
-     "end": 23.78
-    },
-    {
-     "text": "comes",
-     "start": 23.78,
-     "end": 24.0
-    },
-    {
-     "text": "down",
-     "start": 24.0,
-     "end": 24.16
-    },
-    {
-     "text": "to",
-     "start": 24.16,
-     "end": 24.32
-    },
-    {
-     "text": "a",
-     "start": 24.32,
-     "end": 24.48
-    },
-    {
-     "text": "landlord's",
-     "start": 24.48,
-     "end": 25.3
-    },
-    {
-     "text": "photos",
-     "start": 25.3,
-     "end": 25.68
-    },
-    {
-     "text": "at",
-     "start": 25.68,
-     "end": 25.98
-    },
-    {
-     "text": "move",
-     "start": 25.98,
-     "end": 26.16
-    },
-    {
-     "text": "out.",
-     "start": 26.16,
-     "end": 26.72
-    },
-    {
-     "text": "Equipment",
-     "start": 26.96,
-     "end": 27.59
-    },
-    {
-     "text": "rentals,",
-     "start": 27.59,
-     "end": 27.93
-    },
-    {
-     "text": "shared",
-     "start": 27.93,
-     "end": 28.33
-    },
-    {
-     "text": "scooters,",
-     "start": 28.33,
-     "end": 28.99
-    },
-    {
-     "text": "borrowed",
-     "start": 28.99,
-     "end": 29.53
-    },
-    {
-     "text": "gear,",
-     "start": 29.53,
-     "end": 29.94
-    },
-    {
-     "text": "returns",
-     "start": 29.94,
-     "end": 30.6
-    },
-    {
-     "text": "and",
-     "start": 30.6,
-     "end": 30.63
-    },
-    {
-     "text": "insurance",
-     "start": 30.63,
-     "end": 31.21
-    },
-    {
-     "text": "claims.",
-     "start": 31.21,
-     "end": 31.68
-    },
-    {
-     "text": "With",
-     "start": 31.68,
-     "end": 32.22
-    },
-    {
-     "text": "RSDK,",
-     "start": 32.22,
-     "end": 33.05
-    },
-    {
-     "text": "any",
-     "start": 33.05,
-     "end": 33.26
-    },
-    {
-     "text": "of",
-     "start": 33.26,
-     "end": 33.41
-    },
-    {
-     "text": "those",
-     "start": 33.41,
-     "end": 33.79
-    },
-    {
-     "text": "companies",
-     "start": 33.79,
-     "end": 34.47
-    },
-    {
-     "text": "can",
-     "start": 34.47,
-     "end": 34.72
-    },
-    {
-     "text": "bill",
-     "start": 34.72,
-     "end": 34.96
-    },
-    {
-     "text": "scan",
-     "start": 34.96,
-     "end": 35.33
-    },
-    {
-     "text": "in",
-     "start": 35.33,
-     "end": 35.59
-    },
-    {
-     "text": "and",
-     "start": 35.59,
-     "end": 35.72
-    },
-    {
-     "text": "scan",
-     "start": 35.72,
-     "end": 35.99
-    },
-    {
-     "text": "out",
-     "start": 35.99,
-     "end": 36.19
-    },
-    {
-     "text": "checks",
-     "start": 36.19,
-     "end": 36.6
-    },
-    {
-     "text": "into",
-     "start": 36.6,
-     "end": 36.87
-    },
-    {
-     "text": "their",
-     "start": 36.87,
-     "end": 37.21
-    },
-    {
-     "text": "own",
-     "start": 37.21,
-     "end": 37.46
-    },
-    {
-     "text": "app.",
-     "start": 37.46,
-     "end": 37.68
-    }
-   ],
-   "cards": [
-    {
-     "text": "Today, anyone can generate a photo of damage that never happened.",
-     "start": 0.21,
-     "end": 3.76
-    },
-    {
-     "text": "So a photo is no longer proof.",
-     "start": 3.71,
-     "end": 6.08
-    },
-    {
-     "text": "ScanDiff works like two-factor authentication for physical things.",
-     "start": 6.03,
-     "end": 9.2
-    },
-    {
-     "text": "One scan when you take something, and another when you hand it back,",
-     "start": 9.15,
-     "end": 12.88
-    },
-    {
-     "text": "and both have to match before money moves.",
-     "start": 12.83,
-     "end": 15.28
-    },
-    {
-     "text": "Think of everything we share.",
-     "start": 15.23,
-     "end": 16.8
-    },
-    {
-     "text": "Rental cars, where you get billed for a scratch you didn't make,",
-     "start": 16.75,
-     "end": 19.52
-    },
-    {
-     "text": "or hotel rooms and apartments,",
-     "start": 19.47,
-     "end": 22.08
-    },
-    {
-     "text": "where a security deposit comes down to a landlord's photos at move-out.",
-     "start": 22.03,
-     "end": 26.96
-    },
-    {
-     "text": "Equipment rentals, shared scooters, borrowed gear,",
-     "start": 26.91,
-     "end": 29.94
-    },
-    {
-     "text": "returns and insurance claims.",
-     "start": 29.89,
-     "end": 31.68
-    },
-    {
-     "text": "With our SDK, any of those companies can build",
-     "start": 31.63,
-     "end": 34.96
-    },
-    {
-     "text": "scan-in and scan-out checks into their own app.",
-     "start": 34.91,
-     "end": 38.03
-    }
-   ]
-  },
-  {
-   "id": "L20",
-   "speaker": "Adithya",
-   "src": "vo/L20.wav",
-   "duration": 12.39,
-   "words": [
-    {
-     "text": "Looking",
-     "start": 0.21,
-     "end": 0.5
-    },
-    {
-     "text": "ahead,",
-     "start": 0.5,
-     "end": 1.01
-    },
-    {
-     "text": "we're",
-     "start": 1.01,
-     "end": 1.32
-    },
-    {
-     "text": "expanding",
-     "start": 1.32,
-     "end": 1.9
-    },
-    {
-     "text": "ScanDiff",
-     "start": 1.9,
-     "end": 2.45
-    },
-    {
-     "text": "into",
-     "start": 2.45,
-     "end": 2.72
-    },
-    {
-     "text": "use",
-     "start": 2.72,
-     "end": 2.93
-    },
-    {
-     "text": "cases",
-     "start": 2.93,
-     "end": 3.27
-    },
-    {
-     "text": "like",
-     "start": 3.27,
-     "end": 3.74
-    },
-    {
-     "text": "rental",
-     "start": 3.74,
-     "end": 4.04
-    },
-    {
-     "text": "cars,",
-     "start": 4.04,
-     "end": 4.4
-    },
-    {
-     "text": "hotel",
-     "start": 4.4,
-     "end": 4.8
-    },
-    {
-     "text": "rooms,",
-     "start": 4.8,
-     "end": 5.39
-    },
-    {
-     "text": "while",
-     "start": 5.39,
-     "end": 6.08
-    },
-    {
-     "text": "building",
-     "start": 6.08,
-     "end": 6.4
-    },
-    {
-     "text": "an",
-     "start": 6.4,
-     "end": 6.55
-    },
-    {
-     "text": "SDK",
-     "start": 6.55,
-     "end": 7.04
-    },
-    {
-     "text": "that",
-     "start": 7.04,
-     "end": 7.36
-    },
-    {
-     "text": "lets",
-     "start": 7.36,
-     "end": 7.68
-    },
-    {
-     "text": "marketplaces",
-     "start": 7.68,
-     "end": 8.4
-    },
-    {
-     "text": "and",
-     "start": 8.4,
-     "end": 8.48
-    },
-    {
-     "text": "shipping",
-     "start": 8.48,
-     "end": 9.01
-    },
-    {
-     "text": "platforms",
-     "start": 9.01,
-     "end": 9.61
-    },
-    {
-     "text": "integrate",
-     "start": 9.61,
-     "end": 10.21
-    },
-    {
-     "text": "scan-based",
-     "start": 10.21,
-     "end": 11.04
-    },
-    {
-     "text": "scan-based",
-     "start": 10.21,
-     "end": 11.04
-    },
-    {
-     "text": "payments",
-     "start": 11.04,
-     "end": 11.39
-    },
-    {
-     "text": "and",
-     "start": 11.39,
-     "end": 11.59
-    },
-    {
-     "text": "returns.",
-     "start": 11.59,
-     "end": 12.32
-    }
-   ],
-   "cards": [
-    {
-     "text": "Looking ahead, we're expanding ScanDiff into use cases",
-     "start": 0.16,
-     "end": 3.27
-    },
-    {
-     "text": "like rental cars, hotel rooms,",
-     "start": 3.22,
-     "end": 5.39
-    },
-    {
-     "text": "while building an SDK that lets marketplaces and shipping platforms",
-     "start": 5.34,
-     "end": 9.61
-    },
-    {
-     "text": "integrate scan-based payments and returns.",
-     "start": 9.56,
-     "end": 12.39
-    }
-   ]
-  },
-  {
-   "id": "L21",
-   "speaker": "Adithya",
-   "src": "vo/L21.wav",
-   "duration": 1.6,
-   "words": [
-    {
-     "text": "Where's",
-     "start": 0.1,
-     "end": 0.59
-    },
-    {
-     "text": "scan",
-     "start": 0.59,
-     "end": 0.91
-    },
-    {
-     "text": "diff?",
-     "start": 0.91,
-     "end": 1.52
-    }
-   ],
-   "cards": [
-    {
-     "text": "We're ScanDiff.",
-     "start": 0.05,
-     "end": 0.94
-    }
-   ]
-  },
-  {
-   "id": "L22",
-   "speaker": "Adithya",
-   "src": "vo/L22.wav",
-   "duration": 1.68,
-   "words": [
-    {
-     "text": "Measured.",
-     "start": 0.18,
-     "end": 1.0
-    },
-    {
-     "text": "Not",
-     "start": 1.0,
-     "end": 1.32
-    },
-    {
-     "text": "argued.",
-     "start": 1.32,
-     "end": 2.0
-    }
-   ],
-   "cards": [
-    {
-     "text": "Measured, not argued.",
-     "start": 0.13,
-     "end": 1.68
-    }
-   ]
-  }
- ]
+  ]
 }

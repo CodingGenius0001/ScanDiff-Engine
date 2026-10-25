@@ -1,55 +1,28 @@
 {
- "histogram": {
-  "bin_edges_mm": [
-   0.0,
-   1.0,
-   2.0,
-   3.0,
-   4.0,
-   5.0,
-   6.0,
-   7.0,
-   8.0,
-   9.0,
-   10.0,
-   11.0,
-   12.0,
-   13.0,
-   14.0,
-   15.0
-  ],
-  "counts": [
-   15367,
-   9286,
-   5731,
-   3527,
-   2137,
-   1733,
-   1276,
-   843,
-   591,
-   379,
-   279,
-   260,
-   178,
-   161,
-   783
-  ]
- },
- "stats": {
-  "changed_fraction": 0.2802806454610094,
-  "max_change_mm": 31.569004483490993,
-  "noise_floor_mm": 1.0,
-  "threshold_mm": 3.0,
-  "icp_fitness": 0.5472478897745174,
-  "icp_rmse_mm": 1.2148969893971604,
-  "diff_time_s": 4.23
- },
- "heatmap_legend": {
-  "min_mm": -15.0,
-  "max_mm": 15.0,
-  "threshold_mm": 3.0,
-  "colormap": "diverging_blue_gray_red",
-  "neutral_band_mm": 3.0
- }
+  "histogram": {
+    "bin_edges_mm": [
+      0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0,
+      14.0, 15.0
+    ],
+    "counts": [
+      15367, 9286, 5731, 3527, 2137, 1733, 1276, 843, 591, 379, 279, 260, 178,
+      161, 783
+    ]
+  },
+  "stats": {
+    "changed_fraction": 0.2802806454610094,
+    "max_change_mm": 31.569004483490993,
+    "noise_floor_mm": 1.0,
+    "threshold_mm": 3.0,
+    "icp_fitness": 0.5472478897745174,
+    "icp_rmse_mm": 1.2148969893971604,
+    "diff_time_s": 4.23
+  },
+  "heatmap_legend": {
+    "min_mm": -15.0,
+    "max_mm": 15.0,
+    "threshold_mm": 3.0,
+    "colormap": "diverging_blue_gray_red",
+    "neutral_band_mm": 3.0
+  }
 }
