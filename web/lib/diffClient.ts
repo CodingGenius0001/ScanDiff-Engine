@@ -50,14 +50,47 @@ async function mockDiff(baseId: string, newId: string): Promise<DiffResult> {
   return buildMockDiff(baseId, newId);
 }
 
+/**
+ * The engine answers "inconclusive" when two scans cannot be compared at all
+ * (unreadable, different items, failed alignment, too little overlap). There
+ * is no heat map, stats or fingerprints then, only the engine's reason.
+ */
+export class InconclusiveDiff extends Error {
+  constructor(readonly reason: string) {
+    super(reason);
+    this.name = "InconclusiveDiff";
+  }
+}
+
+/** Session for POST /diff: GET /health hands one out; it expires when unused, and the engine answers 401. */
+let session: Promise<string> | null = null;
+
+function engineSession(base: string, renew = false): Promise<string> {
+  if (!session || renew) {
+    session = fetch(`${base}/health`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`Engine health check failed (${res.status})`))))
+      .then((body: { session_id?: string }) => body.session_id ?? "");
+    // A failed handshake should be retried on the next comparison.
+    session.catch(() => (session = null));
+  }
+  return session;
+}
+
 async function fetchDiff(base: string, baseId: string, newId: string): Promise<DiffResult> {
-  const res = await fetch(`${base}/diff${API_MOCK ? "?mock=true" : ""}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ base_id: baseId, new_id: newId }),
-  });
+  const post = async (renew: boolean) =>
+    fetch(`${base}/diff${API_MOCK ? "?mock=true" : ""}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-ID": await engineSession(base, renew) },
+      body: JSON.stringify({ base_id: baseId, new_id: newId }),
+    });
+  let res = await post(false);
+  // Expired session (or an engine restart): get a new one and try once more.
+  if (res.status === 401) res = await post(true);
   if (!res.ok) throw new Error(`Diff request failed (${res.status})`);
   const [raw, baseScan, newScan] = await Promise.all([res.json(), scanMeta(baseId), scanMeta(newId)]);
+  if ((raw as DiffResponse | null)?.verdict === "inconclusive") {
+    throw new InconclusiveDiff((raw as DiffResponse).verdict_reason || "The engine could not compare these scans.");
+  }
   return toDiffResult(raw, baseScan, newScan);
 }
 
@@ -106,6 +139,10 @@ function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): Diff
   const missing = REQUIRED.filter((k) => !(k in raw));
   if (missing.length) throw new Error(`Diff response is missing ${missing.join(", ")}`);
   const r = raw as DiffResponse;
+  // Null only on an inconclusive verdict, which fetchDiff handles before this.
+  if (!r.stats || !r.heatmap_legend || !r.heatmap_url || !r.base_model_url || !r.new_model_url) {
+    throw new Error(`Diff response for a "${r.verdict}" verdict is missing its models, legend or stats`);
+  }
   const mm = (p: [number, number, number]) => p.map((v) => v * M_TO_MM) as [number, number, number];
 
   return {
@@ -144,7 +181,7 @@ function toDiffResult(raw: unknown, baseScan: ScanMeta, newScan: ScanMeta): Diff
       id: u.id,
       center: mm(u.centroid_m),
       radius: u.radius_m * M_TO_MM,
-      coveredBy: u.only_in === "base" ? "baseline_only" : "new_only",
+      coveredBy: u.only_in === "base" ? "baseline_only" : u.only_in === "new" ? "new_only" : "neither",
       description: `About ${u.area_cm2.toFixed(1)} cm² of surface.`,
     })),
     verdict: toVerdict(r.verdict, r.regions.length),

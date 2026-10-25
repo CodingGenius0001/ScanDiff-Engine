@@ -32,7 +32,20 @@ export const VERDICT_TEXT: Record<Verdict, { title: string; detail: string }> = 
   accept: { title: "Accept", detail: "No shape change beyond normal wear above the noise threshold." },
   damage_likely: { title: "Damage likely", detail: "Shape changes that look like damage. A person should confirm." },
   needs_review: { title: "Needs review", detail: "Shape changes the comparison could not classify. A person should look at them." },
+  inconclusive: {
+    title: "Inconclusive",
+    detail: "The scans could not be compared, so nothing is flagged as damage or as unchanged. Scanning the item again usually fixes this.",
+  },
 };
+
+/** Why an area was not compared, for "no data" findings. */
+export function coverageText(coveredBy: "baseline_only" | "new_only" | "neither"): string {
+  return {
+    baseline_only: "Covered by the baseline scan only",
+    new_only: "Covered by the new scan only",
+    neither: "Captured by neither scan",
+  }[coveredBy];
+}
 
 /** Where the comparison came from, so mock data is never presented as live. */
 export const SOURCE_TEXT: Record<DiffSource, { short: string; note: string }> = {

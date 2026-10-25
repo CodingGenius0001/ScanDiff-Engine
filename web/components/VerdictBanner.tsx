@@ -2,7 +2,7 @@ import { formatDistance, formatPercent, SOURCE_TEXT, VERDICT_TEXT } from "@/lib/
 import type { DiffResult } from "@/lib/types";
 
 /** Ink for a clean result, the red stamp for anything a person should look at. */
-const TONE = { accept: "text-ink", damage_likely: "text-stamp", needs_review: "text-stamp" };
+const TONE = { accept: "text-ink", damage_likely: "text-stamp", needs_review: "text-stamp", inconclusive: "text-ink" };
 
 export default function VerdictBanner({ diff }: { diff: DiffResult }) {
   const v = VERDICT_TEXT[diff.verdict];

@@ -7,15 +7,15 @@ export type IsMock = boolean;
 /**
  * Heatmap GLB: the new scan's surface aligned into the base scan frame, meters, with signed blue/gray/red vertex colors already applied.
  */
-export type HeatmapUrl = string;
+export type HeatmapUrl = string | null;
 /**
  * Base scan as GLB, in the base scan frame, meters. No heatmap colors.
  */
-export type BaseModelUrl = string;
+export type BaseModelUrl = string | null;
 /**
  * New scan as GLB, aligned into the base scan frame, meters. No heatmap colors.
  */
-export type NewModelUrl = string;
+export type NewModelUrl = string | null;
 /**
  * Low end of the color scale, millimeters of signed change from the base surface. Negative is a dent.
  */
@@ -53,7 +53,7 @@ export type ChangedFraction = number;
  */
 export type MaxChangeMm = number;
 /**
- * Estimated sensor noise, millimeters, in the base scan frame.
+ * 95th-percentile distance between two scans of an unchanged object, millimeters.
  */
 export type NoiseFloorMm = number;
 /**
@@ -122,7 +122,7 @@ export type BeforeCropUrl = string | null;
 export type AfterCropUrl = string | null;
 export type Regions = Region[];
 export type Id1 = string;
-export type OnlyIn = "base" | "new";
+export type OnlyIn = "base" | "new" | "neither";
 /**
  * Uncovered area on that scan, square centimeters.
  */
@@ -139,17 +139,17 @@ export type CentroidM1 = [number, number, number];
  */
 export type RadiusM1 = number;
 export type UncoveredRegions = UncoveredRegion[];
-export type Verdict = "accept" | "damage_likely" | "needs_review";
+export type Verdict = "accept" | "damage_likely" | "needs_review" | "inconclusive";
 /**
  * Unitless confidence in the verdict, from 0 to 1.
  */
 export type VerdictConfidence = number;
 export type VerdictReason = string;
-export type BaseFingerprint = string;
-export type NewFingerprint = string;
+export type BaseFingerprint = string | null;
+export type NewFingerprint = string | null;
 export type DiffId = string;
 /**
- * Fraction of the base surface both scans covered, from 0 to 1. Null until coverage is computed.
+ * Fraction of the base surface both scans captured and was compared, from 0 to 1. The rest is in uncovered_regions and never flagged. Null only in the mock.
  */
 export type ComparedFraction = number | null;
 
@@ -162,15 +162,19 @@ export type ComparedFraction = number | null;
  * into the base frame. `heatmap_url` is the new scan's surface, also aligned into the base frame,
  * with vertex colors already applied on the signed blue/gray/red scale. A part removed since the base
  * scan has no surface in it; regions and stats still report it.
+ *
+ * verdict "inconclusive" means the scans could not be compared (unreadable, different items, failed
+ * alignment, or too little overlap): verdict_reason says why, and the URLs, legend, stats and
+ * fingerprints that could not be produced are null.
  */
 export interface DiffResponse {
   is_mock: IsMock;
   heatmap_url: HeatmapUrl;
   base_model_url: BaseModelUrl;
   new_model_url: NewModelUrl;
-  heatmap_legend: HeatmapLegend;
+  heatmap_legend: HeatmapLegend | null;
   histogram: Histogram;
-  stats: Stats;
+  stats: Stats | null;
   regions: Regions;
   uncovered_regions: UncoveredRegions;
   verdict: Verdict;
@@ -226,8 +230,9 @@ export interface Region {
   after_crop_url?: AfterCropUrl;
 }
 /**
- * Surface that only one of the two scans captured, so it cannot be compared.
+ * Surface that was not compared because a scan did not capture it, such as an unscanned bottom.
  *
+ * `only_in` says which scan did capture it: "base", "new", or "neither".
  * `centroid_m` and `radius_m` match Region, so a marker can be placed and sized.
  */
 export interface UncoveredRegion {
