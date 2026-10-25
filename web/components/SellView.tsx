@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/format";
 import { nextItemId } from "@/lib/itemId";
 import { useScanRows } from "@/lib/liveScans";
+import { MOCK_ITEMS } from "@/lib/mock/catalog";
 import { DEFAULT_PRICE_CENTS, listedItemIds, saveListing, useRealOrderRecord } from "@/lib/realOrder";
 import { fetchItemIds } from "@/lib/scans";
 import { browserSupabase } from "@/lib/supabase";
@@ -43,8 +44,9 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
     if (db) fetchItemIds(db).then(setKnown, () => setKnown([]));
   }, []);
 
-  // Items already scanned, plus items listed in this browser that may not be scanned yet.
-  const id = known && nextItemId(name, [...known, ...listedItemIds()]);
+  // Items already scanned, items listed in this browser that may not be scanned yet, and the
+  // mock demos (an item page shows the mock first, so mug-001 must never be handed out).
+  const id = known && nextItemId(name, [...known, ...listedItemIds(), ...MOCK_ITEMS.map((i) => i.id)]);
   const nameProblem = name.trim() === "" ? "Enter what the item is, for example Mug." : !id && known ? "Use letters or numbers in the name." : null;
   const cents = Math.round(Number(price) * 100);
   const priceProblem = Number.isFinite(cents) && cents > 0 ? null : "Enter a price above $0.";
@@ -66,7 +68,7 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Mug"
-          className="min-h-11 border border-ink bg-paper px-3"
+          className="min-h-11 rounded-md border border-rule bg-paper px-3"
         />
         <span className="caption">
           {id ? (
@@ -89,12 +91,12 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           inputMode="decimal"
-          className="min-h-11 border border-ink bg-paper px-3 font-mono"
+          className="min-h-11 rounded-md border border-rule bg-paper px-3 font-mono"
         />
         {touched && priceProblem && <span className="text-sm text-stamp">{priceProblem}</span>}
       </label>
 
-      <button type="submit" className="min-h-12 bg-ink px-5 font-semibold text-paper disabled:opacity-40" disabled={!id}>
+      <button type="submit" className="min-h-12 key bg-ink px-5 font-semibold text-paper disabled:opacity-40" disabled={!id}>
         List item
       </button>
       <p className="caption">The listing is kept in this browser for the demo. Only the scans go to the database.</p>
@@ -129,7 +131,7 @@ function AwaitBaseline({ itemId, onBack }: { itemId: string; onBack: () => void 
           <div className="mt-3 flex flex-wrap items-center gap-4">
             <Link
               href={`/checkout/${encodeURIComponent(itemId)}`}
-              className="inline-flex min-h-12 items-center bg-ink px-6 font-semibold text-paper"
+              className="min-h-12 key bg-ink px-6 font-semibold text-paper"
             >
               Open the checkout →
             </Link>
@@ -149,7 +151,7 @@ function AwaitBaseline({ itemId, onBack }: { itemId: string; onBack: () => void 
         </div>
         {!baseline && (
           <div className="w-full">
-            <p className="display text-lg italic text-ink-soft">Waiting for the seller&apos;s baseline scan…</p>
+            <p className="display text-lg text-ink-soft">Waiting for the seller&apos;s baseline scan…</p>
             <div className="progress mt-2" />
           </div>
         )}

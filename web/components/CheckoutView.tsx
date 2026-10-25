@@ -55,7 +55,7 @@ export default function CheckoutView({ item }: { item: Item }) {
               <button
                 type="button"
                 onClick={() => pay(item.id, item.kind)}
-                className="min-h-12 bg-ink px-5 text-base font-semibold text-paper"
+                className="min-h-12 key bg-ink px-5 text-base font-semibold text-paper"
               >
                 Pay with Visa (demo)
               </button>
@@ -75,7 +75,7 @@ export default function CheckoutView({ item }: { item: Item }) {
                 onClick={() => {
                   if (uploadScan(item.id, item.kind)) router.push(`/item/${item.id}`);
                 }}
-                className="min-h-12 bg-ink px-5 font-semibold text-paper"
+                className="min-h-12 key bg-ink px-5 font-semibold text-paper"
               >
                 Simulate: buyer scan uploaded
               </button>
@@ -86,7 +86,7 @@ export default function CheckoutView({ item }: { item: Item }) {
               <p className="text-sm">The buyer&apos;s scan is uploaded. Review the comparison to accept or dispute.</p>
               <Link
                 href={`/item/${item.id}`}
-                className="flex min-h-12 items-center justify-center bg-ink px-5 font-semibold text-paper"
+                className="min-h-12 key bg-ink px-5 font-semibold text-paper"
               >
                 Open comparison
               </Link>
@@ -107,7 +107,7 @@ export default function CheckoutView({ item }: { item: Item }) {
       <button
         type="button"
         onClick={() => resetOrder(item.id, item.kind)}
-        className="min-h-11 self-start border border-ink px-4 text-sm text-ink transition-colors hover:bg-ink hover:text-paper"
+        className="min-h-11 self-start rounded-md border border-rule px-4 text-sm text-ink transition-colors hover:bg-ink hover:text-paper"
       >
         Reset demo
       </button>
@@ -135,7 +135,7 @@ function Receipt({ item, releasedAt, heldAt }: { item: Item; releasedAt?: string
   const scans = comparison.status === "ready" ? [comparison.data.diff.baseScan, comparison.data.diff.newScan] : [];
   const receiptId = `DEMO-${item.id.toUpperCase()}-${releasedAt ? new Date(releasedAt).getTime().toString(36).toUpperCase() : "0"}`;
   return (
-    <div className="border-2 border-ink p-4 text-sm">
+    <div className="rounded-md border border-rule bg-paper-deep p-4 text-sm">
       <h3 className="display text-2xl">Receipt: payment released (demo)</h3>
       <DemoBadge className="my-2 w-fit" />
       <dl className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">

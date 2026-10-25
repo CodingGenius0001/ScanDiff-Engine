@@ -39,7 +39,7 @@ export default function DecisionPanel({ item }: { item: Item }) {
           onClick={() => {
             if (approve(item.id, item.kind) && shipping) router.push(`/checkout/${item.id}`);
           }}
-          className="min-h-11 bg-ink px-5 font-semibold text-paper transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-30"
+          className="min-h-11 key bg-ink px-5 font-semibold text-paper transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-30"
         >
           Accept
         </button>
@@ -49,7 +49,7 @@ export default function DecisionPanel({ item }: { item: Item }) {
           onClick={() => {
             if (dispute(item.id, item.kind)) router.push(`/item/${item.id}/evidence`);
           }}
-          className="min-h-11 border-2 border-stamp px-5 font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+          className="min-h-11 rounded-md border border-stamp px-5 font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
         >
           Dispute
         </button>

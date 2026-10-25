@@ -49,7 +49,7 @@ export default function LoginForm({ next, error: initialError }: { next: string;
         type="button"
         onClick={google}
         disabled={busy !== null}
-        className="min-h-12 border border-ink px-5 font-semibold transition-colors hover:bg-ink hover:text-paper disabled:opacity-40"
+        className="min-h-12 rounded-md border border-rule px-5 font-semibold transition-colors hover:bg-ink hover:text-paper disabled:opacity-40"
       >
         {busy === "google" ? "Opening Google…" : "Continue with Google"}
       </button>
@@ -59,7 +59,7 @@ export default function LoginForm({ next, error: initialError }: { next: string;
           type="button"
           onClick={() => signIn(DEMO_EMAIL, DEMO_PASSWORD)}
           disabled={busy !== null}
-          className="min-h-12 bg-ink px-5 font-semibold text-paper disabled:opacity-40"
+          className="min-h-12 key bg-ink px-5 font-semibold text-paper disabled:opacity-40"
         >
           {busy === "password" ? "Signing in…" : "Use the demo account"}
         </button>
@@ -81,7 +81,7 @@ export default function LoginForm({ next, error: initialError }: { next: string;
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="min-h-11 border border-ink bg-paper px-3"
+            className="min-h-11 rounded-md border border-rule bg-paper px-3"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
@@ -92,10 +92,10 @@ export default function LoginForm({ next, error: initialError }: { next: string;
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="min-h-11 border border-ink bg-paper px-3"
+            className="min-h-11 rounded-md border border-rule bg-paper px-3"
           />
         </label>
-        <button type="submit" disabled={busy !== null} className="min-h-11 border border-ink px-5 font-semibold disabled:opacity-40">
+        <button type="submit" disabled={busy !== null} className="min-h-11 rounded-md border border-rule px-5 font-semibold disabled:opacity-40">
           Sign in
         </button>
       </form>

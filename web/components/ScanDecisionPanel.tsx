@@ -48,7 +48,7 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="display text-3xl">Decision on the latest check scan</h2>
         {decision && (
-          <span className="border border-ink px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
+          <span className="rounded-full border border-ink-faint px-2.5 py-0.5 text-xs font-medium">
             {DECISION_TEXT[decision]}
           </span>
         )}
@@ -65,7 +65,7 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
             type="button"
             disabled={!loaded || saving !== null || decision === "accept"}
             onClick={() => decide("accept")}
-            className="min-h-11 bg-ink px-5 font-semibold text-paper transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-30"
+            className="min-h-11 key bg-ink px-5 font-semibold text-paper transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-30"
           >
             {saving === "accept" ? "Saving…" : "Accept"}
           </button>
@@ -73,7 +73,7 @@ export default function ScanDecisionPanel({ item, decision, onDecided }: Props) 
             type="button"
             disabled={!loaded || saving !== null || decision === "dispute"}
             onClick={() => decide("dispute")}
-            className="min-h-11 border-2 border-stamp px-5 font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+            className="min-h-11 rounded-md border border-stamp px-5 font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
           >
             {saving === "dispute" ? "Saving…" : "Dispute"}
           </button>

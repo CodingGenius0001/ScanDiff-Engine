@@ -45,7 +45,7 @@ export default function ItemView({ item }: { item: Item }) {
       </header>
       {state.status === "loading" && (
         <div className="flex flex-col gap-3 py-16" role="status">
-          <p className="display text-center text-2xl italic text-ink-soft">Computing comparison…</p>
+          <p className="display text-center text-2xl text-ink-soft">Computing comparison…</p>
           <div className="progress mx-auto w-48" />
         </div>
       )}
@@ -59,7 +59,7 @@ export default function ItemView({ item }: { item: Item }) {
       )}
       {state.status === "waiting" && (
         <>
-          <p className="display text-2xl italic text-ink-soft" role="status">
+          <p className="display text-2xl text-ink-soft" role="status">
             Baseline scan received. Waiting for a check scan to compare it with.
           </p>
           <BaselinePreview item={item} />
@@ -152,8 +152,8 @@ function ComparisonView({ data }: { data: Comparison }) {
       <VerdictBanner diff={diff} />
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 border border-ink px-3 text-sm has-[:checked]:bg-ink has-[:checked]:text-paper">
-            <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} className="h-4 w-4 accent-black" />
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 border border-ink px-3 text-sm has-[:checked]:border-ink-faint has-[:checked]:text-ink">
+            <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} className="h-4 w-4 accent-signal" />
             Heat map
           </label>
           <button
@@ -163,7 +163,7 @@ function ComparisonView({ data }: { data: Comparison }) {
               setSelectedId(null);
               link.flyTo(h.position, h.target);
             }}
-            className="min-h-11 border border-ink px-3 text-sm hover:bg-paper-deep"
+            className="min-h-11 rounded-md border border-rule px-3 text-sm hover:bg-paper-deep"
           >
             Reset view
           </button>
@@ -360,7 +360,7 @@ function BaselinePreview({ item }: { item: Item }) {
   if (!model)
     return (
       <div className="flex flex-col gap-3 py-16" role="status">
-        <p className="display text-center text-xl italic text-ink-soft">Preparing the 3D model. The first load takes a few seconds.</p>
+        <p className="display text-center text-xl text-ink-soft">Preparing the 3D model. The first load takes a few seconds.</p>
         <div className="progress mx-auto w-48" />
       </div>
     );

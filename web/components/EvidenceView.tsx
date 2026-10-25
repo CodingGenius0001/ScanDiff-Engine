@@ -27,7 +27,7 @@ export default function EvidenceView({ item }: { item: Item }) {
         <button
           type="button"
           onClick={() => window.print()}
-          className="min-h-11 bg-ink px-5 text-sm font-semibold text-paper"
+          className="min-h-11 key bg-ink px-5 text-sm font-semibold text-paper"
         >
           Print or save as PDF
         </button>
@@ -214,7 +214,7 @@ function ScanDecision({ item }: { item: Item }) {
   }, [checkScanId]);
   if (!decision) return null;
   return (
-    <span className="border border-ink px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
+    <span className="rounded-full border border-ink-faint px-2.5 py-0.5 text-xs font-medium">
       {decision === "accept" ? "Accepted" : "Disputed"}
     </span>
   );

@@ -21,24 +21,24 @@ export default function AccountLink() {
   if (email === undefined) return null;
   if (email === null) {
     return (
-      <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="hover:text-ink hover:underline">
-        Sign in
+      <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="flex flex-col leading-tight hover:text-ink">
+        <span className="text-[15px]">sign in</span>
+        <span className="hidden text-[11px] text-ink-faint sm:block">google or email</span>
       </Link>
     );
   }
   return (
-    <span className="flex items-center gap-3">
-      <span className="hidden max-w-48 truncate text-ink-faint sm:inline">{email}</span>
-      <button
-        type="button"
-        className="hover:text-ink hover:underline"
-        onClick={async () => {
-          await browserSupabase()?.auth.signOut();
-          router.refresh();
-        }}
-      >
-        Sign out
-      </button>
-    </span>
+    <button
+      type="button"
+      title={`Signed in as ${email}`}
+      className="flex flex-col items-start leading-tight hover:text-ink"
+      onClick={async () => {
+        await browserSupabase()?.auth.signOut();
+        router.refresh();
+      }}
+    >
+      <span className="text-[15px]">sign out</span>
+      <span className="hidden max-w-40 truncate text-[11px] text-ink-faint sm:block">{email}</span>
+    </button>
   );
 }

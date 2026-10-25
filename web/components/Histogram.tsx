@@ -16,9 +16,9 @@ interface Props {
 }
 
 export default function Histogram({ histogram, threshold, units, signedScale }: Props) {
-  // Ink and gray: the heat map stays the only color on the page, and neither implies dent or added.
-  const below = signedScale ? "#7f7c74" : COLORS.noChange;
-  const above = signedScale ? "#141413" : COLORS.ramp[2];
+  // Ink and gray (from the theme, so print works): the heat map stays the only color, and neither implies dent or added.
+  const below = signedScale ? undefined : COLORS.noChange;
+  const above = signedScale ? undefined : COLORS.ramp[2];
   const { binEdges, counts } = histogram;
   const data = counts.map((count, i) => ({
     from: binEdges[i],
@@ -33,35 +33,35 @@ export default function Histogram({ histogram, threshold, units, signedScale }: 
 
   return (
     <div>
-      <div className="h-56 w-full text-ink sm:h-64">
+      <div className="histogram h-56 w-full text-ink sm:h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 20, right: 12, bottom: 16, left: 0 }} barCategoryGap={1}>
-            <CartesianGrid vertical={false} stroke="#d6d3ca" />
+            <CartesianGrid vertical={false} />
             <XAxis
               dataKey="mid"
               type="number"
               domain={[0, max]}
-              tick={{ fontSize: 11, fill: "#5b5953" }}
+              tick={{ fontSize: 11 }}
               tickLine={false}
-              axisLine={{ stroke: "#141413" }}
-              label={{ value: `Change (${units})`, position: "insideBottom", offset: -8, fontSize: 11, fill: "#5b5953" }}
+              axisLine
+              label={{ value: `Change (${units})`, position: "insideBottom", offset: -8, fontSize: 11 }}
             />
             <YAxis
               scale="sqrt"
               domain={[0, "auto"]}
-              tick={{ fontSize: 11, fill: "#5b5953" }}
+              tick={{ fontSize: 11 }}
               tickFormatter={(n: number) => n.toLocaleString("en-US", { notation: "compact" })}
               tickLine={false}
               axisLine={false}
               width={44}
             />
             <Tooltip
-              cursor={{ fill: "rgb(20 20 19 / 0.05)" }}
+              cursor={{ fill: "currentColor", fillOpacity: 0.06 }}
               content={({ active, payload }) => {
                 const p = payload?.[0]?.payload as (typeof data)[number] | undefined;
                 if (!active || !p) return null;
                 return (
-                  <div className="border border-ink bg-paper px-2.5 py-1.5 font-mono text-[11px]">
+                  <div className="rounded-md border border-rule bg-paper-deep px-2.5 py-1.5 font-mono text-[11px]">
                     <div>
                       {p.from} to {p.to} {units}
                     </div>
@@ -72,7 +72,7 @@ export default function Histogram({ histogram, threshold, units, signedScale }: 
             />
             <Bar dataKey="count" isAnimationActive={false} radius={[2, 2, 0, 0]}>
               {data.map((d, i) => (
-                <Cell key={i} fill={d.above ? above : below} />
+                <Cell key={i} fill={d.above ? above : below} className={signedScale ? (d.above ? "bar-above" : "bar-below") : undefined} />
               ))}
             </Bar>
             <ReferenceLine
@@ -87,10 +87,10 @@ export default function Histogram({ histogram, threshold, units, signedScale }: 
       </div>
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: below }} /> At or below threshold (treated as unchanged)
+          <span className={`h-2.5 w-2.5 rounded-sm ${signedScale ? "bar-below" : ""}`} style={{ background: below }} /> At or below threshold (treated as unchanged)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: above }} /> Above threshold
+          <span className={`h-2.5 w-2.5 rounded-sm ${signedScale ? "bar-above" : ""}`} style={{ background: above }} /> Above threshold
         </span>
         <span>Vertical scale is square root so small counts stay visible.</span>
       </div>

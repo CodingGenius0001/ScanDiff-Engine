@@ -86,7 +86,7 @@ export default function RealCheckoutView({ item }: { item: Item }) {
               <button
                 type="button"
                 onClick={() => placeHold(item.id, rows!)}
-                className="min-h-12 bg-ink px-5 text-base font-semibold text-paper"
+                className="min-h-12 key bg-ink px-5 text-base font-semibold text-paper"
               >
                 Pay with Visa (demo)
               </button>
@@ -123,7 +123,7 @@ export default function RealCheckoutView({ item }: { item: Item }) {
               </p>
               <Link
                 href={itemHref}
-                className="flex min-h-12 items-center justify-center bg-ink px-5 font-semibold text-paper"
+                className="min-h-12 key bg-ink px-5 font-semibold text-paper"
               >
                 Open comparison
               </Link>
@@ -136,7 +136,7 @@ export default function RealCheckoutView({ item }: { item: Item }) {
           )}
 
           {order?.status === "disputed" && check && (
-            <div className="border-2 border-stamp p-4 text-sm">
+            <div className="rounded-md border border-stamp p-4 text-sm">
               <h3 className="display text-2xl text-stamp">Disputed: payment stays held (demo)</h3>
               <p className="mt-2">
                 The buyer disputed the comparison
@@ -149,7 +149,7 @@ export default function RealCheckoutView({ item }: { item: Item }) {
                 . The {formatPrice(price)} is not released. The evidence page has both scans, their fingerprints and
                 every flagged region.
               </p>
-              <Link href={`${itemHref}/evidence`} className="mt-3 inline-flex min-h-11 items-center border-2 border-stamp px-4 font-semibold text-stamp">
+              <Link href={`${itemHref}/evidence`} className="mt-3 inline-flex min-h-11 items-center rounded-md border border-stamp px-4 font-semibold text-stamp">
                 Open the evidence page
               </Link>
             </div>
@@ -161,7 +161,7 @@ export default function RealCheckoutView({ item }: { item: Item }) {
         <button
           type="button"
           onClick={() => resetHold(item.id)}
-          className="min-h-11 border border-ink px-4 text-sm text-ink transition-colors hover:bg-ink hover:text-paper"
+          className="min-h-11 rounded-md border border-rule px-4 text-sm text-ink transition-colors hover:bg-ink hover:text-paper"
         >
           Reset demo
         </button>
@@ -174,7 +174,7 @@ export default function RealCheckoutView({ item }: { item: Item }) {
 function Waiting({ text }: { text: string }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="display text-lg italic text-ink-soft">{text}…</p>
+      <p className="display text-lg text-ink-soft">{text}…</p>
       <div className="progress" />
     </div>
   );
@@ -183,7 +183,7 @@ function Waiting({ text }: { text: string }) {
 function RealReceipt(props: { item: Item; price: number; baseline?: ScanRow; check: ScanRow; heldAt?: string; releasedAt?: string }) {
   const receiptId = `DEMO-${props.item.id.toUpperCase()}-${props.check.id.slice(0, 8).toUpperCase()}`;
   return (
-    <div className="border-2 border-ink p-4 text-sm">
+    <div className="rounded-md border border-rule bg-paper-deep p-4 text-sm">
       <h3 className="display text-2xl">Receipt: payment released (demo)</h3>
       <DemoBadge className="my-2 w-fit" />
       <dl className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">

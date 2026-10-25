@@ -87,7 +87,7 @@ export default function ScanViewer(props: Props) {
           })}
         </div>
       </div>
-      <figcaption className="display mt-2 text-base italic text-ink-soft">{props.subtitle}</figcaption>
+      <figcaption className="mt-2 text-sm text-ink-soft">{props.subtitle}</figcaption>
     </figure>
   );
 }
@@ -153,7 +153,7 @@ function LinkedControls({ link }: { link: CameraLink }) {
 
 function MarkerSphere({ marker, selected }: { marker: Marker; selected: boolean }) {
   if (!selected) return null;
-  const color = marker.kind === "nodata" ? COLORS.noData : marker.kind === "missing" ? "#9b2c1c" : "#141413";
+  const color = marker.kind === "nodata" ? COLORS.noData : marker.kind === "missing" ? "#ff6a1a" : "#ededeb";
   return (
     <mesh position={marker.center}>
       <sphereGeometry args={[marker.radius, 24, 16]} />

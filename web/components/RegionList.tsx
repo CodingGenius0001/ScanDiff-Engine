@@ -56,7 +56,7 @@ export default function RegionList({ diff, selectedId, onSelect }: Props) {
                       <figure key={name} className="w-24">
                         {/* eslint-disable-next-line @next/next/no-img-element -- engine-hosted crops, any origin */}
                         <img src={url} alt={`${name} photo of region ${i + 1}`} className="aspect-square w-full border border-rule object-cover" />
-                        <figcaption className="display text-sm italic text-ink-soft">{name}</figcaption>
+                        <figcaption className="display text-sm text-ink-soft">{name}</figcaption>
                       </figure>
                     ) : null,
                   )}

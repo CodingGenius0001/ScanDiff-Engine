@@ -49,7 +49,7 @@ export default function ScanCodes({ item }: { item: Item }) {
             type="button"
             onClick={deleteLatest}
             disabled={deleting}
-            className="min-h-11 border-2 border-stamp px-4 text-sm font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:opacity-40"
+            className="min-h-11 rounded-md border border-stamp px-4 text-sm font-semibold text-stamp transition-colors hover:bg-stamp hover:text-paper disabled:opacity-40"
           >
             {deleting ? "Deleting…" : "Delete latest check-in"}
           </button>

@@ -11,7 +11,7 @@ export default function SignInPrompt({ next }: { next: string }) {
       </p>
       <Link
         href={`/login?next=${encodeURIComponent(next)}`}
-        className="flex min-h-12 w-fit items-center bg-ink px-6 font-semibold text-paper"
+        className="min-h-12 w-fit key bg-ink px-6 font-semibold text-paper"
       >
         Sign in
       </Link>

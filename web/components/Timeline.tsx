@@ -21,7 +21,7 @@ export default function Timeline({ versions, baseId, newId }: Props) {
                 <span className="text-sm font-semibold">{v.label}</span>
               </div>
               <span className="pl-[18px] font-mono text-[11px] text-ink-soft"><LocalTime iso={v.capturedAt} /></span>
-              {role && <span className="display pl-[18px] text-sm italic text-ink-soft">{role}</span>}
+              {role && <span className="display pl-[18px] text-sm text-ink-soft">{role}</span>}
             </div>
             {i < versions.length - 1 && <div className="mx-3 min-w-6 flex-1 border-t border-dashed border-ink-faint" />}
           </li>

@@ -1,21 +1,42 @@
 @import "tailwindcss";
 
-/* The archive is a light, printed look only: `dark:` styles apply only under a .dark class, which is never set. */
+/* One dark theme on screen and a light one in print; `dark:` styles apply only under a .dark class, which is never set. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Evidence archive: warm paper, black ink, a serif for titles. The heat map
- * is the only color on the page, so nothing else competes with it.
+ * Instrument: a black studio, light type, hardware-panel frames and one
+ * signal-orange accent for what needs attention. The heat map stays the
+ * only other color, so nothing competes with it.
+ *
+ * Token names are kept from the printed archive: "paper" is the background
+ * and "ink" the foreground, so print flips them back to paper and ink.
  */
 :root {
-  --paper: #ecebe6;
-  --paper-deep: #e3e1da;
-  --plate: #d8d6ce;
-  --ink: #141413;
-  --ink-soft: #5b5953;
-  --ink-faint: #8d8a82;
-  --rule: #c7c4ba;
-  --stamp: #9b2c1c;
+  --paper: #0b0b0b;
+  --paper-deep: #161616;
+  --plate: #1c1c1c;
+  --ink: #ededeb;
+  --ink-soft: #a2a29e;
+  --ink-faint: #6c6c69;
+  --rule: #2a2a29;
+  --stamp: #ff6a1a;
+  --panel: #111111;
+  color-scheme: dark;
+}
+
+@media print {
+  :root {
+    --paper: #ffffff;
+    --paper-deep: #f1f1ef;
+    --plate: #e6e6e3;
+    --ink: #111111;
+    --ink-soft: #555553;
+    --ink-faint: #8a8a87;
+    --rule: #cfcfcb;
+    --stamp: #c2410c;
+    --panel: #ffffff;
+    color-scheme: light;
+  }
 }
 
 @theme inline {
@@ -27,9 +48,9 @@
   --color-ink-faint: var(--ink-faint);
   --color-rule: var(--rule);
   --color-stamp: var(--stamp);
+  --color-signal: var(--stamp);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-instrument-serif);
 }
 
 body {
@@ -39,38 +60,64 @@ body {
 }
 
 ::selection {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--stamp);
+  color: #000;
+}
+
+:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: 2px;
 }
 
 @layer components {
-  /* A section of the record: hairline frame, no shadow. */
+  /* A hardware panel: flat, hairline frame, slightly rounded corners. */
   .sheet {
     border: 1px solid var(--rule);
-    background: color-mix(in srgb, var(--paper) 60%, white);
+    border-radius: 6px;
+    background: var(--panel);
     padding: 1.25rem;
   }
 
-  /* Small caption, sentence case, like a catalogue label. */
+  /* Small caption, sentence case. */
   .caption {
     font-size: 12px;
     color: var(--ink-soft);
   }
 
-  /* Display title. */
+  /* Display title: large, light, tightly set. */
   .display {
-    font-family: var(--font-instrument-serif), Georgia, serif;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    font-weight: 300;
+    letter-spacing: -0.035em;
     line-height: 1.02;
   }
 
-  /* Exhibit plate behind each 3D model. */
+  /* Studio light behind each 3D model: a soft key light from above on black. */
   .plate {
-    background: radial-gradient(ellipse at 50% 40%, #e6e4dd, var(--plate) 75%);
+    background:
+      radial-gradient(ellipse 65% 55% at 50% 30%, #3a3a39 0%, #1a1a1a 55%, #0d0d0d 100%);
+    border-radius: 6px;
   }
 
-  /* Dotted leader between a label and its value, as in a printed index. */
+  /* A primary key: light cap with an orange status light. */
+  .key {
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+  .key::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-radius: 999px;
+    background: var(--stamp);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--stamp) 70%, transparent);
+  }
+
+  /* Dotted leader between a label and its value, as on a spec sheet. */
   .leader {
     flex: 1;
     min-width: 1rem;
@@ -78,7 +125,7 @@ body {
     transform: translateY(-0.3em);
   }
 
-  /* Indeterminate progress: a short ink bar crossing a hairline. */
+  /* Indeterminate progress: a short orange bar crossing a hairline. */
   .progress {
     position: relative;
     height: 1px;
@@ -92,8 +139,28 @@ body {
     left: -30%;
     width: 30%;
     height: 1px;
-    background: var(--ink);
+    background: var(--stamp);
     animation: progress 1.4s ease-in-out infinite;
+  }
+
+  /* Histogram (recharts): colors from the tokens, so it prints correctly. */
+  .histogram .recharts-cartesian-grid line {
+    stroke: var(--rule);
+  }
+  .histogram .recharts-cartesian-axis-line {
+    stroke: var(--ink-faint);
+  }
+  .histogram .recharts-cartesian-axis-tick-value,
+  .histogram .recharts-label {
+    fill: var(--ink-soft);
+  }
+  .bar-below {
+    fill: var(--ink-faint);
+    background: var(--ink-faint);
+  }
+  .bar-above {
+    fill: var(--ink);
+    background: var(--ink);
   }
 }
 
@@ -112,11 +179,11 @@ body {
 }
 
 @media print {
-  body {
-    background: #fff;
-  }
   .sheet {
-    background: #fff;
+    border-radius: 0;
+  }
+  .key::before {
+    display: none;
   }
   @page {
     margin: 16mm;
