@@ -217,7 +217,8 @@ def inconclusive(
         uncovered_regions=uncovered_regions or [],
         verdict="inconclusive",
         verdict_confidence=1.0,
-        verdict_reason=reason,
+        # Reasons quote names from metadata.json; a lone surrogate there would make the JSON unencodable.
+        verdict_reason=reason.encode("utf-8", "replace").decode("utf-8"),
         base_fingerprint=base_fingerprint,
         new_fingerprint=new_fingerprint,
         diff_id=diff_id or uuid.uuid4().hex,

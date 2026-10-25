@@ -192,3 +192,22 @@ def test_expired_sessions_are_refused(monkeypatch):
     response = client.post("/diff", json={"base_id": "a", "new_id": "b"}, headers={"X-Session-ID": session})
 
     assert response.status_code == 401
+
+
+def test_a_lone_surrogate_in_a_name_is_still_a_json_answer(monkeypatch):
+    # json.loads turns "\ud800" in metadata.json into a lone surrogate, which UTF-8 cannot encode.
+    from app.pipeline import inconclusive
+
+    metadata = ScanMetadata.model_validate(json.loads(json.dumps(_metadata(item_id="mug-\ud800"))))
+    monkeypatch.setattr(
+        "app.main.run_diff",
+        lambda base_id, new_id: inconclusive(f"The scans are of different items ({metadata.item_id} and mug-002)."),
+    )
+    session = client.get("/health").json()["session_id"]
+
+    response = TestClient(app, raise_server_exceptions=False).post(
+        "/diff", json={"base_id": "a", "new_id": "b"}, headers={"X-Session-ID": session}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["verdict"] == "inconclusive"

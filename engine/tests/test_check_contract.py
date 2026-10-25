@@ -15,11 +15,19 @@ spec = importlib.util.spec_from_file_location("check_contract", ROOT / "scripts"
 check_contract = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(check_contract)
 
-DEPLOYED = sorted((ROOT / "ios" / "ScanDiff" / "ScanDiffTests" / "Fixtures").glob("engine_*.json"))
+FIXTURES = ROOT / "ios" / "ScanDiff" / "ScanDiffTests" / "Fixtures"
+# Recorded from the deployed engine on Oct 24 (AUD-01), and generated from this repo's engine.
+DEPLOYED = [FIXTURES / "engine_real_accept.json", FIXTURES / "engine_mock_needs_review.json"]
+GENERATED = [FIXTURES / "engine_repo_inconclusive.json", FIXTURES / "engine_repo_mock.json"]
 
 
 def test_the_canonical_sample_passes():
     assert check_contract.check(json.loads((ROOT / "contract" / "diff_response.json").read_text())) == []
+
+
+@pytest.mark.parametrize("fixture", GENERATED, ids=lambda path: path.name)
+def test_the_ios_fixtures_generated_from_this_engine_pass(fixture):
+    assert check_contract.check(json.loads(fixture.read_text())) == []
 
 
 @pytest.mark.parametrize("fixture", DEPLOYED, ids=lambda path: path.name)

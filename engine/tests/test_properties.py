@@ -237,3 +237,13 @@ def test_camera_pose_round_trips_column_major(angle, axis, translation):
     assert np.allclose(photo.T_cam_to_world, pose)
 
 
+
+
+def test_the_mock_follows_the_engines_own_verdict_rule():
+    from app.mock import mock_diff_response
+
+    mock = mock_diff_response("h", "b", "n")
+
+    # verdict.decide: any region that triages as damage makes the verdict damage_likely.
+    damaged = [region.id for region in mock.regions if region.triage == "damage"]
+    assert (mock.verdict == "damage_likely") == bool(damaged), (mock.verdict, damaged)
