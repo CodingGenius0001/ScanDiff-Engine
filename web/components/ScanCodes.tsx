@@ -8,10 +8,12 @@ import { browserSupabase } from "@/lib/supabase";
 import type { Item } from "@/lib/types";
 import LocalTime from "./LocalTime";
 import ScanQR from "./ScanQR";
+import ShareLink from "./ShareLink";
 
 /**
- * For items scanned with the iPhone app: the baseline and check-in QR codes,
- * and a button that deletes the latest check-in so it can be redone live.
+ * For items scanned with the iPhone app: the item's share link, the baseline
+ * (owner only) and check-in QR codes, and a button that deletes the latest
+ * check-in so it can be redone live.
  */
 export default function ScanCodes({ item }: { item: Item }) {
   const router = useRouter();
@@ -39,10 +41,21 @@ export default function ScanCodes({ item }: { item: Item }) {
   return (
     <section className="sheet">
       <h2 className="display text-3xl">Scan with the iPhone</h2>
-      <div className="mt-4 grid gap-6 sm:grid-cols-2">
-        <ScanQR itemId={item.id} kind="baseline" existing />
-        <ScanQR itemId={item.id} kind="check" existing />
+      <div className={`mt-4 grid gap-6 ${item.role === "member" ? "" : "sm:grid-cols-2"}`}>
+        {item.role !== "member" && <ScanQR itemId={item.id} kind="baseline" existing />}
+        <ScanQR itemId={item.id} kind="check" existing invite={item.inviteCode} />
       </div>
+      {item.inviteCode && (
+        <div className="mt-5 border-t border-rule pt-4">
+          <ShareLink
+            itemId={item.id}
+            code={item.inviteCode}
+            to="item"
+            title="Share this case file"
+            note="Whoever opens it signed in can see both scans and the comparison, scan a check-in, and accept or dispute. Send it only to the other party."
+          />
+        </div>
+      )}
       {latestCheck && (
         <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-rule pt-4">
           <button

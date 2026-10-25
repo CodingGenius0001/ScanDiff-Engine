@@ -79,7 +79,10 @@ export function itemFromRows(itemId: string, rows: ScanRow[]): Item | undefined 
   };
 }
 
-/** Item ids that have a baseline scan, newest first. Hides setup test rows (ids starting with "_"). */
+/**
+ * Ids of the signed-in user's items that have a baseline scan, newest first.
+ * Row-level security limits the rows to items they own or joined.
+ */
 export async function fetchItemIds(db: SupabaseClient): Promise<string[]> {
   const { data, error } = await db
     .from("scans")
@@ -118,6 +121,6 @@ export async function deleteCheckScan(db: SupabaseClient, scanId: string): Promi
   if (error) throw new Error(`Could not delete the check-in: ${error.message}`);
   // Row-level security turns a forbidden delete into "0 rows", not an error.
   if (!data?.length) {
-    throw new Error("The database does not allow deleting check-ins yet. Someone with Supabase access needs to add the delete rule.");
+    throw new Error("Only the person who scanned this check-in, or the item's owner, can delete it.");
   }
 }

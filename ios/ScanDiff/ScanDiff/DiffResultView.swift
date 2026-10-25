@@ -1,46 +1,71 @@
 import SwiftUI
 
+/// After a baseline upload: the website is waiting for this scan, and the
+/// buyer will need the check-in code.
 struct SavedScanView: View {
     @Bindable var model: ScanSessionModel
     var onClose: () -> Void
+    @State private var showsCodes = false
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "checkmark.circle")
-                .font(.system(size: 48))
-                .foregroundStyle(.green)
-            Text("Baseline uploaded")
-                .font(.title2.bold())
-            if let receipt = model.receipt {
-                Text("Version \(receipt.version)")
-                    .foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                Caption("Seller baseline received")
+                Text(model.request.itemID)
+                    .font(Theme.display(38))
+                    .displayTracking(38)
+                    .foregroundStyle(Theme.ink)
+                VStack(alignment: .leading, spacing: 8) {
+                    if let receipt = model.receipt {
+                        SpecRow(label: "Version", value: "\(receipt.version)", mono: true)
+                        SpecRow(label: "Scan", value: String(receipt.scanID.uuidString.lowercased().prefix(8)), mono: true)
+                    }
+                    if let sha = model.prepared?.metadata.model_sha256 {
+                        SpecRow(label: "SHA-256", value: "\(sha.prefix(12))…", mono: true)
+                    }
+                    Caption("Every file is fingerprinted and uploaded. The website's listing updates now.")
+                }
+                .panel()
+                Button {
+                    showsCodes = true
+                } label: {
+                    Label("Show the buyer's check-in code", systemImage: "qrcode")
+                }
+                .buttonStyle(KeyButtonStyle(prominent: false))
+                Button("Open the case file") { onClose() }
+                    .buttonStyle(KeyButtonStyle())
             }
-            Button("Done") { onClose() }
-                .buttonStyle(.borderedProminent)
+            .padding(20)
         }
-        .padding()
+        .paperBackground()
         .navigationTitle("Saved")
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showsCodes) {
+            ScanCodesSheet(itemID: model.request.itemID)
+        }
     }
 }
 
 struct ComparingView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .controlSize(.large)
+        VStack(alignment: .leading, spacing: 14) {
+            Caption("Comparison")
             Text("Comparing with the baseline…")
-                .font(.title3.bold())
-            Text("The engine aligns both scans and measures every change. This usually takes 10–30 seconds.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                .font(Theme.display(30))
+                .displayTracking(30)
+                .foregroundStyle(Theme.ink)
+            HairlineProgress()
+            Caption("The engine aligns both scans and measures every change. Usually 10–30 seconds.")
         }
-        .padding(32)
+        .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .paperBackground()
         .navigationTitle("Comparing")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
+/// After a check-in upload: the comparison and the buyer's decision.
 struct DiffResultView: View {
     @Bindable var model: ScanSessionModel
     var onClose: () -> Void
@@ -49,173 +74,54 @@ struct DiffResultView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                Caption("Check-in · \(model.request.itemID)")
                 if let diff = model.diff {
-                    verdictCard(diff)
-                    coverage(diff)
-                    regionList(diff)
+                    VerdictPanel(diff: diff)
                     if diff.heatmapURL != nil {
                         Button {
                             showsModels = true
                         } label: {
-                            Label("View heat map in 3D", systemImage: "cube.transparent")
-                                .frame(maxWidth: .infinity, minHeight: 30)
+                            Label("View the heat map in 3D", systemImage: "cube.transparent")
                         }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
+                        .buttonStyle(KeyButtonStyle(prominent: false))
                     }
-                    decisionButtons
+                    if !diff.regions.isEmpty || diff.uncoveredCount > 0 {
+                        RegionsList(diff: diff)
+                    }
+                    DecisionPanel(
+                        decision: model.decision,
+                        isBusy: model.isDeciding,
+                        message: model.decisionMessage
+                    ) { decision in
+                        Task { await model.decide(decision) }
+                    }
                 } else {
-                    Label(model.errorMessage ?? "No comparison result.", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                    if model.receipt?.baselineID != nil {
-                        Button("Try again") {
-                            Task { await model.runDiff() }
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label(model.errorMessage ?? "No comparison result.", systemImage: "exclamationmark.triangle.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.stamp)
+                        if model.receipt?.baselineID != nil {
+                            Button("Try again") {
+                                Task { await model.runDiff() }
+                            }
+                            .buttonStyle(KeyButtonStyle())
                         }
-                        .buttonStyle(.borderedProminent)
+                        Caption("The scan is uploaded. You can also compare later from its case file.")
                     }
+                    .panel()
                 }
-                Button("Done") { onClose() }
-                    .buttonStyle(.bordered)
+                Button("Open the case file") { onClose() }
+                    .buttonStyle(OutlineButtonStyle())
             }
-            .padding()
+            .padding(20)
         }
+        .paperBackground()
         .navigationTitle("Result")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showsModels) {
             if let diff = model.diff {
                 ModelViewerSheet(diff: diff)
             }
-        }
-    }
-
-    private func verdictCard(_ diff: DiffResult) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if diff.isMock {
-                Label("MOCK RESULT", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption.weight(.heavy))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.orange, in: Capsule())
-                    .foregroundStyle(.black)
-                    .accessibilityLabel("Mock result, not from the comparison engine")
-            }
-            Text(diff.headline)
-                .font(.title2.bold())
-                .foregroundStyle(color(for: diff.triage))
-            Text("Confidence \(Int((diff.confidence * 100).rounded()))%")
-                .foregroundStyle(.secondary)
-            if let reason = diff.reason {
-                Text(reason)
-                    .font(.subheadline)
-            }
-            if diff.isMock {
-                Text("Not from the comparison engine. Set ENGINE_URL to get a real result.")
-                    .font(.footnote)
-                    .foregroundStyle(.orange)
-            }
-            #if DEBUG
-            Text("Engine: \(diff.engineHost ?? "mock (none)")")
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-            #endif
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-    }
-
-    private func coverage(_ diff: DiffResult) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if let compared = diff.comparedFraction {
-                Text("Compared \(Int((compared * 100).rounded()))% of the surface; \(Int(((1 - compared) * 100).rounded()))% not covered by both scans.")
-            } else {
-                Text("Compared surface: not reported by the engine.")
-            }
-            if diff.uncoveredCount > 0 {
-                Text("\(diff.uncoveredCount) area\(diff.uncoveredCount == 1 ? "" : "s") only one scan saw (not compared).")
-            }
-            if let changed = diff.changedFraction {
-                Text("\(String(format: "%.1f", changed * 100))% of the surface changed beyond the noise threshold.")
-            }
-        }
-        .font(.footnote)
-        .foregroundStyle(.secondary)
-    }
-
-    private func regionList(_ diff: DiffResult) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("\(diff.regions.count) flagged region\(diff.regions.count == 1 ? "" : "s")")
-                .font(.headline)
-            ForEach(Array(diff.regions.prefix(12).enumerated()), id: \.element.id) { index, region in
-                HStack(alignment: .firstTextBaseline) {
-                    Text("\(index + 1)")
-                        .font(.caption.monospacedDigit().bold())
-                        .frame(width: 22)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(region.title)
-                            .font(.subheadline.weight(.semibold))
-                        Text(details(region))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Text(region.triage.title)
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(regionColor(region.triage).opacity(0.18), in: Capsule())
-                        .foregroundStyle(regionColor(region.triage))
-                }
-            }
-            if diff.regions.count > 12 {
-                Text("\(diff.regions.count - 12) more on the web viewer.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var decisionButtons: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Button("Accept") {
-                    Task { await model.decide("accept") }
-                }
-                .buttonStyle(.borderedProminent)
-                Button("Dispute") {
-                    Task { await model.decide("dispute") }
-                }
-                .buttonStyle(.bordered)
-            }
-            .disabled(model.isDeciding || model.receipt == nil)
-            if let decisionMessage = model.decisionMessage {
-                Text(decisionMessage)
-                    .font(.footnote)
-            }
-        }
-    }
-
-    private func details(_ region: DiffRegion) -> String {
-        var parts: [String] = []
-        if let max = region.maxMM { parts.append(String(format: "up to %.1f mm", max)) }
-        if let area = region.areaCM2 { parts.append(String(format: "%.1f cm²", area)) }
-        if let confidence = region.confidence { parts.append("\(Int((confidence * 100).rounded()))% sure") }
-        return parts.joined(separator: " · ")
-    }
-
-    private func color(for triage: Triage) -> Color {
-        switch triage {
-        case .noChange: .green
-        case .wear: .teal
-        case .damage: .red
-        case .inconclusive: .orange
-        }
-    }
-
-    private func regionColor(_ triage: RegionTriage) -> Color {
-        switch triage {
-        case .wear: .teal
-        case .damage: .red
-        case .inconclusive, .needsReview: .orange
         }
     }
 }
@@ -228,34 +134,36 @@ struct ProcessingFailedView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Label("Couldn't build the model", systemImage: "cube.transparent")
-                    .font(.title3.bold())
+                Text("Couldn't build the model")
+                    .font(Theme.display(30))
+                    .displayTracking(30)
+                    .foregroundStyle(Theme.ink)
                 Text(message)
-                Text("Your photos are kept. Try processing again, or re-scan with:")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 6) {
+                    .foregroundStyle(Theme.inkSoft)
+                VStack(alignment: .leading, spacing: 8) {
+                    Caption("Your photos are kept. Try processing again, or re-scan with:")
                     Label("Bright, even light (no harsh shadows)", systemImage: "sun.max")
                     Label("A patterned mat or newspaper under the object", systemImage: "square.grid.3x3")
                     Label("Slow, steady orbit; fill most of the frame", systemImage: "arrow.triangle.2.circlepath")
                     Label("For black or shiny items: a little tape or a sticker adds detail", systemImage: "sparkles")
                 }
                 .font(.subheadline)
+                .foregroundStyle(Theme.ink)
+                .panel()
                 Button {
                     onRetry()
                 } label: {
                     Label("Try processing again", systemImage: "arrow.clockwise")
-                        .frame(maxWidth: .infinity, minHeight: 30)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .buttonStyle(KeyButtonStyle())
                 Button("Re-scan") { onClose() }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+                    .buttonStyle(OutlineButtonStyle())
             }
-            .padding()
+            .padding(20)
         }
+        .paperBackground()
         .navigationTitle("Processing failed")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -269,14 +177,18 @@ struct MessageScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text(message)
+                    .foregroundStyle(Theme.ink)
+                    .panel()
                 if showsTips {
                     ScanningTips()
                 }
                 Button("Re-scan") { onClose() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(KeyButtonStyle())
             }
-            .padding()
+            .padding(20)
         }
+        .paperBackground()
         .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

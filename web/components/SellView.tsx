@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createItem, fetchInviteCode } from "@/lib/access";
 import { formatPrice } from "@/lib/format";
-import { nextItemId } from "@/lib/itemId";
+import { slugifyName } from "@/lib/itemId";
 import { useScanRows } from "@/lib/liveScans";
-import { MOCK_ITEMS } from "@/lib/mock/catalog";
-import { DEFAULT_PRICE_CENTS, listedItemIds, saveListing, useRealOrderRecord } from "@/lib/realOrder";
-import { fetchItemIds } from "@/lib/scans";
+import { DEFAULT_PRICE_CENTS, saveListing, useRealOrderRecord } from "@/lib/realOrder";
 import { browserSupabase } from "@/lib/supabase";
 import DemoBadge from "./DemoBadge";
 import LocalTime from "./LocalTime";
 import ScanQR from "./ScanQR";
+import ShareLink from "./ShareLink";
 
 /**
  * Step one of the pitch: list an item, then the seller scans it with the
@@ -35,31 +35,36 @@ export default function SellView() {
 function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState((DEFAULT_PRICE_CENTS / 100).toFixed(2));
-  const [known, setKnown] = useState<string[] | null>(null);
   const [touched, setTouched] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const db = browserSupabase();
-    // /sell only renders signed in with Supabase configured, so db is always there.
-    if (db) fetchItemIds(db).then(setKnown, () => setKnown([]));
-  }, []);
-
-  // Items already scanned, items listed in this browser that may not be scanned yet, and the
-  // mock demos (an item page shows the mock first, so mug-001 must never be handed out).
-  const id = known && nextItemId(name, [...known, ...listedItemIds(), ...MOCK_ITEMS.map((i) => i.id)]);
-  const nameProblem = name.trim() === "" ? "Enter what the item is, for example Mug." : !id && known ? "Use letters or numbers in the name." : null;
+  // The database numbers the id (mug-001, mug-002, …) across every account when the item is listed.
+  const slug = slugifyName(name);
+  const nameProblem = name.trim() === "" ? "Enter what the item is, for example Mug." : !slug ? "Use letters or numbers in the name." : null;
   const cents = Math.round(Number(price) * 100);
   const priceProblem = Number.isFinite(cents) && cents > 0 ? null : "Enter a price above $0.";
 
   return (
     <form
       className="sheet flex flex-col gap-4"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
         setTouched(true);
-        if (!id || nameProblem || priceProblem) return;
-        saveListing(id, { title: name.trim(), priceCents: cents, listedAt: new Date().toISOString() });
-        onListed(id);
+        // /sell only renders signed in with Supabase configured, so db is always there.
+        const db = browserSupabase();
+        if (nameProblem || priceProblem || !db || saving) return;
+        setSaving(true);
+        setError(null);
+        try {
+          const id = await createItem(db, slug);
+          saveListing(id, { title: name.trim(), priceCents: cents, listedAt: new Date().toISOString() });
+          onListed(id);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : String(err));
+        } finally {
+          setSaving(false);
+        }
       }}
     >
       <label className="flex flex-col gap-1 text-sm">
@@ -71,13 +76,11 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
           className="min-h-11 rounded-md border border-rule bg-paper px-3"
         />
         <span className="caption">
-          {id ? (
+          {slug ? (
             <>
-              Item ID <span className="font-mono text-ink">{id}</span>, assigned automatically. The iPhone app files every
-              scan of this item under it.
+              Item ID <span className="font-mono text-ink">{slug}-001</span>, or the next free number, assigned when you
+              list it. The iPhone app files every scan of this item under it.
             </>
-          ) : known === null ? (
-            "Reading the item IDs already in use…"
           ) : (
             "The item ID is assigned from the name, for example mug-001."
           )}
@@ -96,10 +99,18 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
         {touched && priceProblem && <span className="text-sm text-stamp">{priceProblem}</span>}
       </label>
 
-      <button type="submit" className="min-h-12 key bg-ink px-5 font-semibold text-paper disabled:opacity-40" disabled={!id}>
-        List item
+      <button type="submit" className="min-h-12 key bg-ink px-5 font-semibold text-paper disabled:opacity-40" disabled={saving}>
+        {saving ? "Listing…" : "List item"}
       </button>
-      <p className="caption">The listing is kept in this browser for the demo. Only the scans go to the database.</p>
+      {error && (
+        <p role="alert" className="text-sm text-stamp">
+          {error}
+        </p>
+      )}
+      <p className="caption">
+        The item is registered to your account: only you and the people you share it with see its scans. The title and
+        price stay in this browser for the demo.
+      </p>
     </form>
   );
 }
@@ -107,6 +118,12 @@ function ListingForm({ onListed }: { onListed: (itemId: string) => void }) {
 function AwaitBaseline({ itemId, onBack }: { itemId: string; onBack: () => void }) {
   const record = useRealOrderRecord(itemId);
   const { rows, error } = useScanRows(itemId);
+  const [invite, setInvite] = useState<string | null>(null);
+
+  useEffect(() => {
+    const db = browserSupabase();
+    if (db) fetchInviteCode(db, itemId).then(setInvite, () => setInvite(null));
+  }, [itemId]);
   const baseline = rows?.filter((r) => r.kind === "baseline").at(-1);
   const listedAt = record.listing?.listedAt;
   const fresh = baseline && listedAt && Date.parse(baseline.created_at) >= Date.parse(listedAt);
@@ -139,6 +156,17 @@ function AwaitBaseline({ itemId, onBack }: { itemId: string; onBack: () => void 
               Item page
             </Link>
           </div>
+          {invite && (
+            <div className="mt-4">
+              <ShareLink
+                itemId={itemId}
+                code={invite}
+                to="checkout"
+                title="Send the buyer this checkout link"
+                note="The buyer opens it signed in to their own account. It adds them to this item, so they can pay, scan it on arrival, and accept or dispute. Anyone with the link can join, so send it only to the buyer."
+              />
+            </div>
+          )}
         </div>
       ) : (
         <p className="text-sm">Scan the item with the ScanDiff iPhone app before packing it. This page updates when the scan arrives.</p>
@@ -147,7 +175,7 @@ function AwaitBaseline({ itemId, onBack }: { itemId: string; onBack: () => void 
       <div className="flex flex-col items-center gap-4 border-t border-rule pt-4">
         <div className="grid w-full gap-6 sm:grid-cols-2">
           <ScanQR itemId={itemId} kind="baseline" />
-          <ScanQR itemId={itemId} kind="check" />
+          <ScanQR itemId={itemId} kind="check" invite={invite ?? undefined} />
         </div>
         {!baseline && (
           <div className="w-full">

@@ -5,8 +5,19 @@ private struct ItemRow: Decodable {
     let item_id: String
 }
 
+/// The signed-in user's relation to an item (public.item_access in setup.sql).
+enum ItemAccess: String, Decodable {
+    case owner, member
+    /// The item exists but belongs to other accounts.
+    case others = "none"
+    case missing
+}
+
+/// Items are owned by the account that scanned their first baseline (or listed
+/// them on the website), and shared with others through the item's link.
+/// Row-level security returns only the scans of the signed-in user's items.
 struct ItemsService {
-    /// Distinct item ids, most recently scanned first.
+    /// The signed-in user's items, most recently scanned first.
     func recentItemIDs(limit: Int = 12) async throws -> [String] {
         let client = try makeClient()
         let rows: [ItemRow] = try await client
@@ -36,6 +47,50 @@ struct ItemsService {
             .execute()
             .value
         return !rows.isEmpty
+    }
+
+    func access(itemID: String) async throws -> ItemAccess {
+        try await makeClient()
+            .rpc("item_access", params: ["p_item_id": itemID])
+            .execute()
+            .value
+    }
+
+    /// Creates the item owned by the signed-in user, or confirms they already
+    /// belong to it. Throws when another account owns the id.
+    func claim(itemID: String) async throws {
+        try await makeClient()
+            .rpc("claim_item", params: ["p_item_id": itemID])
+            .execute()
+    }
+
+    /// A new item named <slug>-NNN, with the next free number across every
+    /// account, owned by the signed-in user. Returns its id.
+    func createItem(slug: String) async throws -> String {
+        try await makeClient()
+            .rpc("create_item", params: ["p_slug": slug])
+            .execute()
+            .value
+    }
+
+    /// The code the item's share links carry; nil unless the signed-in user belongs to the item.
+    func inviteCode(itemID: String) async throws -> String? {
+        struct Row: Decodable { let invite_code: String }
+        let rows: [Row] = try await makeClient()
+            .from("items")
+            .select("invite_code")
+            .eq("id", value: itemID)
+            .limit(1)
+            .execute()
+            .value
+        return rows.first?.invite_code
+    }
+
+    /// Joins the item with the invite code from its share link.
+    func join(itemID: String, inviteCode: String) async throws {
+        try await makeClient()
+            .rpc("join_item", params: ["p_item_id": itemID, "p_invite_code": inviteCode])
+            .execute()
     }
 
     /// The closest known id, for "did you mean" on typos like coffe-maker-2.

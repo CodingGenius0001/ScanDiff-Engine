@@ -185,6 +185,9 @@ export interface Item {
   priceCents?: number;
   /** "supabase" for real scans from the iOS app; mock items omit it. */
   source?: "supabase";
+  /** Real items: the signed-in user's role, and the code their share links carry. */
+  role?: "owner" | "member";
+  inviteCode?: string;
   /** Scans in time order. The first is the baseline. */
   versions: ScanVersion[];
 }

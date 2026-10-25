@@ -9,6 +9,9 @@ Results (heat maps, legends) are uploaded to a separate public bucket, or
 saved under engine/static/ when Supabase is not configured.
 """
 
+import base64
+import binascii
+import json
 import os
 import tempfile
 from dataclasses import dataclass
@@ -60,6 +63,27 @@ def load_settings() -> Settings:
     )
 
 
+def is_publishable_key(key: str) -> bool:
+    """Whether `key` is the publishable (anon) key rather than the secret (service role) key."""
+    if key.startswith("sb_publishable_"):
+        return True
+    parts = key.split(".")
+    if len(parts) != 3:
+        return False
+    try:
+        claims = json.loads(base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
+    except (binascii.Error, ValueError):
+        return False
+    return isinstance(claims, dict) and claims.get("role") == "anon"
+
+
+# Row-level security (ios/supabase/setup.sql) hides every scan from the publishable key.
+PUBLISHABLE_KEY_HINT = (
+    " SUPABASE_KEY is the publishable key, which row-level security keeps from reading scans;"
+    " set it to the project's secret key."
+)
+
+
 def connect(settings: Settings) -> Client:
     return create_client(settings.url, settings.key)
 
@@ -108,7 +132,8 @@ def resolve_folder(client: Client, settings: Settings, scan: str) -> tuple[str, 
         if entry["name"].lower() == wanted
     ]
     if not matches:
-        raise ScanNotFound(f"No scan folder named {parts[-1]} in {settings.bucket}.")
+        hint = PUBLISHABLE_KEY_HINT if is_publishable_key(settings.key) else ""
+        raise ScanNotFound(f"No scan folder named {parts[-1]} in {settings.bucket}.{hint}")
     if len(matches) > 1:
         raise ScanNotFound(f"Scan {parts[-1]} is in {len(matches)} item folders; pass item_id/scan_id instead.")
     return matches[0]
@@ -270,9 +295,10 @@ def upload_file(data: bytes, path: str, bucket: str | None = None) -> str:
     try:
         bucket.upload(relative, data, {"content-type": content_type, "upsert": "true"})
     except (StorageException, httpx.HTTPError) as exc:
+        hint = PUBLISHABLE_KEY_HINT if is_publishable_key(key) else ""
         raise UploadFailed(
             f"Could not upload {relative} to the {bucket_name} bucket: {exc}. The bucket must "
-            "exist, be public, and allow inserts and updates for this key."
+            f"exist, be public, and allow inserts and updates for this key.{hint}"
         ) from exc
     return bucket.get_public_url(relative)
 

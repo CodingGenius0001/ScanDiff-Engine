@@ -37,6 +37,8 @@ enum ScanKind: String, CaseIterable, Identifiable, Codable {
 struct ScanRequest: Equatable {
     var itemID: String
     var kind: ScanKind
+    /// From a share link's QR code: joins the item before scanning.
+    var invite: String? = nil
 }
 
 struct CameraPose: Equatable {

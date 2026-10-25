@@ -159,7 +159,7 @@ function Row({ n, href, title, note }: { n: number; href: string; title: string;
   );
 }
 
-/** Case files the iOS app has uploaded to Supabase, read as the signed-in user. */
+/** The signed-in user's case files, as seller or buyer. Row-level security leaves out everyone else's. */
 async function ScannedItems() {
   const db = await serverSupabase();
   if (!db) return null;
@@ -171,7 +171,7 @@ async function ScannedItems() {
           <Link href="/login" className="text-ink underline underline-offset-4">
             Sign in
           </Link>{" "}
-          to see the case files scanned with the iPhone app.
+          to see your case files scanned with the iPhone app.
         </span>
       </p>
     );
@@ -182,9 +182,15 @@ async function ScannedItems() {
   } catch (e) {
     return <p className="text-sm text-stamp">{e instanceof Error ? e.message : String(e)}</p>;
   }
-  if (ids.length === 0) return null;
+  if (ids.length === 0) {
+    return (
+      <p className="rounded-md border border-rule bg-[var(--panel)] px-4 py-3 text-sm text-ink-soft">
+        No case files yet. Items you list or scan, and items shared with you, show up here.
+      </p>
+    );
+  }
   return (
-    <Index title="Case files" note="Scanned with the iPhone app.">
+    <Index title="Your case files" note="Items you listed or scanned, and items shared with you.">
       {ids.map((id, i) => (
         <Row key={id} n={i + 1} href={`/item/${encodeURIComponent(id)}`} title={id} />
       ))}

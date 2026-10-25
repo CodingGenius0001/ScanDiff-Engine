@@ -1,6 +1,8 @@
 """GET /scans/{scan_id}/model.glb and the Supabase folder lookup behind it."""
 
+import base64
 import io
+import json
 from pathlib import Path
 
 import numpy as np
@@ -233,5 +235,26 @@ def test_resolve_folder_searches_the_bucket_without_a_table_row():
 
 
 def test_resolve_folder_raises_for_unknown_scans():
-    with pytest.raises(ScanNotFound):
+    with pytest.raises(ScanNotFound) as error:
         storage.resolve_folder(_FakeClient(FOLDERS), SETTINGS, "not-a-scan")
+    assert "publishable" not in str(error.value)
+
+
+def _jwt(role: str) -> str:
+    claims = base64.urlsafe_b64encode(json.dumps({"role": role}).encode()).decode().rstrip("=")
+    return f"header.{claims}.signature"
+
+
+def test_publishable_keys_are_recognized():
+    assert storage.is_publishable_key("sb_publishable_abc")
+    assert storage.is_publishable_key(_jwt("anon"))
+    assert not storage.is_publishable_key("sb_secret_abc")
+    assert not storage.is_publishable_key(_jwt("service_role"))
+    assert not storage.is_publishable_key("k")
+    assert not storage.is_publishable_key("a.!!!.c")
+
+
+def test_scan_not_found_explains_a_publishable_key():
+    settings = storage.Settings(url="u", key="sb_publishable_abc", bucket="scans", scans_table="scans")
+    with pytest.raises(ScanNotFound, match="secret key"):
+        storage.resolve_folder(_FakeClient({}), settings, SCAN_ID)

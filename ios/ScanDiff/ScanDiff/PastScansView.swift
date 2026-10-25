@@ -41,20 +41,15 @@ struct PastScan: Identifiable, Equatable, Decodable {
     }
 }
 
-enum PastScanFilter: String, CaseIterable, Identifiable {
-    case mine, all
-    var id: Self { self }
-    var title: String { self == .mine ? "Mine" : "All" }
-}
-
 @MainActor
 @Observable
 final class PastScansModel {
     var scans: [PastScan] = []
-    var filter: PastScanFilter = .mine
     var isLoading = false
     var errorMessage: String?
 
+    /// Every scan of the signed-in user's items, including the other party's:
+    /// row-level security leaves out items they don't own or haven't joined.
     func load() async {
         guard let client = SupabaseProvider.client else {
             errorMessage = ScanError.missingSecrets.errorDescription
@@ -63,16 +58,11 @@ final class PastScansModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            var query = client
+            let rows: [PastScan] = try await client
                 .from("scans")
                 .select("id,item_id,version,kind,model_url,sha256,created_by,created_at,decision")
-            if filter == .mine {
-                let userID = client.auth.currentUser?.id.uuidString.lowercased() ?? "signed-out"
-                query = query.eq("created_by", value: userID)
-            }
-            let rows: [PastScan] = try await query
                 .order("created_at", ascending: false)
-                .limit(200)
+                .limit(500)
                 .execute()
                 .value
             scans = rows.filter { !$0.itemID.hasPrefix("_") }
@@ -98,14 +88,6 @@ struct PastScansView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    Picker("Show", selection: $model.filter) {
-                        ForEach(PastScanFilter.allCases) { Text($0.title).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                }
                 if let errorMessage = model.errorMessage {
                     Text(errorMessage).foregroundStyle(.red)
                 }
@@ -124,9 +106,7 @@ struct PastScansView: View {
                     ContentUnavailableView(
                         "No scans yet",
                         systemImage: "cube.transparent",
-                        description: Text(model.filter == .mine
-                            ? "Scans you upload while signed in appear here. Older scans are under All."
-                            : "Upload a baseline to get started.")
+                        description: Text("Items you scan, and items shared with you, appear here with every scan of them.")
                     )
                 } else if model.isLoading && model.scans.isEmpty {
                     ProgressView()
@@ -145,7 +125,7 @@ struct PastScansView: View {
                     Button("Close") { dismiss() }
                 }
             }
-            .task(id: model.filter) { await model.load() }
+            .task { await model.load() }
             .refreshable { await model.load() }
         }
     }
@@ -169,6 +149,10 @@ extension PastScan: Hashable {
 private struct PastScanRow: View {
     let scan: PastScan
 
+    private var isMine: Bool {
+        scan.createdBy != nil && scan.createdBy == SupabaseProvider.client?.auth.currentUser?.id.uuidString.lowercased()
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: scan.kind == .baseline ? "cube" : "checkmark.seal")
@@ -176,7 +160,7 @@ private struct PastScanRow: View {
                 .foregroundStyle(scan.kind == .baseline ? Color.accentColor : .teal)
                 .frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(scan.kind.title) · v\(scan.version)")
+                Text("\(scan.kind.title) · v\(scan.version)\(isMine ? " · You" : "")")
                     .font(.subheadline.weight(.semibold))
                 if let date = scan.createdAt {
                     Text(date, format: .relative(presentation: .named))

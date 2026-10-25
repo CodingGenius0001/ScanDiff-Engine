@@ -30,6 +30,15 @@ struct UploadService {
         let itemID = scan.metadata.item_id
         let scanID = scan.metadata.scan_id
         let isCheck = scan.metadata.kind == ScanKind.check.rawValue
+        if !isCheck {
+            // A baseline makes the signed-in account the item's owner. Storage only
+            // accepts the files once the account belongs to the item.
+            do {
+                try await ItemsService().claim(itemID: itemID)
+            } catch {
+                throw ScanError.uploadFailed(error.localizedDescription)
+            }
+        }
         async let nextVersionNumber = nextVersion(client: client, itemID: itemID)
         async let baseline = isCheck ? latestBaselineID(client: client, itemID: itemID) : nil
 

@@ -11,10 +11,11 @@ const TEXT: Record<ScanKind, string> = {
  * offers to open ScanDiff, which starts the scan for this item. Drawn as
  * one SVG path, so it renders on the server and prints sharply.
  */
-export default function ScanQR({ itemId, kind, existing = false }: { itemId: string; kind: ScanKind; existing?: boolean }) {
+export default function ScanQR(props: { itemId: string; kind: ScanKind; existing?: boolean; invite?: string }) {
+  const { itemId, kind, existing = false, invite } = props;
   let link: string;
   try {
-    link = scanLink(itemId, kind, { existing });
+    link = scanLink(itemId, kind, { existing, invite });
   } catch (e) {
     // Never take the page down over a QR code: say why there is none.
     return (

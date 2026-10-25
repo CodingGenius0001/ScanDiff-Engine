@@ -1,7 +1,7 @@
 import XCTest
 @testable import ScanDiff
 
-final class PastScanDecodingTests: XCTestCase {
+final class ScanRecordDecodingTests: XCTestCase {
     func testDecodesScanRowsAsSupabaseReturnsThem() throws {
         let json = Data("""
         [
@@ -14,7 +14,7 @@ final class PastScanDecodingTests: XCTestCase {
            "model_url": "", "sha256": null, "created_by": null, "created_at": "not a date", "decision": null}
         ]
         """.utf8)
-        let rows = try JSONDecoder().decode([PastScan].self, from: json)
+        let rows = try JSONDecoder().decode([ScanRecord].self, from: json)
         XCTAssertEqual(rows.count, 3)
         XCTAssertEqual(rows[0].kind, .baseline)
         XCTAssertNotNil(rows[0].createdAt)

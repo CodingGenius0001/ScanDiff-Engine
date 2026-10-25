@@ -6,7 +6,8 @@ import UIKit
 
 @MainActor
 @Observable
-final class ScanSessionModel {
+final class ScanSessionModel: Identifiable {
+    nonisolated var id: UUID { scanID }
     let request: ScanRequest
     let scanID: UUID
     let folders: CaptureFolders
@@ -46,6 +47,8 @@ final class ScanSessionModel {
     var poseWarning: String?
     var errorMessage: String?
     var decisionMessage: String?
+    /// The buyer's decision on this check scan once written (accept | dispute).
+    var decision: String?
     var isDeciding = false
 
     /// Why Finish is unavailable right now, or nil when the scan can finish.
@@ -522,7 +525,8 @@ final class ScanSessionModel {
         defer { isDeciding = false }
         do {
             try await UploadService().writeDecision(scanID: receipt.scanID, decision: decision)
-            decisionMessage = decision == "accept" ? "Marked as accepted." : "Marked as disputed."
+            self.decision = decision
+            decisionMessage = decision == "accept" ? "Saved. The checkout releases the payment." : "Saved. The payment stays held."
         } catch {
             decisionMessage = error.localizedDescription
         }

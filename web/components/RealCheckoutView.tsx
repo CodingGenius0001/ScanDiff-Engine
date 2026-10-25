@@ -19,6 +19,7 @@ import DemoBadge from "./DemoBadge";
 import Fingerprint from "./Fingerprint";
 import LocalTime from "./LocalTime";
 import ScanQR from "./ScanQR";
+import ShareLink from "./ShareLink";
 import StatusPill from "./StatusPill";
 
 /**
@@ -66,6 +67,18 @@ export default function RealCheckoutView({ item }: { item: Item }) {
         </div>
       </section>
 
+      {item.role === "owner" && item.inviteCode && (
+        <section className="sheet">
+          <ShareLink
+            itemId={item.id}
+            code={item.inviteCode}
+            to="checkout"
+            title="Send the buyer this checkout link"
+            note="The buyer opens it signed in to their own account. It adds them to this item, so they can pay, scan it on arrival, and accept or dispute. Anyone with the link can join, so send it only to the buyer."
+          />
+        </section>
+      )}
+
       <section className="sheet">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="display text-3xl">Order status</h2>
@@ -109,7 +122,7 @@ export default function RealCheckoutView({ item }: { item: Item }) {
                 . When the parcel arrives, the buyer scans it with the ScanDiff iPhone app.
               </p>
               <div className="flex justify-center border-y border-rule py-4">
-                <ScanQR itemId={item.id} kind="check" />
+                <ScanQR itemId={item.id} kind="check" invite={item.inviteCode} />
               </div>
               <Waiting text="Waiting for the buyer's check scan" />
             </>

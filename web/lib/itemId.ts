@@ -32,25 +32,8 @@ export function slugifyName(name: string): string {
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, MAX_LENGTH - 4);
-}
-
-/**
- * The next free id for an item name: "Mug" with mug-001 taken → "mug-002".
- * Null when the name has no letters or digits to build an id from.
- */
-export function nextItemId(name: string, taken: Iterable<string>): string | null {
-  const slug = slugifyName(name);
-  if (!slug) return null;
-  const pattern = new RegExp(`^${slug}-(\\d+)$`);
-  let highest = 0;
-  for (const id of taken) {
-    const m = pattern.exec(id.toLowerCase());
-    if (m) highest = Math.max(highest, Number(m[1]));
-  }
-  const id = `${slug}-${String(highest + 1).padStart(3, "0")}`;
-  return itemIdProblem(id) ? null : id;
+    .slice(0, MAX_LENGTH - 4)
+    .replace(/^-+|-+$/g, "");
 }
 
 /**
@@ -87,14 +70,21 @@ const APP_PATTERN = /^[A-Za-z0-9_-]+$/;
  * The deep link that opens the iOS app straight into a scan. New ids must pass
  * the strict lowercase rules. An item that already has scans keeps its id
  * exactly as stored (lowercasing it would file the next scan under another
- * item), as long as the app accepts it. Throws on an id that cannot be used.
+ * item), as long as the app accepts it. Check-in links carry the item's
+ * invite code, so a buyer's phone joins the item before scanning. Throws on
+ * an id that cannot be used.
  */
-export function scanLink(itemId: string, kind: ScanKind, { existing = false } = {}): string {
+export function scanLink(
+  itemId: string,
+  kind: ScanKind,
+  { existing = false, invite }: { existing?: boolean; invite?: string } = {},
+): string {
   if (existing) {
     if (!APP_PATTERN.test(itemId)) throw new Error(`The item ID "${itemId}" has characters a scan link cannot carry.`);
   } else {
     const problem = itemIdProblem(itemId);
     if (problem || itemId !== normalizeItemId(itemId)) throw new Error(`Bad item ID "${itemId}": ${problem ?? "not lowercase"}`);
   }
-  return `scandiff://scan?item=${encodeURIComponent(itemId)}&kind=${kind}`;
+  const link = `scandiff://scan?item=${encodeURIComponent(itemId)}&kind=${kind}`;
+  return invite && kind === "check" ? `${link}&invite=${encodeURIComponent(invite)}` : link;
 }

@@ -52,37 +52,16 @@ Native sign-in signs in with Google's ID token. If it fails for any reason other
 
 ## Supabase
 
-In the SQL editor:
+Run [`ios/supabase/setup.sql`](supabase/setup.sql) in the SQL editor. It is safe to re-run, and upgrades a database set up with the earlier, open rules.
 
-```sql
-create table if not exists public.scans (
-  id uuid primary key,
-  item_id text not null,
-  version int not null,
-  kind text not null,
-  model_url text,
-  sha256 text,
-  created_by text,
-  created_at timestamptz,
-  decision text
-);
+Every item belongs to accounts, and row-level security only shows a signed-in user the items they belong to:
 
-alter table public.scans enable row level security;
+- **Owner**: the account that listed the item (website or app) or scanned its first baseline. Only the owner uploads baselines. Before a baseline upload the app calls `claim_item`, which creates the item or confirms ownership, and fails if another account already uses the id.
+- **Member**: an account that opened the item's share link, `https://scandiff.us/join/<item>?code=<invite code>`, or scanned a check-in QR code carrying `&invite=<code>`. Members upload check scans and accept or dispute them.
+- Signed out, nothing is readable. Storage listing and uploads follow the same rule, and a scan's files can only be replaced by whoever uploaded them. Files stay downloadable by their public URL, which contains the scan's random id.
+- The engine reads with the project's **secret** key (`engine/.env`), which bypasses these rules.
 
-create policy "anon read scans" on public.scans for select to anon using (true);
-create policy "anon insert scans" on public.scans for insert to anon with check (true);
-create policy "anon update scans" on public.scans for update to anon using (true);
-
-insert into storage.buckets (id, name, public)
-values ('scans', 'scans', true)
-on conflict (id) do update set public = true;
-
-create policy "anon read scan files" on storage.objects for select to anon using (bucket_id = 'scans');
-create policy "anon insert scan files" on storage.objects for insert to anon with check (bucket_id = 'scans');
-create policy "anon update scan files" on storage.objects for update to anon using (bucket_id = 'scans');
-```
-
-These policies are open so a hackathon build can upload with the anon key. Tighten them before any real data.
+`ios/supabase/tests/run.sh` checks these rules on a throwaway local Postgres 16.
 
 Files land at `scans/<item_id>/<scan_id>/`. The table row’s `model_url` is the public URL of `model.usdz`, and `sha256` is that file’s SHA256. `version` is one higher than the latest row for the same item. A check scan looks up the latest `kind = baseline` row and `POST`s `{ "base_id", "new_id" }` to `{ENGINE_URL}/diff`.
 

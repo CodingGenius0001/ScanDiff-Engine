@@ -75,13 +75,6 @@ export function placeHold(itemId: string, rows: ScanRow[]) {
   update(itemId, (cur) => ({ ...cur, hold: { at: new Date().toISOString(), seen }, decided: undefined }));
 }
 
-/** Item ids listed in this browser, so a new listing never reuses one before it is scanned. */
-export function listedItemIds(): string[] {
-  return Object.entries(all())
-    .filter(([, r]) => r.listing)
-    .map(([id]) => id);
-}
-
 /** Back to listed. Scans and decisions in the database are not touched. */
 export function resetHold(itemId: string) {
   update(itemId, (cur) => ({ listing: cur.listing }));

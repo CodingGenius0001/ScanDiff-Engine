@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import EvidenceView from "@/components/EvidenceView";
+import NoAccess from "@/components/NoAccess";
 import SignInPrompt from "@/components/SignInPrompt";
 import { getItem, listItems } from "@/lib/items";
 
@@ -14,6 +15,7 @@ export default function EvidencePage({ params }: PageProps<"/item/[id]/evidence"
       {params.then(async ({ id }) => {
         const item = await getItem(id);
         if (item === "sign_in") return <SignInPrompt next={`/item/${encodeURIComponent(id)}/evidence`} />;
+        if (item === "no_access") return <NoAccess itemId={id} />;
         if (!item) notFound();
         return <EvidenceView item={item} />;
       })}
