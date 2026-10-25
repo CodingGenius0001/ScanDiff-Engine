@@ -3,6 +3,8 @@ import SwiftUI
 struct HomeView: View {
     @Environment(AppModel.self) private var appModel
     @EnvironmentObject private var auth: AuthService
+    @State private var showsPastScans = false
+    @State private var pendingCheckItem: String?
 
     var body: some View {
         @Bindable var appModel = appModel
@@ -79,6 +81,15 @@ struct HomeView: View {
                         .foregroundStyle(.red)
                 }
 
+                Button {
+                    showsPastScans = true
+                } label: {
+                    Label("Past scans", systemImage: "clock.arrow.circlepath")
+                        .frame(maxWidth: .infinity, minHeight: 30)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+
                 ScanningTips()
             }
             .padding()
@@ -86,6 +97,20 @@ struct HomeView: View {
         .navigationTitle("ScanDiff")
         .task { await appModel.loadRecentItems() }
         .refreshable { await appModel.loadRecentItems() }
+        .sheet(isPresented: $showsPastScans, onDismiss: startPendingCheck) {
+            PastScansView { itemID in
+                pendingCheckItem = itemID
+            }
+        }
+    }
+
+    /// Starts after the sheet is gone so the scan flow isn't presented under it.
+    private func startPendingCheck() {
+        guard let itemID = pendingCheckItem else { return }
+        pendingCheckItem = nil
+        appModel.itemID = itemID
+        appModel.kind = .check
+        Task { await appModel.start() }
     }
 }
 
