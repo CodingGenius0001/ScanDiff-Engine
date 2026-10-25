@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 GLB_CACHE_DIR = storage.DATA_DIR.parent / "glb"
 # Part of each cached file's name. Bump it when the conversion changes, so old files are not served.
-GLB_FORMAT_VERSION = 1
+# 2: textured, from the app's OBJ + MTL + textures with its smoothed normals, when the scan has them.
+GLB_FORMAT_VERSION = 2
+# The OBJ must sit where the model does; a larger bounds difference means another frame.
+TEXTURED_MAX_BOUNDS_DIFF_M = 0.001
 # Name of the converted model in the scan's own folder in the scans bucket.
 STORED_GLB_NAME = "model.glb"
 
@@ -42,9 +45,32 @@ def converted_glb(model: Path | None, metadata: ScanMetadata, mesh: trimesh.Trim
     path = GLB_CACHE_DIR / f"{metadata.model_sha256.lower()}-v{GLB_FORMAT_VERSION}.glb"
     if not path.is_file():
         mesh = mesh if mesh is not None else load_mesh(model, require_density=False)
+        display = textured_mesh(metadata, mesh) or mesh
         # Vertex normals let the viewer shade the low-detail mesh smoothly.
-        storage.write_atomic(path, mesh.export(file_type="glb", include_normals=True))
+        storage.write_atomic(path, display.export(file_type="glb", include_normals=True))
     return path
+
+
+def textured_mesh(metadata: ScanMetadata, geometry: trimesh.Trimesh) -> trimesh.Trimesh | None:
+    """The app's textured OBJ, when the scan has one in the same frame as `geometry`; otherwise None.
+
+    It carries the color texture, UVs and the app's edge-preserving shading normals,
+    which the geometry read from the USDZ does not.
+    """
+    try:
+        obj = storage.fetch_textured_obj(metadata)
+        if obj is None:
+            return None
+        textured = trimesh.load(obj, force="mesh", process=False)
+    except Exception as exc:  # noqa: BLE001 - any problem falls back to the untextured model
+        logger.warning("textured model for %s unavailable: %s", metadata.scan_id, exc)
+        return None
+    if not isinstance(textured, trimesh.Trimesh) or getattr(textured.visual, "kind", None) != "texture":
+        return None
+    if abs(textured.bounds - geometry.bounds).max() > TEXTURED_MAX_BOUNDS_DIFF_M:
+        logger.warning("textured model for %s is not in the model's frame; using geometry only", metadata.scan_id)
+        return None
+    return textured
 
 
 def publish_glb(path: Path, metadata: ScanMetadata) -> str:

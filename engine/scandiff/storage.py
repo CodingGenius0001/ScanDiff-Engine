@@ -23,7 +23,7 @@ from supabase import Client, ClientOptions, create_client
 
 from app.schemas import ScanMetadata
 from scandiff import config
-from scandiff.errors import InvalidMetadata, ScanNotFound, StorageNotConfigured, UploadFailed
+from scandiff.errors import ChecksumMismatch, InvalidMetadata, ScanNotFound, StorageNotConfigured, UploadFailed
 from scandiff.io import file_sha256, verify_model_sha256
 
 ENGINE_DIR = Path(__file__).resolve().parents[1]
@@ -222,6 +222,28 @@ def _fetch(scan: str, photos: bool) -> tuple[Path, ScanMetadata]:
             if not (is_current(local, None, sha256) if sha256 else local.is_file()):
                 download(client, settings.bucket, f"{folder}/{photo.file}", local)
     return model, metadata
+
+
+def fetch_textured_obj(metadata: ScanMetadata) -> Path | None:
+    """Download the scan's textured OBJ, its .mtl and textures next to its model; None when the scan has none.
+
+    Files are checked against their sha256 in `files`/`textures` when the metadata lists one.
+    """
+    if not (metadata.obj_file and metadata.material_file):
+        return None
+    settings = load_settings()
+    client = connect(settings)
+    folder = f"{metadata.item_id}/{metadata.scan_id}"
+    target = DATA_DIR / metadata.item_id / metadata.scan_id
+    hashes = expected_hashes(metadata)
+    for name in [metadata.obj_file, metadata.material_file, *(texture.file for texture in metadata.textures)]:
+        local = target / name
+        sha256 = hashes.get(name)
+        if not (is_current(local, None, sha256) if sha256 else local.is_file()):
+            download(client, settings.bucket, f"{folder}/{name}", local)
+        if sha256 and file_sha256(local).lower() != sha256.lower():
+            raise ChecksumMismatch(f"{name} does not match its sha256 in metadata.json.")
+    return target / metadata.obj_file
 
 
 def upload_file(data: bytes, path: str, bucket: str | None = None) -> str:

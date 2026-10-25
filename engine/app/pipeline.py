@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-from app.scan_models import converted_glb, publish_glb
+from app.scan_models import converted_glb, publish_glb, textured_mesh
 from app.schemas import DiffResponse, HeatmapLegend, Histogram, Region, ScanMetadata, Stats, UncoveredRegion
 from scandiff import config, storage
 from scandiff.align import align
@@ -133,14 +133,19 @@ def compare(base: LoadedScan, new: LoadedScan, diff_id: str | None = None, check
             )
         )
         heatmap = pool.submit(make_heatmap, new.mesh, aligned.transform, base_cloud, threshold_mm)
-        new_aligned_mesh = new.mesh.copy()
-        new_aligned_mesh.apply_transform(aligned.transform)
+        new_textured = pool.submit(textured_mesh, new.metadata, new.mesh)
+
+        def new_aligned_glb() -> bytes:
+            mesh = (new_textured.result() or new.mesh).copy()
+            mesh.apply_transform(aligned.transform)
+            return _glb(mesh)
+
         urls = {
             "heatmap": pool.submit(lambda: storage.upload_file(heatmap.result(), f"diffs/{diff_id}/heatmap.glb")),
             # The base scan's frame is the diff's frame, so its stored GLB is the base model as is.
             "base": pool.submit(lambda: publish_glb(converted_glb(None, base.metadata, base.mesh), base.metadata)),
             "new_stored": pool.submit(lambda: publish_glb(converted_glb(None, new.metadata, new.mesh), new.metadata)),
-            "new": pool.submit(storage.upload_file, _glb(new_aligned_mesh), f"diffs/{diff_id}/new_model.glb"),
+            "new": pool.submit(lambda: storage.upload_file(new_aligned_glb(), f"diffs/{diff_id}/new_model.glb")),
         }
         urls = {name: future.result() for name, future in urls.items()}
 
